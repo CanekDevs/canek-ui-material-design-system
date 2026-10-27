@@ -1,0 +1,282 @@
+:root {
+  /* ============ COLOR PRIMITIVES ============ */
+  --cn-color-brand-50: #eef3fb;
+  --cn-color-brand-100: #d4e0f4;
+  --cn-color-brand-200: #a8c0e8;
+  --cn-color-brand-300: #7c9fdc;
+  --cn-color-brand-400: #5081c4;
+  --cn-color-brand-500: #3562a6;
+  --cn-color-brand-600: #254d87;
+  --cn-color-brand-700: #1c3d6d;
+  --cn-color-brand-800: #142c50;
+  --cn-color-brand-900: #0b1a33;
+
+  --cn-color-neutral-0: #ffffff;
+  --cn-color-neutral-50: #fafbfc;
+  --cn-color-neutral-100: #f4f5f7;
+  --cn-color-neutral-150: #e9ecef;
+  --cn-color-neutral-200: #dde0e4;
+  --cn-color-neutral-300: #c5cad0;
+  --cn-color-neutral-400: #9aa1aa;
+  --cn-color-neutral-500: #6e7682;
+  --cn-color-neutral-600: #4e5660;
+  --cn-color-neutral-700: #363d45;
+  --cn-color-neutral-800: #222831;
+  --cn-color-neutral-900: #111418;
+
+  --cn-color-success-50: #e8f5ec;
+  --cn-color-success-100: #c8e6d0;
+  --cn-color-success-500: #2e9e4f;
+  --cn-color-success-600: #228740;
+  --cn-color-success-700: #176230;
+  --cn-color-success-900: #0d3b1d;
+
+  --cn-color-warning-50: #fef5e7;
+  --cn-color-warning-100: #fbe5b8;
+  --cn-color-warning-500: #e0a020;
+  --cn-color-warning-600: #b8831a;
+  --cn-color-warning-700: #8a6312;
+  --cn-color-warning-900: #523a08;
+
+  --cn-color-error-50: #fdecec;
+  --cn-color-error-100: #f9c8c8;
+  --cn-color-error-500: #d63c3c;
+  --cn-color-error-600: #b52f2f;
+  --cn-color-error-700: #8e2424;
+  --cn-color-error-900: #551414;
+
+  --cn-color-info-50: #e7f2fc;
+  --cn-color-info-100: #c2dff7;
+  --cn-color-info-500: #2c7bc8;
+  --cn-color-info-600: #2367a8;
+  --cn-color-info-700: #1a4f82;
+  --cn-color-info-900: #0f2f4e;
+
+  --cn-color-accent-50: #eef0ff;
+  --cn-color-accent-100: #d8deff;
+  --cn-color-accent-300: #8c9eff;
+  --cn-color-accent-500: #3d5afe;
+  --cn-color-accent-600: #304ffe;
+  --cn-color-accent-900: #1a2a99;
+
+  /* RGB variants for rgba() usage */
+  --cn-color-rgb-brand-50: 238, 243, 251;
+  --cn-color-rgb-brand-100: 212, 224, 244;
+  --cn-color-rgb-brand-200: 168, 192, 232;
+  --cn-color-rgb-brand-300: 124, 159, 220;
+  --cn-color-rgb-brand-400: 80, 129, 196;
+  --cn-color-rgb-brand-500: 53, 98, 166;
+  --cn-color-rgb-brand-600: 37, 77, 135;
+  --cn-color-rgb-brand-700: 28, 61, 109;
+  --cn-color-rgb-brand-900: 11, 26, 51;
+
+  --cn-color-rgb-neutral-0: 255, 255, 255;
+  --cn-color-rgb-neutral-50: 250, 251, 252;
+  --cn-color-rgb-neutral-100: 244, 245, 247;
+  --cn-color-rgb-neutral-150: 233, 236, 239;
+  --cn-color-rgb-neutral-200: 221, 224, 228;
+  --cn-color-rgb-neutral-300: 197, 202, 208;
+  --cn-color-rgb-neutral-400: 154, 161, 170;
+  --cn-color-rgb-neutral-500: 110, 118, 130;
+  --cn-color-rgb-neutral-600: 78, 86, 96;
+  --cn-color-rgb-neutral-700: 54, 61, 69;
+  --cn-color-rgb-neutral-800: 34, 40, 49;
+  --cn-color-rgb-neutral-900: 17, 20, 24;
+
+  --cn-color-rgb-success-500: 46, 158, 79;
+  --cn-color-rgb-success-600: 34, 135, 64;
+  --cn-color-rgb-success-700: 23, 98, 48;
+  --cn-color-rgb-warning-500: 224, 160, 32;
+  --cn-color-rgb-warning-600: 184, 131, 26;
+  --cn-color-rgb-warning-700: 138, 99, 18;
+  --cn-color-rgb-error-500: 214, 60, 60;
+  --cn-color-rgb-error-600: 181, 47, 47;
+  --cn-color-rgb-error-700: 142, 36, 36;
+  --cn-color-rgb-info-500: 44, 123, 200;
+  --cn-color-rgb-info-600: 35, 103, 168;
+  --cn-color-rgb-info-700: 26, 79, 130;
+  --cn-color-rgb-accent-300: 140, 158, 255;
+  --cn-color-rgb-accent-500: 61, 90, 254;
+  --cn-color-rgb-accent-600: 48, 79, 254;
+
+  /* ============ SEMANTIC TOKENS (LIGHT) ============ */
+  --cn-color-bg: var(--cn-color-neutral-50);
+  --cn-color-surface: var(--cn-color-neutral-0);
+  --cn-color-surface-elevated: var(--cn-color-neutral-0);
+  --cn-color-surface-sunken: var(--cn-color-neutral-100);
+  --cn-color-text: var(--cn-color-neutral-800);
+  --cn-color-text-muted: var(--cn-color-neutral-500);
+  --cn-color-text-subtle: var(--cn-color-neutral-400);
+  --cn-color-text-inverse: var(--cn-color-neutral-0);
+  --cn-color-border: var(--cn-color-neutral-200);
+  --cn-color-border-subtle: var(--cn-color-neutral-150);
+  --cn-color-border-strong: var(--cn-color-neutral-300);
+  --cn-color-focus-ring: rgba(var(--cn-color-rgb-brand-400), 0.35);
+
+  /* ============ STATE TOKENS ============ */
+  --cn-color-hover: rgba(0, 0, 0, 0.04);
+  --cn-color-active: rgba(0, 0, 0, 0.08);
+  --cn-color-disabled-bg: var(--cn-color-neutral-150);
+  --cn-color-disabled-text: var(--cn-color-neutral-400);
+  --cn-color-disabled-border: var(--cn-color-neutral-200);
+
+  /* ============ SPACING ============ */
+  --cn-space-0: 0;
+  --cn-space-1: 4px;
+  --cn-space-2: 8px;
+  --cn-space-3: 12px;
+  --cn-space-4: 16px;
+  --cn-space-5: 20px;
+  --cn-space-6: 24px;
+  --cn-space-8: 32px;
+  --cn-space-10: 40px;
+  --cn-space-12: 48px;
+  --cn-space-16: 64px;
+
+  /* ============ RADII ============ */
+  --cn-radius-none: 0;
+  --cn-radius-xs: 4px;
+  --cn-radius-sm: 6px;
+  --cn-radius-md: 8px;
+  --cn-radius-lg: 12px;
+  --cn-radius-xl: 16px;
+  --cn-radius-2xl: 24px;
+  --cn-radius-3xl: 32px;
+  --cn-radius-full: 9999px;
+
+  /* ============ ELEVATION ============ */
+  --cn-shadow-none: none;
+  --cn-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --cn-shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.06);
+  --cn-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --cn-shadow-lg: 0 10px 24px rgba(15, 23, 42, 0.1);
+  --cn-shadow-xl: 0 18px 44px rgba(15, 23, 42, 0.14);
+  --cn-shadow-2xl: 0 24px 64px rgba(15, 23, 42, 0.18);
+  --cn-shadow-focus: 0 0 0 3px var(--cn-color-focus-ring);
+  --cn-shadow-inset: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+
+  /* ============ TYPOGRAPHY ============ */
+  --cn-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cn-font-mono: "JetBrains Mono", "Menlo", "Monaco", monospace;
+
+  --cn-font-size-xs: 11px;
+  --cn-font-size-sm: 12px;
+  --cn-font-size-base: 13px;
+  --cn-font-size-md: 14px;
+  --cn-font-size-lg: 16px;
+  --cn-font-size-xl: 18px;
+  --cn-font-size-2xl: 22px;
+  --cn-font-size-3xl: 28px;
+  --cn-font-size-4xl: 34px;
+  --cn-font-size-5xl: 42px;
+
+  --cn-font-weight-regular: 400;
+  --cn-font-weight-medium: 500;
+  --cn-font-weight-semibold: 600;
+  --cn-font-weight-bold: 700;
+  --cn-font-weight-extrabold: 800;
+
+  --cn-line-height-tight: 1.2;
+  --cn-line-height-snug: 1.35;
+  --cn-line-height-normal: 1.45;
+  --cn-line-height-relaxed: 1.65;
+
+  --cn-letter-spacing-tight: -0.02em;
+  --cn-letter-spacing-snug: -0.01em;
+  --cn-letter-spacing-normal: 0;
+  --cn-letter-spacing-wide: 0.04em;
+  --cn-letter-spacing-wider: 0.08em;
+  --cn-letter-spacing-widest: 0.12em;
+
+  /* ============ MOTION ============ */
+  --cn-duration-instant: 0ms;
+  --cn-duration-fast: 140ms;
+  --cn-duration-base: 200ms;
+  --cn-duration-slow: 320ms;
+  --cn-duration-slower: 480ms;
+
+  --cn-ease-linear: linear;
+  --cn-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --cn-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --cn-ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --cn-ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+  --cn-ease-spring: cubic-bezier(0.5, 1.5, 0.5, 1);
+
+  --cn-transition-colors:
+    color var(--cn-duration-base) var(--cn-ease-standard),
+    background-color var(--cn-duration-base) var(--cn-ease-standard),
+    border-color var(--cn-duration-base) var(--cn-ease-standard);
+  --cn-transition-transform: transform var(--cn-duration-fast) var(--cn-ease-standard);
+  --cn-transition-opacity: opacity var(--cn-duration-base) var(--cn-ease-standard);
+  --cn-transition-all: all var(--cn-duration-base) var(--cn-ease-standard);
+
+  /* ============ Z-INDEX ============ */
+  --cn-z-base: 0;
+  --cn-z-dropdown: 1000;
+  --cn-z-sticky: 1020;
+  --cn-z-fixed: 1030;
+  --cn-z-modal-backdrop: 1040;
+  --cn-z-modal: 1050;
+  --cn-z-popover: 1060;
+  --cn-z-tooltip: 1070;
+  --cn-z-toast: 1080;
+
+  /* ============ FOCUS RING ============ */
+  --cn-focus-ring-width: 3px;
+  --cn-focus-ring-offset: 2px;
+
+  /* ============ BUTTON TOKENS ============ */
+  --cn-button-height-sm: 32px;
+  --cn-button-height-md: 40px;
+  --cn-button-height-lg: 48px;
+  --cn-button-padding-x-sm: 12px;
+  --cn-button-padding-x-md: 16px;
+  --cn-button-padding-x-lg: 20px;
+  --cn-button-font-sm: var(--cn-font-size-sm);
+  --cn-button-font-md: var(--cn-font-size-base);
+  --cn-button-font-lg: var(--cn-font-size-md);
+
+  /* ============ INPUT TOKENS ============ */
+  --cn-input-height: 44px;
+  --cn-input-padding-x: 14px;
+  --cn-input-padding-y: 10px;
+
+  /* ============ CARD TOKENS ============ */
+  --cn-card-padding: var(--cn-space-4);
+  --cn-card-radius: var(--cn-radius-lg);
+}
+
+[data-cn-theme="dark"] {
+  --cn-color-bg: #0f1116;
+  --cn-color-surface: #181b22;
+  --cn-color-surface-elevated: #1f232b;
+  --cn-color-surface-sunken: #0b0d11;
+  --cn-color-text: #eef0f3;
+  --cn-color-text-muted: #9aa1aa;
+  --cn-color-text-subtle: #6e7682;
+  --cn-color-text-inverse: #111418;
+  --cn-color-border: #2a2f38;
+  --cn-color-border-subtle: #1f232b;
+  --cn-color-border-strong: #3a414b;
+
+  --cn-color-hover: rgba(255, 255, 255, 0.04);
+  --cn-color-active: rgba(255, 255, 255, 0.08);
+  --cn-color-disabled-bg: #22272e;
+  --cn-color-disabled-text: #4e5660;
+  --cn-color-disabled-border: #2a2f38;
+
+  --cn-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --cn-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.35);
+  --cn-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --cn-shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.45);
+  --cn-shadow-xl: 0 18px 44px rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --cn-duration-fast: 0ms;
+    --cn-duration-base: 0ms;
+    --cn-duration-slow: 0ms;
+    --cn-duration-slower: 0ms;
+  }
+}

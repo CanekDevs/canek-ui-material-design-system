@@ -1,0 +1,11 @@
+src/
+.storybook/
+.github/
+*.test.tsx
+*.stories.tsx
+tsconfig.json
+vite.config.ts
+vitest.setup.ts
+.editorconfig
+eslint.config.js
+.prettierrc
