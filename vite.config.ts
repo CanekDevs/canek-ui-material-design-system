@@ -3,6 +3,21 @@ import react from "@vitejs/plugin-react";
 import dts from "vite-plugin-dts";
 import { resolve } from "node:path";
 
+const EXTERNAL_IDS = new Set([
+  "react",
+  "react-dom",
+  "react-dom/client",
+  "react/jsx-runtime",
+  "react/jsx-dev-runtime",
+]);
+
+const isExternal = (id: string): boolean => {
+  if (EXTERNAL_IDS.has(id)) return true;
+  if (id.startsWith("@mui/")) return true;
+  if (id.startsWith("@emotion/")) return true;
+  return false;
+};
+
 export default defineConfig({
   plugins: [
     react(),
@@ -26,20 +41,12 @@ export default defineConfig({
       cssFileName: "tokens",
     },
     rollupOptions: {
-      external: [
-        "react",
-        "react-dom",
-        "react/jsx-runtime",
-        "@mui/material",
-        "@mui/material/styles",
-        "@emotion/react",
-        "@emotion/styled",
-      ],
+      external: isExternal,
       output: {
         globals: {
           react: "React",
           "react-dom": "ReactDOM",
-          "@mui/material": "MaterialUI",
+          "react/jsx-runtime": "jsxRuntime",
         },
       },
     },
