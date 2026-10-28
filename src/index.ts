@@ -8,6 +8,9 @@ export type {
   CnButtonVariant
 } from "./components/CnButton";
 
+export { CnIcon, ICON_REGISTRY, registerIcons } from "./components/CnIcon";
+export type { CnIconColor, CnIconProps, CnIconSize } from "./components/CnIcon";
+
 export { CanekThemeProvider, createCanekTheme } from "./theme";
 export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";
 
