@@ -1,7 +1,7 @@
 import js from "@eslint/js";
-import ts from "typescript-eslint";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
+import ts from "typescript-eslint";
 
 export default [
   js.configs.recommended,
@@ -34,6 +34,16 @@ export default [
     },
     settings: {
       react: { version: "18.3" },
+    },
+  },
+  {
+    files: ["scripts/**/*.{js,mjs,cjs}"],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        Buffer: "readonly",
+      },
     },
   },
   {
