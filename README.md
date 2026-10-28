@@ -5,4 +5,4 @@ MUI 7 con tokens de diseño, theming unificado y API consistente.
 
 ## Instalación
 
-npm install @canek/design-system @mui/material @emotion/react @emotion/styled
+npm install @canek-ui/design-system @mui/material @emotion/react @emotion/styled
