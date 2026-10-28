@@ -7,10 +7,10 @@
   "homepage": "https://canek.mx",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/angelzgarcia/cn-design-system.git"
+    "url": "git+https://github.com/CanekDevs/canek-ui-design-system.git"
   },
   "bugs": {
-    "url": "https://github.com/angelzgarcia/cn-design-system/issues"
+    "url": "https://github.com/CanekDevs/canek-ui-design-system/issues"
   },
   "keywords": [
     "design-system",
