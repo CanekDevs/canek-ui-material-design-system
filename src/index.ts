@@ -75,6 +75,15 @@ export type {
   CnSkeletonVariant
 } from "./components/CnSkeleton";
 
+export { CnBadge } from "./components/CnBadge";
+export type {
+  CnBadgeColor,
+  CnBadgeOverlap,
+  CnBadgeProps,
+  CnBadgeSize,
+  CnBadgeVariant
+} from "./components/CnBadge";
+
 export { CanekThemeProvider, createCanekTheme } from "./theme";
 export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";
 
