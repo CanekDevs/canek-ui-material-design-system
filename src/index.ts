@@ -11,6 +11,15 @@ export type {
 export { CnIcon, ICON_REGISTRY, registerIcons } from "./components/CnIcon";
 export type { CnIconColor, CnIconProps, CnIconSize } from "./components/CnIcon";
 
+export { CnChip } from "./components/CnChip";
+export type {
+  CnChipColor,
+  CnChipProps,
+  CnChipShape,
+  CnChipSize,
+  CnChipVariant
+} from "./components/CnChip";
+
 export { CanekThemeProvider, createCanekTheme } from "./theme";
 export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";
 
