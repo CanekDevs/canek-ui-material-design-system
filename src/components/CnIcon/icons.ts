@@ -8,12 +8,14 @@ import ArrowDownward from "@mui/icons-material/ArrowDownward";
 import ArrowForward from "@mui/icons-material/ArrowForward";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import AttachMoney from "@mui/icons-material/AttachMoney";
+import Bolt from "@mui/icons-material/Bolt";
 import Cancel from "@mui/icons-material/Cancel";
 import Chat from "@mui/icons-material/Chat";
 import Check from "@mui/icons-material/Check";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
+import Circle from "@mui/icons-material/Circle";
 import Close from "@mui/icons-material/Close";
 import CloudDownload from "@mui/icons-material/CloudDownload";
 import CloudUpload from "@mui/icons-material/CloudUpload";
@@ -41,6 +43,7 @@ import Image from "@mui/icons-material/Image";
 import Info from "@mui/icons-material/Info";
 import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
 import LocalOffer from "@mui/icons-material/LocalOffer";
+import LocalShipping from "@mui/icons-material/LocalShipping";
 import Lock from "@mui/icons-material/Lock";
 import LockOpen from "@mui/icons-material/LockOpen";
 import Logout from "@mui/icons-material/Logout";
@@ -75,9 +78,12 @@ import ShoppingCart from "@mui/icons-material/ShoppingCart";
 import SkipNext from "@mui/icons-material/SkipNext";
 import SkipPrevious from "@mui/icons-material/SkipPrevious";
 import Sort from "@mui/icons-material/Sort";
+import Star from "@mui/icons-material/Star";
+import Sync from "@mui/icons-material/Sync";
 import Tune from "@mui/icons-material/Tune";
 import Upload from "@mui/icons-material/Upload";
 import VerifiedUser from "@mui/icons-material/VerifiedUser";
+import Videocam from "@mui/icons-material/Videocam";
 import VideoLibrary from "@mui/icons-material/VideoLibrary";
 import ViewList from "@mui/icons-material/ViewList";
 import ViewModule from "@mui/icons-material/ViewModule";
@@ -98,6 +104,12 @@ export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
   arrow_forward: ArrowForward,
   arrow_upward: ArrowUpward,
   attach_money: AttachMoney,
+  bolt: Bolt,
+  circle: Circle,
+  local_shipping: LocalShipping,
+  star: Star,
+  sync: Sync,
+  videocam: Videocam,
   cancel: Cancel,
   chat: Chat,
   check: Check,

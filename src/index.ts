@@ -20,6 +20,18 @@ export type {
   CnChipVariant
 } from "./components/CnChip";
 
+export { CnAlert } from "./components/CnAlert";
+export type {
+  CnAlertCloseReason,
+  CnAlertColor,
+  CnAlertIconMode,
+  CnAlertMode,
+  CnAlertProps,
+  CnAlertRole,
+  CnAlertSeverity,
+  CnAlertVariant
+} from "./components/CnAlert";
+
 export { CanekThemeProvider, createCanekTheme } from "./theme";
 export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";
 
