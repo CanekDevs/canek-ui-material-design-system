@@ -32,6 +32,21 @@ export type {
   CnAlertVariant
 } from "./components/CnAlert";
 
+export { CnCard, CnCardBody, CnCardFooter, CnCardHeader, CnCardMedia } from "./components/CnCard";
+export type {
+  CnCardAccentPosition,
+  CnCardDividerPosition,
+  CnCardHeaderIcon,
+  CnCardIconColor,
+  CnCardLayout,
+  CnCardPadding,
+  CnCardProps,
+  CnCardRadius,
+  CnCardShadow,
+  CnCardSize,
+  CnCardVariant
+} from "./components/CnCard";
+
 export { CanekThemeProvider, createCanekTheme } from "./theme";
 export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";
 
