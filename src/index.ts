@@ -47,6 +47,19 @@ export type {
   CnCardVariant
 } from "./components/CnCard";
 
+export { CnAvatar, CnAvatarGroup } from "./components/CnAvatar";
+export type {
+  CnAvatarBadge,
+  CnAvatarBadgeColor,
+  CnAvatarColor,
+  CnAvatarGroupProps,
+  CnAvatarGroupSpacing,
+  CnAvatarProps,
+  CnAvatarSize,
+  CnAvatarStatus,
+  CnAvatarVariant
+} from "./components/CnAvatar";
+
 export { CanekThemeProvider, createCanekTheme } from "./theme";
 export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";
 
