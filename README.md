@@ -1,8 +1,8 @@
-# @canek-ui/design-system
+# @canek-ui/material-design-system
 
 Design system de [Canek](https://canek.mx). Componentes React construidos sobre MUI 7, con tokens de diseño como CSS variables, theming unificado y API consistente. Consumido por todos los productos de Canek: `phobos-admin`, `phobos-storefront`, `kairos-admin`, `phobos-landlord`, entre otros.
 
-[![npm version](https://img.shields.io/npm/v/@canek-ui/design-system.svg)](https://www.npmjs.com/package/@canek-ui/design-system)
+[![npm version](https://img.shields.io/npm/v/@canek-ui/material-design-system.svg)](https://www.npmjs.com/package/@canek-ui/material-design-system)
 [![CI](https://github.com/CanekDevs/canek-ui-design-system/actions/workflows/ci.yml/badge.svg)](https://github.com/CanekDevs/canek-ui-design-system/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
@@ -28,7 +28,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 ## Instalación
 
 ```bash
-npm install @canek-ui/design-system @mui/material @mui/icons-material @emotion/react @emotion/styled
+npm install @canek-ui/material-design-system @mui/material @mui/icons-material @emotion/react @emotion/styled
 ```
 
 React 18, MUI 7, `@mui/icons-material` y `@emotion/*` son **peer dependencies**. No se incluyen en el bundle del paquete, el consumidor debe instalarlas explícitamente.
@@ -36,13 +36,13 @@ React 18, MUI 7, `@mui/icons-material` y `@emotion/*` son **peer dependencies**.
 Si usas pnpm:
 
 ```bash
-pnpm add @canek-ui/design-system @mui/material @mui/icons-material @emotion/react @emotion/styled
+pnpm add @canek-ui/material-design-system @mui/material @mui/icons-material @emotion/react @emotion/styled
 ```
 
 Si usas yarn:
 
 ```bash
-yarn add @canek-ui/design-system @mui/material @mui/icons-material @emotion/react @emotion/styled
+yarn add @canek-ui/material-design-system @mui/material @mui/icons-material @emotion/react @emotion/styled
 ```
 
 ---
@@ -52,8 +52,8 @@ yarn add @canek-ui/design-system @mui/material @mui/icons-material @emotion/reac
 ### Componente suelto
 
 ```tsx
-import { CnButton } from "@canek-ui/design-system";
-import "@canek-ui/design-system/styles.css";
+import { CnButton } from "@canek-ui/material-design-system";
+import "@canek-ui/material-design-system/styles.css";
 
 export function SaveButton() {
   return (
@@ -67,8 +67,8 @@ export function SaveButton() {
 ### Aplicación completa con tema
 
 ```tsx
-import { CanekThemeProvider, CnButton } from "@canek-ui/design-system";
-import "@canek-ui/design-system/styles.css";
+import { CanekThemeProvider, CnButton } from "@canek-ui/material-design-system";
+import "@canek-ui/material-design-system/styles.css";
 
 export function App() {
   return (
@@ -131,7 +131,7 @@ Próximos: `CnChip`, `CnAlert`, `CnAvatar`, `CnInput`, `CnForm`, `CnDataTable`.
 El registry incluye ~80 íconos comunes. Se puede extender con `registerIcons`:
 
 ```tsx
-import { registerIcons } from "@canek-ui/design-system";
+import { registerIcons } from "@canek-ui/material-design-system";
 import CustomIcon from "@mui/icons-material/CustomIcon";
 
 registerIcons({
@@ -168,7 +168,7 @@ Los tokens se dividen en dos formatos complementarios:
 ### Sobreescribir tokens por proyecto
 
 ```css
-/* src/styles/app-tokens.css, importado después de @canek-ui/design-system/styles.css */
+/* src/styles/app-tokens.css, importado después de @canek-ui/material-design-system/styles.css */
 :root {
   --cn-color-brand-600: #3d5afe;
   --cn-radius-md: 6px;
@@ -480,8 +480,8 @@ npm publish --access public
 
 ### Verificar la publicación
 
-- `https://www.npmjs.com/package/@canek-ui/design-system`
-- `npm view @canek-ui/design-system`
+- `https://www.npmjs.com/package/@canek-ui/material-design-system`
+- `npm view @canek-ui/material-design-system`
 
 ### Si algo sale mal
 
@@ -489,7 +489,7 @@ npm publish --access public
 
 ```bash
 # Deprecar la versión (los consumidores nuevos no la verán)
-npm deprecate @canek-ui/design-system@0.2.0 "Bug en CnIcon. Usar 0.2.1"
+npm deprecate @canek-ui/material-design-system@0.2.0 "Bug en CnIcon. Usar 0.2.1"
 
 # Publicar la versión corregida
 npm version patch

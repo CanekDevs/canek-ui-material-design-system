@@ -1,5 +1,5 @@
 {
-  "name": "@canek-ui/design-system",
+  "name": "@canek-ui/material-design-system",
   "version": "0.2.0",
   "description": "Design system de Canek. Componentes React sobre MUI 7 con tokens de diseño y theming unificado.",
   "license": "MIT",
