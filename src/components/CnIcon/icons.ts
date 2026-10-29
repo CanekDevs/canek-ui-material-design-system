@@ -279,6 +279,7 @@ import ScatterPlot from "@mui/icons-material/ScatterPlot";
 import Schedule from "@mui/icons-material/Schedule";
 import Schema from "@mui/icons-material/Schema";
 import Search from "@mui/icons-material/Search";
+import SearchOff from "@mui/icons-material/SearchOff";
 import Security from "@mui/icons-material/Security";
 import Sell from "@mui/icons-material/Sell";
 import Send from "@mui/icons-material/Send";
@@ -637,6 +638,7 @@ export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
   schedule: Schedule,
   schema: Schema,
   search: Search,
+  search_off: SearchOff,
   security: Security,
   sell: Sell,
   send: Send,
