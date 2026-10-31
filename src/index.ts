@@ -84,6 +84,46 @@ export type {
   CnBadgeVariant
 } from "./components/CnBadge";
 
+export { CnTabs } from "./components/CnTabs";
+export type {
+  CnTabOption,
+  CnTabsColor,
+  CnTabsIconPosition,
+  CnTabsOrientation,
+  CnTabsProps,
+  CnTabsSize,
+  CnTabsSubtitlePosition,
+  CnTabsVariant
+} from "./components/CnTabs";
+
+export { CnForm, CnFormFieldControl } from "./components/CnForm";
+export type {
+  CnFormProps,
+  CnFormField,
+  CnFormCustomElement,
+  CnFormFieldOrCustom,
+  CnFormFieldType,
+  CnFormSelectOption,
+  CnFormSectionContext,
+  CnFormVariant,
+  CnFormSize,
+  CnFormButtonProps,
+  CnValidationRule,
+} from "./components/CnForm";
+
+export {
+  getNestedValue,
+  setNestedValue,
+  flattenObject,
+  expandObject,
+  validateFieldValue,
+  combineRules,
+  registerValidator,
+  useFieldValidation,
+} from "./components/CnForm";
+
+export type { ValidatorFn, UseFieldValidationOptions } from "./components/CnForm";
+
 export { CanekThemeProvider, createCanekTheme } from "./theme";
 export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";
 
