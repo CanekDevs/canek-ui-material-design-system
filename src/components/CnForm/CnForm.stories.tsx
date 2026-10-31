@@ -62,7 +62,8 @@ const simpleFields: CnFormField[] = [
     label: "Contraseña",
     required: true,
     showPasswordStrength: true,
-    rules: [{ type: "passwordStrength", level: "medium" }],
+    allowGenerate: true,
+    passwordRequirements: { minLength: 8, uppercase: true, lowercase: true, number: true },
   },
   {
     name: "confirm",
@@ -186,6 +187,32 @@ const allFields: CnFormField[] = [
   { name: "volume", type: "slider", label: "Volumen", min: 0, max: 100, step: 10, marks: true },
   { name: "budget", type: "range", label: "Presupuesto", min: 0, max: 10000, step: 500 },
   { name: "rating", type: "rating", label: "Satisfacción" },
+  { name: "country", type: "country", label: "País", priorityCountries: ["MX", "US"] },
+  { name: "card", type: "masked", label: "Tarjeta", maskPreset: "creditCard" },
+  { name: "clabe", type: "masked", label: "CLABE", maskPreset: "clabe" },
+  { name: "otp", type: "otp", label: "Código", otpLength: 6 },
+  { name: "brand", type: "color", label: "Color" },
+  {
+    name: "view",
+    type: "segmented",
+    label: "Vista",
+    options: [
+      { value: "list", label: "Lista", icon: "view_list" },
+      { value: "grid", label: "Cuadrícula", icon: "grid_view" },
+    ],
+  },
+  { name: "priceRange", type: "numberrange", label: "Rango de precio", prefix: "$" },
+  { name: "emails", type: "tags", label: "Invitados", tagRules: [{ type: "email" }] },
+  {
+    name: "owner",
+    type: "autocomplete",
+    label: "Responsable",
+    options: [
+      { value: 1, label: "Ana López", description: "ana@canek.mx", initials: true },
+      { value: 2, label: "Luis Pérez", description: "luis@canek.mx", initials: true },
+    ],
+  },
+  { name: "signature", type: "signature", label: "Firma" },
   { name: "avatar", type: "file", label: "Foto de perfil", fileVariant: "avatar", maxSize: 2 },
   {
     name: "gallery",

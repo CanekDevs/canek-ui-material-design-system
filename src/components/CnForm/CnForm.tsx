@@ -30,7 +30,7 @@ import { mergeSx } from "../../utils/field-styles";
 import { moveArrayItem } from "../../utils/use-sortable-list";
 import { CnAlert } from "../CnAlert";
 import { CnButton } from "../CnButton";
-import { CnSkeleton } from "../CnSkeleton";
+import { CnFormSkeleton } from "../CnFormSkeleton";
 import { CnTabs } from "../CnTabs";
 import type { CnLayoutGroup, CnResolvedField } from "./CnForm.engine";
 import {
@@ -100,14 +100,7 @@ const isGroupVisible = (group: CnLayoutGroup, values: CnFormValues): boolean => 
 };
 
 const FormSkeleton = ({ rows = 4, columns = 1 }: { rows?: number; columns?: number }) => (
-  <Grid container spacing={2} aria-busy="true" aria-label="Cargando formulario">
-    {Array.from({ length: rows * Math.max(1, columns) }, (_, index) => (
-      <Grid key={index} size={{ xs: 12, md: 12 / Math.max(1, columns) }}>
-        <CnSkeleton variant="text" width="35%" height={12} sx={{ mb: "6px" }} />
-        <CnSkeleton variant="rounded" height={40} />
-      </Grid>
-    ))}
-  </Grid>
+  <CnFormSkeleton rows={rows} columns={columns} />
 );
 
 export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(props, ref) {
