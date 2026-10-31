@@ -58,4 +58,11 @@ describe("CnButton", () => {
     const link = screen.getByRole("link", { name: "Visitar" });
     expect(link).toHaveAttribute("href", "https://example.com");
   });
+
+  it("renders string icons through CnIcon instead of plain text", () => {
+    render(<CnButton startIcon="save">Guardar</CnButton>);
+    const button = screen.getByRole("button", { name: "Guardar" });
+    expect(button).toHaveTextContent(/^Guardar$/);
+    expect(button.querySelector("svg")).not.toBeNull();
+  });
 });

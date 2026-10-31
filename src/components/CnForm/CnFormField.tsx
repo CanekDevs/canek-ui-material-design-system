@@ -1,357 +1,505 @@
-import type { GridSize } from "@mui/material";
 import Box from "@mui/material/Box";
-import Checkbox from "@mui/material/Checkbox";
-import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormHelperText from "@mui/material/FormHelperText";
-import FormLabel from "@mui/material/FormLabel";
 import Grid from "@mui/material/Grid";
-import MenuItem from "@mui/material/MenuItem";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
-import Switch from "@mui/material/Switch";
-import TextField from "@mui/material/TextField";
+import type { GridSize } from "@mui/material";
 import type { ReactNode } from "react";
-import { isValidElement } from "react";
-import type { CnTextFieldType } from "../CnTextField";
+import { isValidElement, memo } from "react";
+import type { CnFieldSize } from "../../utils/field-styles";
+import { CnAutocompleteField } from "../CnAutocompleteField";
+import { CnCheckboxField } from "../CnCheckboxField";
+import type { CnCheckboxValue } from "../CnCheckboxField";
+import { CnCurrencyField } from "../CnCurrencyField";
+import { CnDateField, CnDateRangeField } from "../CnDateField";
+import type { CnDateRangeValue } from "../CnDateField";
+import { CnFileField } from "../CnFileField";
+import type { CnFileValue } from "../CnFileField";
+import { CnNumberField } from "../CnNumberField";
+import { CnPhoneField } from "../CnPhoneField";
+import { CnRadioGroupField } from "../CnRadioGroupField";
+import type { CnRadioValue } from "../CnRadioGroupField";
+import { CnRatingField } from "../CnRatingField";
+import { CnSelectField } from "../CnSelectField";
+import type { CnSelectValue } from "../CnSelectField";
+import { CnSliderField } from "../CnSliderField";
+import type { CnSliderValue } from "../CnSliderField";
+import { CnSwitchField } from "../CnSwitchField";
 import { CnTextField } from "../CnTextField";
-import type { CnFormField, CnFormFieldType, CnFormSelectOption } from "./CnForm.types";
+import type { CnTextFieldType } from "../CnTextField";
+import { evaluate, getDefaultGrid } from "./CnForm.engine";
+import { getNestedValue } from "./CnForm.helpers";
+import type {
+  CnFormCustomRenderProps,
+  CnFormDynamicValue,
+  CnFormField,
+  CnFormSectionContext,
+  CnFormValues,
+  CnValidationRule,
+} from "./CnForm.types";
 
-type CnFormFieldControlProps = {
+/** Renderizador para un tipo de campo registrado con `registerFormFieldType`. */
+export type CnFormFieldRenderer = (
+  props: CnFormCustomRenderProps & {
+    field: CnFormField;
+    id: string;
+    label?: string;
+    placeholder?: string;
+  },
+) => ReactNode;
+
+const fieldRenderers = new Map<string, CnFormFieldRenderer>();
+const warnedTypes = new Set<string>();
+
+/**
+ * Registra (o reemplaza) el renderizador de un tipo de campo de `CnForm`.
+ * Así se integran campos con dependencias opcionales (p. ej. `richtext`) o
+ * controles propios reutilizables por toda la aplicación.
+ */
+export const registerFormFieldType = (type: string, renderer: CnFormFieldRenderer): void => {
+  fieldRenderers.set(type, renderer);
+};
+
+export type CnFormFieldControlProps = {
   field: CnFormField;
+  /** Ruta completa; por defecto `field.name`. */
+  path?: string;
   value: unknown;
-  error: string | undefined;
-  formValues: Record<string, unknown>;
-  disabled: boolean;
-  readOnly: boolean;
+  error?: string;
+  formValues: CnFormValues;
+  sectionContext?: CnFormSectionContext;
+  disabled?: boolean;
+  readOnly?: boolean;
+  size?: CnFieldSize;
+  columns?: number;
   onChange: (nextValue: unknown) => void;
+  onBlur?: () => void;
+  /** Escribe en otra ruta del formulario (p. ej. la moneda de un campo `currency`). */
+  onSetValue?: (path: string, value: unknown) => void;
 };
 
-type ResponsiveGridSize = {
-  xs?: GridSize;
-  sm?: GridSize;
-  md?: GridSize;
-  lg?: GridSize;
-  xl?: GridSize;
-};
-
-const DEFAULT_GRID: Record<CnFormField["type"], GridSize> = {
-  text: 12,
-  email: 12,
-  password: 12,
-  tel: 12,
-  url: 12,
-  number: 6,
-  textarea: 12,
-  select: 6,
-  checkbox: 12,
-  switch: 12,
-  radio: 12,
-  custom: 12,
-};
-
-const evaluateBoolean = (
-  value: boolean | ((fv: Record<string, unknown>) => boolean) | undefined,
-  formValues: Record<string, unknown>,
-): boolean => {
-  if (typeof value === "function") return value(formValues);
-  return Boolean(value);
-};
-
-const evaluateOptions = (
-  options:
-    CnFormSelectOption[] | ((fv: Record<string, unknown>) => CnFormSelectOption[]) | undefined,
-  formValues: Record<string, unknown>,
-): CnFormSelectOption[] => {
-  if (!options) return [];
-  if (typeof options === "function") return options(formValues);
-  return options;
+const TEXT_TYPES: Record<string, CnTextFieldType> = {
+  text: "text",
+  email: "email",
+  password: "password",
+  tel: "tel",
+  url: "url",
+  search: "search",
+  textarea: "textarea",
 };
 
 const renderAdornment = (
-  adornment: ReactNode | ((value: unknown, fv: Record<string, unknown>) => ReactNode) | undefined,
+  adornment: CnFormField["startAdornment"],
   value: unknown,
-  formValues: Record<string, unknown>,
-): ReactNode => {
-  if (!adornment) return undefined;
-  if (typeof adornment === "function") {
-    return (adornment as (value: unknown, fv: Record<string, unknown>) => ReactNode)(
-      value,
-      formValues,
-    );
-  }
-  return adornment;
-};
+  formValues: CnFormValues,
+): ReactNode => (typeof adornment === "function" ? adornment(value, formValues) : adornment);
 
-const textFieldSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "var(--cn-radius-md, 8px)",
-    fontSize: "var(--cn-font-size-base, 13px)",
-    backgroundColor: "var(--cn-color-surface, #ffffff)",
-    transition: "border-color 140ms ease, box-shadow 140ms ease",
-    "& fieldset": {
-      borderColor: "var(--cn-color-border, #dde0e4)",
-      transition: "border-color 140ms ease",
-    },
-    "&:hover fieldset": {
-      borderColor: "var(--cn-color-border-strong, #c5cad0)",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "var(--cn-color-brand-500, #3562a6)",
-      borderWidth: 1.5,
-    },
-    "&.Mui-error fieldset": {
-      borderColor: "var(--cn-color-error-500, #d63c3c)",
-    },
-    "&.Mui-disabled": {
-      backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
-    },
-  },
-  "& .MuiInputLabel-root": {
-    fontSize: "var(--cn-font-size-sm, 12px)",
-    fontWeight: 500,
-  },
-  "& .MuiFormHelperText-root": {
-    fontSize: "var(--cn-font-size-xs, 11px)",
-    marginLeft: 0,
-    marginRight: 0,
-    marginTop: "4px",
-  },
-};
-
-type CnFormTextFieldType = Extract<CnFormFieldType, CnTextFieldType>;
-
-const CN_TEXT_FIELD_TYPES: readonly CnFormTextFieldType[] = [
-  "text",
-  "email",
-  "tel",
-  "url",
-  "number",
-  "password",
-  "textarea",
-];
-
-const isCnTextFieldType = (type: CnFormField["type"]): type is CnFormTextFieldType =>
-  (CN_TEXT_FIELD_TYPES as readonly string[]).includes(type);
-
-export const CnFormFieldControl = ({
+const FieldContent = ({
   field,
+  path,
   value,
   error,
   formValues,
-  disabled,
-  readOnly,
+  sectionContext: ctx,
+  disabled = false,
+  readOnly = false,
+  size = "md",
   onChange,
-}: CnFormFieldControlProps) => {
-  const fieldDisabled = disabled || evaluateBoolean(field.disabled, formValues);
-  const fieldReadOnly = readOnly || evaluateBoolean(field.readOnly, formValues);
-  const isDisabled = fieldDisabled || fieldReadOnly;
-  const isRequired = evaluateBoolean(field.required, formValues);
+  onBlur,
+  onSetValue,
+}: Omit<CnFormFieldControlProps, "columns"> & { path: string }) => {
+  const label = evaluate(field.label, formValues, ctx);
+  const placeholder = evaluate(field.placeholder, formValues, ctx);
+  const helper = evaluate(
+    field.helperText as CnFormDynamicValue<string> | undefined,
+    formValues,
+    ctx,
+  );
+  const required = Boolean(evaluate(field.required, formValues, ctx));
+  const isDisabled = disabled || Boolean(evaluate(field.disabled, formValues, ctx));
+  const isReadOnly = readOnly || Boolean(evaluate(field.readOnly, formValues, ctx));
+  const options = evaluate(field.options, formValues, ctx) ?? [];
+  const min = evaluate(field.min, formValues, ctx);
+  const max = evaluate(field.max, formValues, ctx);
 
-  const gridSize: ResponsiveGridSize = {
-    xs: field.xs ?? 12,
-    sm: field.sm,
-    md: field.md ?? DEFAULT_GRID[field.type],
-    lg: field.lg,
-    xl: field.xl,
+  // El formulario es la única fuente de verdad de los errores: los campos no
+  // se validan solos y solo muestran lo que reciben.
+  const common = {
+    id: `cn-form-${path.replace(/[^\w-]/g, "-")}`,
+    name: path,
+    label,
+    required,
+    disabled: isDisabled,
+    readOnly: isReadOnly,
+    error: Boolean(error),
+    helperText: error || helper || undefined,
+    internalValidation: false,
+    formValues,
+    sectionContext: ctx,
+    size,
+    onBlur,
+    sx: field.sx,
+    className: field.className,
   };
 
-  const helperTextNode: string | undefined = error
-    ? error
-    : typeof field.helperText === "string"
-      ? field.helperText
-      : undefined;
+  const textType = TEXT_TYPES[field.type];
+  if (textType) {
+    const rules = evaluate(field.rules, formValues, ctx) as CnValidationRule[] | undefined;
+    return (
+      <CnTextField
+        {...common}
+        onBlur={() => onBlur?.()}
+        type={field.multiline && textType === "text" ? "textarea" : textType}
+        placeholder={placeholder}
+        value={value === null || value === undefined ? "" : String(value)}
+        onChange={onChange}
+        rules={rules}
+        maxLength={field.maxLength}
+        showCounter={field.showCounter}
+        transform={field.transform}
+        passwordToggle={field.passwordToggle ?? textType === "password"}
+        showPasswordStrength={field.showPasswordStrength}
+        clearable={field.clearable}
+        autoComplete={field.autoComplete}
+        autoFocus={field.autoFocus}
+        rows={field.rows}
+        minRows={field.minRows}
+        maxRows={field.maxRows}
+        startIcon={field.startIcon}
+        endIcon={field.endIcon}
+        startAdornment={renderAdornment(field.startAdornment, value, formValues)}
+        endAdornment={renderAdornment(field.endAdornment, value, formValues)}
+        reserveHelperSpace
+      />
+    );
+  }
 
-  const renderContent = (): ReactNode => {
-    if (isCnTextFieldType(field.type)) {
-      const startAdornment = renderAdornment(field.startAdornment, value, formValues);
-      const endAdornment = renderAdornment(field.endAdornment, value, formValues);
-      const isMultiline = field.type === "textarea" || Boolean(field.multiline);
+  switch (field.type) {
+    case "number":
       return (
-        <CnTextField
-          name={field.name}
-          label={field.label}
-          placeholder={field.placeholder}
-          helperText={helperTextNode}
-          error={Boolean(error)}
-          required={isRequired}
-          disabled={isDisabled}
-          readOnly={fieldReadOnly}
-          type={field.type}
-          value={String(value ?? "")}
-          onChange={(next) => onChange(next)}
-          autoComplete={field.autoComplete}
+        <CnNumberField
+          {...common}
+          placeholder={placeholder}
+          value={
+            typeof value === "number" ? value : value === "" || value == null ? null : Number(value)
+          }
+          onChange={onChange}
+          min={min}
+          max={max}
+          step={field.step}
+          decimals={field.decimals}
+          controls={field.controls ?? (field.showSteppers ? "inline" : undefined)}
+          largeStep={field.largeStep}
+          snapToStep={field.snapToStep}
+          allowWheel={field.allowWheel}
+          clearable={field.clearable}
+          thousandSeparator={field.thousandSeparator}
+          {...field.componentProps}
+          prefix={field.prefix}
+          suffix={field.suffix}
+          locale={field.locale}
           autoFocus={field.autoFocus}
-          multiline={isMultiline}
-          rows={field.rows}
-          minRows={field.minRows}
-          maxRows={field.maxRows}
-          startAdornment={startAdornment}
-          endAdornment={endAdornment}
+          reserveHelperSpace
+        />
+      );
+    case "currency": {
+      const currencyFromForm = field.currencyName
+        ? (getNestedValue(formValues, field.currencyName) as string | undefined)
+        : undefined;
+      return (
+        <CnCurrencyField
+          {...common}
+          placeholder={placeholder}
+          value={
+            typeof value === "number" ? value : value === "" || value == null ? null : Number(value)
+          }
+          onChange={onChange}
+          min={min ?? 0}
+          max={max}
+          step={field.step}
+          decimals={field.decimals ?? 2}
+          locale={field.locale}
+          currency={currencyFromForm || evaluate(field.currency, formValues, ctx) || "MXN"}
+          currencies={field.currencies}
+          currencySelectorMode={field.currencyName ? "editable" : "hidden"}
+          controls={field.controls}
+          allowWheel={field.allowWheel}
+          {...field.componentProps}
+          onCurrencyChange={(next) => field.currencyName && onSetValue?.(field.currencyName, next)}
+          autoFocus={field.autoFocus}
           reserveHelperSpace
         />
       );
     }
-
-    if (field.type === "checkbox") {
+    case "phone":
       return (
-        <FormControl error={Boolean(error)} disabled={isDisabled} fullWidth>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={Boolean(value)}
-                onChange={(e) => onChange(e.target.checked)}
-                disabled={isDisabled}
-                sx={{
-                  color: "var(--cn-color-brand-500, #3562a6)",
-                  "&.Mui-checked": { color: "var(--cn-color-brand-600, #254d87)" },
-                }}
-              />
-            }
-            label={field.label ?? ""}
-            sx={{
-              margin: 0,
-              "& .MuiFormControlLabel-label": {
-                fontSize: "var(--cn-font-size-base, 13px)",
-                fontWeight: 500,
-                color: "var(--cn-color-text, #222831)",
-              },
-            }}
-          />
-          {helperTextNode && <FormHelperText>{helperTextNode}</FormHelperText>}
-        </FormControl>
-      );
-    }
-
-    if (field.type === "switch") {
-      return (
-        <FormControl error={Boolean(error)} disabled={isDisabled} fullWidth>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={Boolean(value)}
-                onChange={(e) => onChange(e.target.checked)}
-                disabled={isDisabled}
-                sx={{
-                  "& .MuiSwitch-switchBase.Mui-checked": {
-                    color: "var(--cn-color-brand-600, #254d87)",
-                  },
-                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                    backgroundColor: "var(--cn-color-brand-600, #254d87)",
-                  },
-                }}
-              />
-            }
-            label={field.label ?? ""}
-            sx={{
-              margin: 0,
-              "& .MuiFormControlLabel-label": {
-                fontSize: "var(--cn-font-size-base, 13px)",
-                fontWeight: 500,
-                color: "var(--cn-color-text, #222831)",
-              },
-            }}
-          />
-          {helperTextNode && <FormHelperText>{helperTextNode}</FormHelperText>}
-        </FormControl>
-      );
-    }
-
-    if (field.type === "radio") {
-      const options = evaluateOptions(field.options, formValues);
-      return (
-        <FormControl error={Boolean(error)} disabled={isDisabled} fullWidth component="fieldset">
-          {field.label && (
-            <FormLabel
-              component="legend"
-              sx={{ fontSize: "var(--cn-font-size-sm, 12px)", fontWeight: 500, mb: "4px" }}
-            >
-              {field.label}
-            </FormLabel>
-          )}
-          <RadioGroup value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} row>
-            {options.map((option) => (
-              <FormControlLabel
-                key={String(option.value)}
-                value={String(option.value)}
-                control={
-                  <Radio
-                    disabled={isDisabled || option.disabled}
-                    sx={{
-                      color: "var(--cn-color-brand-500, #3562a6)",
-                      "&.Mui-checked": { color: "var(--cn-color-brand-600, #254d87)" },
-                    }}
-                  />
-                }
-                label={option.label}
-                sx={{
-                  "& .MuiFormControlLabel-label": {
-                    fontSize: "var(--cn-font-size-base, 13px)",
-                  },
-                }}
-              />
-            ))}
-          </RadioGroup>
-          {helperTextNode && <FormHelperText>{helperTextNode}</FormHelperText>}
-        </FormControl>
-      );
-    }
-
-    if (field.type === "select") {
-      const options = evaluateOptions(field.options, formValues);
-      return (
-        <TextField
-          select
-          fullWidth
-          label={field.label}
+        <CnPhoneField
+          {...common}
+          placeholder={placeholder}
           value={String(value ?? "")}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={isDisabled}
-          required={isRequired}
-          error={Boolean(error)}
-          helperText={helperTextNode}
-          placeholder={field.placeholder}
-          autoComplete={field.autoComplete}
+          onChange={onChange}
+          defaultCountry={field.defaultCountry}
+          countries={field.countries}
           autoFocus={field.autoFocus}
-          sx={textFieldSx}
-        >
-          {field.placeholder && (
-            <MenuItem value="" disabled>
-              {field.placeholder}
-            </MenuItem>
-          )}
-          {options.map((option) => (
-            <MenuItem
-              key={String(option.value)}
-              value={String(option.value)}
-              disabled={option.disabled}
-            >
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
+          reserveHelperSpace
+        />
+      );
+    case "select":
+      return (
+        <CnSelectField
+          {...common}
+          placeholder={placeholder}
+          options={options}
+          multiple={field.multiple}
+          chips={field.chips}
+          clearable={field.clearable}
+          value={(value ?? (field.multiple ? [] : "")) as CnSelectValue}
+          onChange={onChange}
+          autoFocus={field.autoFocus}
+          reserveHelperSpace
+        />
+      );
+    case "autocomplete":
+      return (
+        <CnAutocompleteField
+          {...common}
+          placeholder={placeholder}
+          options={options}
+          multiple={field.multiple}
+          freeSolo={field.freeSolo}
+          loading={field.loading}
+          onInputChange={
+            field.onInputChange ? (input) => field.onInputChange?.(input, formValues) : undefined
+          }
+          value={
+            (value ?? (field.multiple ? [] : null)) as
+              string | number | null | Array<string | number>
+          }
+          onChange={onChange}
+          autoFocus={field.autoFocus}
+          reserveHelperSpace
+        />
+      );
+    case "checkbox":
+      return (
+        <CnCheckboxField
+          {...common}
+          options={field.options ? options : undefined}
+          direction={field.direction}
+          description={field.description}
+          labelPlacement={field.labelPlacement}
+          value={(value ?? (field.options ? [] : false)) as CnCheckboxValue}
+          onChange={onChange}
+        />
+      );
+    case "switch":
+      return (
+        <CnSwitchField
+          {...common}
+          description={field.description}
+          labelPlacement={field.labelPlacement}
+          value={Boolean(value)}
+          onChange={onChange}
+        />
+      );
+    case "radio":
+      return (
+        <CnRadioGroupField
+          {...common}
+          options={options}
+          direction={field.direction}
+          value={(value ?? "") as CnRadioValue}
+          onChange={onChange}
+        />
+      );
+    case "date":
+    case "time":
+    case "datetime":
+    case "month":
+      return (
+        <CnDateField
+          {...common}
+          type={field.type}
+          value={String(value ?? "")}
+          onChange={onChange}
+          min={evaluate(field.minDate, formValues, ctx)}
+          max={evaluate(field.maxDate, formValues, ctx)}
+          disablePast={field.disablePast}
+          disableFuture={field.disableFuture}
+          disableWeekends={field.disableWeekends}
+          disabledDays={field.disabledDays}
+          disabledDates={evaluate(field.disabledDates, formValues, ctx)}
+          shouldDisableDate={
+            field.shouldDisableDate
+              ? (iso) => Boolean(field.shouldDisableDate?.(iso, formValues))
+              : undefined
+          }
+          highlightedDates={evaluate(field.highlightedDates, formValues, ctx)}
+          format={field.dateFormat}
+          ampm={field.ampm}
+          minutesStep={field.minutesStep}
+          step={field.step}
+          views={field.views}
+          placeholder={placeholder}
+          clearable={field.clearable}
+          autoFocus={field.autoFocus}
+          reserveHelperSpace
+          {...field.componentProps}
+        />
+      );
+    case "daterange":
+      return (
+        <CnDateRangeField
+          {...common}
+          value={(Array.isArray(value) ? value : ["", ""]) as CnDateRangeValue}
+          onChange={onChange}
+          min={evaluate(field.minDate, formValues, ctx)}
+          max={evaluate(field.maxDate, formValues, ctx)}
+          disablePast={field.disablePast}
+          disableFuture={field.disableFuture}
+          disableWeekends={field.disableWeekends}
+          disabledDays={field.disabledDays}
+          disabledDates={evaluate(field.disabledDates, formValues, ctx)}
+          highlightedDates={evaluate(field.highlightedDates, formValues, ctx)}
+          format={field.dateFormat}
+          maxDays={field.maxDays}
+          presets={field.presets ?? true}
+          reserveHelperSpace
+        />
+      );
+    case "slider":
+    case "range":
+      return (
+        <CnSliderField
+          {...common}
+          range={field.type === "range"}
+          min={min}
+          max={max}
+          step={field.step}
+          marks={field.marks}
+          value={value as CnSliderValue}
+          onChange={onChange}
+        />
+      );
+    case "rating":
+      return (
+        <CnRatingField
+          {...common}
+          max={max}
+          precision={field.precision}
+          value={typeof value === "number" ? value : null}
+          onChange={onChange}
+        />
+      );
+    case "file":
+      return (
+        <CnFileField
+          {...common}
+          variant={field.fileVariant}
+          accept={field.accept}
+          multiple={field.multiple}
+          maxFiles={field.maxFiles}
+          maxSize={field.maxSize}
+          reorderable={field.reorderable}
+          enableLightbox={field.enableLightbox}
+          maxTotalSize={field.maxTotalSize}
+          imageConstraints={field.imageConstraints}
+          downloadable={field.downloadable}
+          capture={field.capture}
+          showPrimary={field.showPrimary}
+          {...field.componentProps}
+          value={(Array.isArray(value) ? value : []) as CnFileValue[]}
+          onChange={onChange}
+        />
+      );
+    case "custom":
+      if (!field.render && fieldRenderers.has("custom")) break;
+      return field.render ? (
+        <>
+          {field.render({
+            name: path,
+            value,
+            onChange,
+            onBlur: () => onBlur?.(),
+            error: Boolean(error),
+            helperText: error || helper || undefined,
+            disabled: isDisabled,
+            readOnly: isReadOnly,
+            required,
+            formValues,
+            sectionContext: ctx,
+          })}
+        </>
+      ) : null;
+    default:
+      break;
+  }
+
+  const renderer = fieldRenderers.get(field.type);
+  const renderProps = {
+    field,
+    id: common.id,
+    name: path,
+    label,
+    placeholder,
+    value,
+    onChange,
+    onBlur: () => onBlur?.(),
+    error: Boolean(error),
+    helperText: error || helper || undefined,
+    disabled: isDisabled,
+    readOnly: isReadOnly,
+    required,
+    formValues,
+    sectionContext: ctx,
+  };
+  if (renderer) return <>{renderer(renderProps)}</>;
+
+  if (field.type === "richtext") {
+    if (!warnedTypes.has("richtext")) {
+      warnedTypes.add("richtext");
+      console.warn(
+        '[CnForm] El tipo "richtext" requiere registrarse: import { registerRichTextFieldType } from "@canek-ui/material-design-system/rich-text"; registerRichTextFieldType();',
       );
     }
+    // Degradación segura: el HTML se edita como texto plano.
+    return (
+      <CnTextField
+        {...common}
+        type="textarea"
+        placeholder={placeholder}
+        value={value === null || value === undefined ? "" : String(value)}
+        onChange={onChange}
+        minRows={4}
+      />
+    );
+  }
+  return null;
+};
 
-    return null;
-  };
-
+/** Renderiza un campo declarativo de `CnForm` dentro de su celda del grid. */
+export const CnFormFieldControl = memo(function CnFormFieldControl({
+  columns = 1,
+  ...props
+}: CnFormFieldControlProps) {
+  const path = props.path ?? props.field.name;
   return (
-    <Grid size={gridSize}>
-      <Box sx={{ width: "100%", marginBlockEnd: "8px" }}>{renderContent()}</Box>
+    <Grid
+      size={getDefaultGrid(props.field, columns)}
+      data-cn-field-path={path}
+      sx={{ minWidth: 0 }}
+    >
+      <FieldContent {...props} path={path} />
     </Grid>
   );
-};
+});
 
 export const renderCustomElement = (
   component: ReactNode,
-  xs?: GridSize,
-  md?: GridSize,
+  grid: { xs?: GridSize; sm?: GridSize; md?: GridSize; lg?: GridSize; xl?: GridSize } = {},
+  key?: string,
 ): ReactNode => {
-  if (!isValidElement(component)) return component;
+  const size = { xs: grid.xs ?? 12, sm: grid.sm, md: grid.md ?? 12, lg: grid.lg, xl: grid.xl };
   return (
-    <Grid size={{ xs: xs ?? 12, md: md ?? 12 }}>
-      <Box sx={{ width: "100%", marginBlockEnd: "8px" }}>{component}</Box>
+    <Grid key={key} size={size} sx={{ minWidth: 0 }}>
+      {isValidElement(component) ? <Box sx={{ width: "100%" }}>{component}</Box> : component}
     </Grid>
   );
 };

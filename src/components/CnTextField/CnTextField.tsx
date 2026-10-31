@@ -9,17 +9,18 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { TextFieldProps } from "@mui/material/TextField";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type { ChangeEvent, FocusEvent, ReactNode } from "react";
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { resolveFieldState } from "../../utils/field-state";
+import type { ChangeEvent, FocusEvent, KeyboardEvent, ReactNode } from "react";
+import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
+import { useDraftValue, useFieldControl } from "../../utils/field-control";
+import { getOutlinedFieldSx, mergeSx, MUI_FIELD_SIZE } from "../../utils/field-styles";
 import {
   getFilterPattern,
   getInputModeFromRules,
   getMaxLength,
+  getPasswordStrength,
   transformValue,
 } from "../../utils/input-utils";
 import type { CnFormSectionContext, CnValidationRule } from "../CnForm/CnForm.types";
-import { useFieldValidation } from "../CnForm/CnForm.validation";
 import { CnIcon } from "../CnIcon";
 
 export type CnTextFieldType =
@@ -27,6 +28,10 @@ export type CnTextFieldType =
 
 export type CnTextFieldSize = "sm" | "md" | "lg";
 export type CnTextFieldVariant = "outlined" | "filled" | "standard";
+/**
+ * `numeric` deja solo dígitos, punto y signo. `currency` se conserva por
+ * compatibilidad y se comporta igual que `numeric`: para montos usa `CnCurrencyField`.
+ */
 export type CnTextFieldTransform =
   "uppercase" | "lowercase" | "capitalize" | "numeric" | "currency" | "none";
 
@@ -54,6 +59,7 @@ export type CnTextFieldSlotProps = {
 };
 
 export type CnTextFieldProps = {
+  id?: string;
   name?: string;
   label?: string;
   placeholder?: string;
@@ -72,6 +78,7 @@ export type CnTextFieldProps = {
   onChange?: (value: string) => void;
   onBlur?: (event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onFocus?: (event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 
   multiline?: boolean;
   rows?: number;
@@ -87,6 +94,8 @@ export type CnTextFieldProps = {
   passwordToggle?: boolean;
   passwordVisibleIcon?: ReactNode;
   passwordHiddenIcon?: ReactNode;
+  /** Muestra un medidor de fortaleza debajo de los campos `password`. */
+  showPasswordStrength?: boolean;
 
   loading?: boolean;
 
@@ -107,6 +116,8 @@ export type CnTextFieldProps = {
   validateOnChange?: boolean;
   validateOnBlur?: boolean;
   debounceMs?: number;
+  /** Desactiva la validación interna; las reglas se siguen usando para filtrar la entrada. */
+  internalValidation?: boolean;
 
   reserveHelperSpace?: boolean;
 
@@ -115,20 +126,20 @@ export type CnTextFieldProps = {
   slotProps?: CnTextFieldSlotProps;
 };
 
-const SIZE_TOKENS: Record<CnTextFieldSize, { height: number; fontSize: number }> = {
-  sm: { height: 32, fontSize: 12 },
-  md: { height: 40, fontSize: 13 },
-  lg: { height: 48, fontSize: 15 },
-};
+const STRENGTH_META = [
+  { label: "Muy débil", color: "var(--cn-color-error-500, #d63c3c)" },
+  { label: "Débil", color: "var(--cn-color-error-500, #d63c3c)" },
+  { label: "Regular", color: "var(--cn-color-warning-500, #e0a020)" },
+  { label: "Buena", color: "var(--cn-color-success-500, #2e9e4f)" },
+  { label: "Fuerte", color: "var(--cn-color-success-600, #228740)" },
+] as const;
 
-const MUI_SIZE: Record<CnTextFieldSize, "small" | "medium"> = {
-  sm: "small",
-  md: "small",
-  lg: "medium",
-};
+const toDraft = (value: string | number | undefined | null): string =>
+  value === undefined || value === null ? "" : String(value);
 
 export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function CnTextField(
   {
+    id,
     name,
     label,
     placeholder,
@@ -145,6 +156,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
     onChange,
     onBlur: externalOnBlur,
     onFocus,
+    onKeyDown,
     multiline,
     rows,
     minRows,
@@ -156,6 +168,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
     passwordToggle = false,
     passwordVisibleIcon,
     passwordHiddenIcon,
+    showPasswordStrength = false,
     loading = false,
     autoFocus,
     autoComplete,
@@ -166,11 +179,12 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
     endIcon,
     transform = "none",
     rules,
-    formValues = {},
+    formValues,
     sectionContext,
     validateOnChange = true,
     validateOnBlur = true,
     debounceMs = 400,
+    internalValidation = true,
     reserveHelperSpace = false,
     sx,
     className,
@@ -182,43 +196,26 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
   const isMultiline = isTextarea || Boolean(multiline);
   const isPassword = type === "password";
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [localValue, setLocalValue] = useState<string>(() => {
-    const initial =
-      externalValue !== undefined && externalValue !== null
-        ? String(externalValue)
-        : (defaultValue ?? "");
-    return transform !== "none" ? transformValue(initial, transform) : initial;
-  });
-  const isEditingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    if (!isEditingRef.current) {
-      const incoming =
-        externalValue !== undefined && externalValue !== null ? String(externalValue) : "";
-      setLocalValue(transform !== "none" ? transformValue(incoming, transform) : incoming);
-    }
-  }, [externalValue, transform]);
+  const isControlled = externalValue !== undefined;
+  const [localValue, setLocalValue, markEmitted] = useDraftValue<string | number | undefined>(
+    isControlled ? externalValue : defaultValue,
+    toDraft,
+  );
 
-  const {
-    error: validationError,
-    hasError,
-    hasInteracted,
-    handleBlur,
-    handleChange,
-  } = useFieldValidation(localValue, rules, formValues, {
+  const control = useFieldControl(localValue, {
+    id,
+    rules,
+    formValues,
     sectionContext,
     validateOnChange,
     validateOnBlur,
     debounceMs,
-  });
-
-  const { error: finalError, helperText: finalHelperText } = resolveFieldState({
-    externalError,
-    externalHelperText,
-    hasInteracted,
-    hasValidationError: hasError,
-    validationError,
+    internalValidation,
+    error: externalError,
+    helperText: externalHelperText,
+    reserveHelperSpace,
   });
 
   const filterPattern = useMemo(() => getFilterPattern(rules), [rules]);
@@ -238,48 +235,48 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
     [filterPattern, effectiveMaxLength],
   );
 
+  const emit = useCallback(
+    (next: string) => {
+      markEmitted(next);
+      onChange?.(next);
+    },
+    [markEmitted, onChange],
+  );
+
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      isEditingRef.current = true;
       const filtered = filterAndLimit(event.target.value);
       setLocalValue(filtered);
-      handleChange();
-      if (transform === "none") {
-        onChange?.(filtered);
-      }
+      control.markChanged();
+      // El valor emitido ya va transformado: si el formulario se envía con Enter
+      // (sin blur) recibe el valor final. El borrador visible se normaliza en blur
+      // para no mover el cursor mientras se escribe.
+      emit(transform === "none" ? filtered : transformValue(filtered, transform));
     },
-    [filterAndLimit, handleChange, onChange, transform],
+    [control, emit, filterAndLimit, setLocalValue, transform],
   );
 
   const handleInputBlur = useCallback(
     (event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      let final = localValue;
       if (transform !== "none" && localValue) {
-        final = transformValue(localValue, transform);
-        setLocalValue(final);
+        const final = transformValue(localValue, transform);
+        if (final !== localValue) setLocalValue(final);
       }
-      if (externalValue !== undefined && String(externalValue) !== final) {
-        onChange?.(final);
-      } else if (externalValue === undefined && final !== localValue) {
-        onChange?.(final);
-      }
-      isEditingRef.current = false;
-      handleBlur();
+      control.markBlurred();
       externalOnBlur?.(event);
     },
-    [externalValue, handleBlur, localValue, onChange, externalOnBlur, transform],
+    [control, externalOnBlur, localValue, setLocalValue, transform],
   );
 
   const handleClear = useCallback(() => {
-    isEditingRef.current = true;
     setLocalValue("");
-    handleChange();
-    onChange?.("");
+    control.markChanged();
+    emit("");
     onClear?.();
     if (autoSelect && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [autoSelect, handleChange, onChange, onClear]);
+  }, [autoSelect, control, emit, onClear, setLocalValue]);
 
   const togglePasswordVisibility = useCallback(() => {
     setPasswordVisible((prev) => !prev);
@@ -310,7 +307,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
     if (loading) {
       return (
         <InputAdornment position="end">
-          <CircularProgress size={16} />
+          <CircularProgress size={16} aria-label="Cargando" />
         </InputAdornment>
       );
     }
@@ -324,6 +321,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
           key="password-toggle"
           size="small"
           aria-label={passwordVisible ? "Ocultar contraseña" : "Mostrar contraseña"}
+          aria-pressed={passwordVisible}
           onClick={togglePasswordVisibility}
           onMouseDown={(e) => e.preventDefault()}
           disabled={disabled}
@@ -343,6 +341,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
           size="small"
           aria-label="Limpiar"
           onClick={handleClear}
+          onMouseDown={(e) => e.preventDefault()}
           edge="end"
           sx={{ color: "var(--cn-color-neutral-500, #6e7682)" }}
         >
@@ -371,10 +370,8 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
 
   const charCount = localValue.length;
   const showCounterRow = showCounter && effectiveMaxLength !== undefined;
-
-  const helperTextResolved = finalHelperText ?? (reserveHelperSpace ? "" : undefined);
-
-  const tokens = SIZE_TOKENS[size];
+  const strength =
+    isPassword && showPasswordStrength && localValue ? getPasswordStrength(localValue) : null;
 
   return (
     <Box
@@ -382,31 +379,29 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
       data-cn-text-field-type={type}
       data-cn-text-field-size={size}
       data-cn-text-field-variant={variant}
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        gap: "4px",
-        ...(sx as object),
-      }}
+      sx={mergeSx({ display: "flex", flexDirection: "column", width: "100%", gap: "4px" }, sx)}
       className={className}
     >
       <TextField
         ref={ref}
+        id={control.id}
         name={name}
         label={label}
         placeholder={placeholder}
-        helperText={helperTextResolved}
-        error={finalError}
+        helperText={control.helperText}
+        error={control.error}
         required={required}
         disabled={disabled || loading}
         value={localValue}
         onChange={handleInputChange}
         onBlur={handleInputBlur}
-        onFocus={onFocus}
+        onFocus={(event) => {
+          if (autoSelect) event.target.select();
+          onFocus?.(event);
+        }}
         type={resolvedInputType}
         variant={variant}
-        size={MUI_SIZE[size]}
+        size={MUI_FIELD_SIZE[size]}
         fullWidth
         multiline={isMultiline}
         rows={isMultiline ? rows : undefined}
@@ -423,51 +418,63 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
           },
           htmlInput: {
             inputMode,
+            onKeyDown,
             maxLength: effectiveMaxLength,
             autoComplete,
-            autoFocus,
             name,
-            "aria-invalid": finalError || undefined,
+            "aria-invalid": control.error || undefined,
             ...slotProps?.htmlInput,
           },
           inputLabel: slotProps?.inputLabel,
           formHelperText: slotProps?.formHelperText,
         }}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            minHeight: tokens.height,
-            fontSize: `${tokens.fontSize}px`,
-            borderRadius: "var(--cn-radius-md, 8px)",
-            backgroundColor: "var(--cn-color-surface, #ffffff)",
-            "& fieldset": {
-              borderColor: "var(--cn-color-border, #dde0e4)",
-            },
-            "&:hover fieldset": {
-              borderColor: "var(--cn-color-border-strong, #c5cad0)",
-            },
-            "&.Mui-focused fieldset": {
-              borderColor: "var(--cn-color-brand-500, #3562a6)",
-              borderWidth: 1.5,
-            },
-            "&.Mui-error fieldset": {
-              borderColor: "var(--cn-color-error-500, #d63c3c)",
-            },
-            "&.Mui-disabled": {
-              backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
-            },
-          },
-          "& .MuiInputLabel-root": {
-            fontSize: "var(--cn-font-size-sm, 12px)",
-            fontWeight: 500,
-          },
-          "& .MuiFormHelperText-root": {
-            fontSize: "var(--cn-font-size-xs, 11px)",
-            marginLeft: 0,
-            marginRight: 0,
-            marginTop: "4px",
-          },
-        }}
+        sx={getOutlinedFieldSx(size)}
       />
+      {strength && (
+        <Box
+          data-cn-password-strength={strength.score}
+          sx={{ display: "flex", flexDirection: "column", gap: "4px" }}
+        >
+          <Box
+            role="meter"
+            aria-label="Fortaleza de la contraseña"
+            aria-valuemin={0}
+            aria-valuemax={4}
+            aria-valuenow={strength.score}
+            aria-valuetext={STRENGTH_META[strength.score].label}
+            sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "4px" }}
+          >
+            {[1, 2, 3, 4].map((step) => (
+              <Box
+                key={step}
+                sx={{
+                  height: 4,
+                  borderRadius: "var(--cn-radius-xs, 4px)",
+                  backgroundColor:
+                    strength.score >= step
+                      ? STRENGTH_META[strength.score].color
+                      : "var(--cn-color-neutral-150, #e9ecef)",
+                  transition: "background-color 160ms ease",
+                }}
+              />
+            ))}
+          </Box>
+          <Typography
+            component="span"
+            sx={{
+              fontSize: "var(--cn-font-size-xs, 11px)",
+              color: STRENGTH_META[strength.score].color,
+            }}
+          >
+            {STRENGTH_META[strength.score].label}
+            {strength.missing.length > 0 && (
+              <Box component="span" sx={{ color: "var(--cn-color-text-muted, #6e7682)" }}>
+                {` · Agrega ${strength.missing.join(", ")}`}
+              </Box>
+            )}
+          </Typography>
+        </Box>
+      )}
       {showCounterRow && (
         <Box
           sx={{
@@ -481,6 +488,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
             component="span"
             sx={{ fontSize: "inherit", color: "inherit" }}
             data-cn-text-field-counter
+            aria-live="polite"
           >
             {charCount}/{effectiveMaxLength}
           </Typography>
