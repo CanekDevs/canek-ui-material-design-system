@@ -501,6 +501,80 @@ describe("CnForm", () => {
     expect(await screen.findAllByText("RFC inválido")).not.toHaveLength(0);
   });
 
+  it("validates and submits the extended field types", async () => {
+    const onSubmit = vi.fn();
+    render(
+      <CnForm
+        fields={[
+          { name: "code", type: "otp", label: "Código", otpLength: 4 },
+          { name: "card", type: "masked", label: "Tarjeta", maskPreset: "creditCard" },
+          {
+            name: "emails",
+            type: "tags",
+            label: "Correos",
+            tagRules: [{ type: "email" }],
+            required: true,
+          },
+          {
+            name: "view",
+            type: "segmented",
+            label: "Vista",
+            options: [
+              { value: "list", label: "Lista" },
+              { value: "grid", label: "Cuadrícula" },
+            ],
+          },
+          { name: "price", type: "numberrange", label: "Precio" },
+          { name: "color", type: "color", label: "Color" },
+          {
+            name: "pass",
+            type: "password",
+            label: "Clave",
+            passwordRequirements: { minLength: 8 },
+          },
+        ]}
+        defaultValues={{
+          code: "12",
+          card: "4111111111111112",
+          price: [50, 10],
+          color: "#12",
+          pass: "corta",
+        }}
+        onSubmit={onSubmit}
+      />,
+    );
+    submit();
+    expect(await screen.findAllByText("Ingresa los 4 caracteres")).not.toHaveLength(0);
+    expect(screen.getAllByText("Número de tarjeta no válido").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/mínimo no puede ser mayor/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Color no válido/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("La contraseña no cumple los requisitos").length).toBeGreaterThan(0);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("submits default values for the new types", async () => {
+    const onSubmit = vi.fn();
+    render(
+      <CnForm
+        fields={[
+          { name: "tags", type: "tags", label: "Etiquetas" },
+          { name: "range", type: "numberrange", label: "Rango" },
+          { name: "country", type: "country", label: "País" },
+          { name: "mode", type: "segmented", label: "Modo", options: [{ value: "a", label: "A" }] },
+        ]}
+        onSubmit={onSubmit}
+      />,
+    );
+    submit();
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    expect(onSubmit.mock.calls[0][0]).toEqual({
+      tags: [],
+      range: [null, null],
+      country: null,
+      mode: "",
+    });
+  });
+
   it("disables everything in readOnly mode", () => {
     render(<CnForm fields={baseFields} readOnly onSubmit={() => {}} />);
     expect(screen.getByLabelText(/Nombre/)).toHaveAttribute("readonly");

@@ -114,6 +114,17 @@ El import del CSS es **obligatorio**. Los tokens de diseño se exponen como CSS 
 | `CnDateField`         | Formularios | Fecha, hora, fecha-hora y mes: captura con máscara + selector propio (calendario, mes/año, hora). |
 | `CnDateRangeField`    | Formularios | Rango de fechas con dos meses, atajos ("Últimos 7 días"…) y duración máxima.                    |
 | `CnCalendar`          | Formularios | Calendario accesible en línea: simple o rango, fechas marcadas, números de semana.              |
+| `CnPasswordField`     | Formularios | Contraseña con checklist de requisitos, medidor y generador seguro.                              |
+| `CnOtpField`          | Formularios | Códigos de verificación / 2FA: un recuadro por carácter, pegado y autocompletado de SMS.        |
+| `CnMaskedField`       | Formularios | Máscaras con presets: tarjeta (Luhn + marca), vencimiento, CVV, CLABE, NSS, CURP, RFC, CP.      |
+| `CnTagsField`         | Formularios | Lista libre de valores como chips (correos, palabras clave) validados uno a uno.               |
+| `CnSegmentedField`    | Formularios | Botones segmentados de selección simple o múltiple, con íconos.                                 |
+| `CnColorField`        | Formularios | Color hex con paleta sugerida y selector nativo.                                                |
+| `CnSignatureField`    | Formularios | Firma dibujada (mouse, dedo, lápiz) o escrita; se guarda como PNG.                              |
+| `CnNumberRangeField`  | Formularios | Rango numérico mínimo–máximo.                                                                   |
+| `CnCountryField`      | Formularios | Países con bandera, búsqueda por nombre/ISO/lada y destacados.                                  |
+| `CnFlagIcon`          | Base        | Banderas SVG integradas (sin CDN externo), con URL propia opcional.                             |
+| `CnFormSkeleton`      | Feedback    | Esqueleto de carga para formularios.                                                            |
 | `CnRichTextField`     | Formularios | Editor enriquecido (tiptap) con tablas, imágenes, enlaces seguros y contador. Entrada aparte.   |
 | `CnSliderField`       | Formularios | Valor único o rango.                                                                            |
 | `CnRatingField`       | Formularios | Calificación con etiquetas por valor.                                                           |
@@ -260,6 +271,23 @@ Las pestañas y los pasos aceptan `fields` **y** `sections`.
 - **Visor** de imágenes (zoom), video, audio y PDF, con descarga y navegación por teclado.
 - Pegar con Ctrl+V (`allowPaste`), `capture` para la cámara del móvil, `renderFileActions` para acciones propias y `onRemoveExisting` para archivos del servidor.
 - En `CnForm`, cualquier opción avanzada se pasa con `componentProps` (p. ej. `{ fileStatus, onFilesAdded }`).
+
+### Más campos
+
+| Tipo en `CnForm` | Componente           | Notas                                                                  |
+| ---------------- | -------------------- | ---------------------------------------------------------------------- |
+| `password`       | `CnPasswordField`    | `passwordRequirements`, `allowGenerate`, `showPasswordStrength`.       |
+| `otp`            | `CnOtpField`         | `otpLength`; valida longitud completa.                                 |
+| `masked`         | `CnMaskedField`      | `mask` (`#` dígito, `A` letra, `*` alfanumérico) o `maskPreset`.       |
+| `tags`           | `CnTagsField`        | `tagRules` por etiqueta, `maxTags`, `suggestions`; pegar listas.       |
+| `segmented`      | `CnSegmentedField`   | `options` con `icon`, `multiple`, `iconOnly`.                          |
+| `color`          | `CnColorField`       | `colorPresets`; valida `#RRGGBB`.                                      |
+| `signature`      | `CnSignatureField`   | Valor PNG en data URL; alternativa escrita accesible.                  |
+| `numberrange`    | `CnNumberRangeField` | `[mín, máx]`, valida el orden.                                         |
+| `country`        | `CnCountryField`     | Código ISO; `priorityCountries`, `multiple`.                           |
+
+Las opciones de `select`, `autocomplete` y `segmented` aceptan `icon`, `avatar`, `initials` (o
+`true` para calcularlas) y `flag`, útiles para selectores de personas o países.
 
 ### Texto enriquecido
 

@@ -11,6 +11,7 @@ import { forwardRef, useMemo } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { getOutlinedFieldSx, mergeSx, MUI_FIELD_SIZE } from "../../utils/field-styles";
+import { hasOptionMedia, OptionContent, OptionMedia } from "../../utils/option-media";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
 
 export type CnSelectValue = string | number | "" | null | Array<string | number>;
@@ -139,6 +140,14 @@ export const CnSelectField = forwardRef<HTMLDivElement, CnSelectFieldProps>(func
               <Chip
                 key={String(key)}
                 label={labelFor(String(key))}
+                avatar={
+                  byKey.get(String(key)) &&
+                  hasOptionMedia(byKey.get(String(key)) as CnFieldOption) ? (
+                    <Box component="span" sx={{ display: "inline-flex", ml: "4px" }}>
+                      <OptionMedia option={byKey.get(String(key)) as CnFieldOption} size={16} />
+                    </Box>
+                  ) : undefined
+                }
                 size="small"
                 onMouseDown={(event) => event.stopPropagation()}
                 onDelete={
@@ -158,6 +167,15 @@ export const CnSelectField = forwardRef<HTMLDivElement, CnSelectFieldProps>(func
       return (
         <Box component="span" sx={{ color: "var(--cn-color-text-subtle, #9aa1aa)" }}>
           {placeholder}
+        </Box>
+      );
+    }
+    const option = byKey.get(String(selected));
+    if (option && hasOptionMedia(option)) {
+      return (
+        <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+          <OptionMedia option={option} size={20} />
+          {option.label}
         </Box>
       );
     }
@@ -186,28 +204,10 @@ export const CnSelectField = forwardRef<HTMLDivElement, CnSelectFieldProps>(func
           disabled={option.disabled}
           sx={{
             fontSize: "var(--cn-font-size-base, 13px)",
-            alignItems: "flex-start",
-            flexDirection: "column",
+            alignItems: "center",
           }}
         >
-          {renderOption ? (
-            renderOption(option)
-          ) : (
-            <>
-              <span>{option.label}</span>
-              {option.description && (
-                <Box
-                  component="span"
-                  sx={{
-                    fontSize: "var(--cn-font-size-xs, 11px)",
-                    color: "var(--cn-color-text-muted, #6e7682)",
-                  }}
-                >
-                  {option.description}
-                </Box>
-              )}
-            </>
-          )}
+          {renderOption ? renderOption(option) : <OptionContent option={option} />}
         </MenuItem>,
       );
     }

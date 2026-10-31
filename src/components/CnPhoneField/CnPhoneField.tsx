@@ -15,6 +15,7 @@ import {
   PHONE_COUNTRIES,
   toE164,
 } from "../../utils/phone-countries";
+import { CnFlagIcon } from "../CnFlagIcon";
 import type { CnPhoneCountryCode } from "../CnForm/CnForm.types";
 
 export type CnPhoneValueFormat = "e164" | "national";
@@ -152,7 +153,16 @@ export const CnPhoneField = forwardRef<HTMLDivElement, CnPhoneFieldProps>(functi
           disabled={disabled || readOnly}
           onChange={(event) => handleCountry(event.target.value as CnPhoneCountryCode)}
           inputProps={{ "aria-label": "País" }}
-          renderValue={(code) => `${code} ${PHONE_COUNTRIES[code as CnPhoneCountryCode].dialCode}`}
+          renderValue={(code) => (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <CnFlagIcon
+                code={code}
+                size={12}
+                name={PHONE_COUNTRIES[code as CnPhoneCountryCode].name}
+              />
+              {`${code} ${PHONE_COUNTRIES[code as CnPhoneCountryCode].dialCode}`}
+            </span>
+          )}
           MenuProps={{ slotProps: { paper: { sx: { maxHeight: 320 } } } }}
           sx={{
             fontSize: "var(--cn-font-size-sm, 12px)",
@@ -167,6 +177,7 @@ export const CnPhoneField = forwardRef<HTMLDivElement, CnPhoneFieldProps>(functi
               value={code}
               sx={{ fontSize: "var(--cn-font-size-base, 13px)", gap: "8px" }}
             >
+              <CnFlagIcon code={code} size={14} />
               <strong style={{ minWidth: 24 }}>{code}</strong>
               {PHONE_COUNTRIES[code].name}
               <span style={{ marginLeft: "auto", color: "var(--cn-color-text-muted, #6e7682)" }}>
@@ -177,7 +188,10 @@ export const CnPhoneField = forwardRef<HTMLDivElement, CnPhoneFieldProps>(functi
         </Select>
       </InputAdornment>
     ) : (
-      <InputAdornment position="start">{country.dialCode}</InputAdornment>
+      <InputAdornment position="start" sx={{ gap: "6px" }}>
+        <CnFlagIcon code={country.code} size={12} name={country.name} />
+        {country.dialCode}
+      </InputAdornment>
     );
 
   return (

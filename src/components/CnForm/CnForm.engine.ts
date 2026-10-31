@@ -7,6 +7,11 @@ import {
 } from "../../utils/phone-countries";
 import { buildDateRangeRules } from "../CnDateField/CnDateField";
 import { buildDateRangeValueRules } from "../CnDateField/CnDateRangeField";
+import { COLOR_RULE } from "../CnColorField/CnColorField";
+import { buildMaskRules } from "../CnMaskedField/CnMaskedField";
+import { NUMBER_RANGE_RULES } from "../CnNumberRangeField/CnNumberRangeField";
+import { buildPasswordRule } from "../CnPasswordField/CnPasswordField";
+import { MASK_PRESETS } from "../../utils/mask-utils";
 import { getNestedValue, setNestedValue } from "./CnForm.helpers";
 import type {
   CnFormCustomElement,
@@ -105,6 +110,14 @@ export const getFieldDefault = (field: CnFormField, values: CnFormValues): unkno
       return [];
     case "daterange":
       return ["", ""];
+    case "tags":
+      return [];
+    case "segmented":
+      return field.multiple ? [] : "";
+    case "country":
+      return field.multiple ? [] : null;
+    case "numberrange":
+      return [null, null];
     default:
       return "";
   }
@@ -299,6 +312,40 @@ export const getFieldRules = (
       if (max !== undefined && !has("max")) rules.push({ type: "max", value: max });
       break;
     }
+    case "password":
+      if (field.passwordRequirements) rules.push(buildPasswordRule(field.passwordRequirements));
+      if (field.maxLength !== undefined && !has("maxLength")) {
+        rules.push({ type: "maxLength", value: field.maxLength });
+      }
+      break;
+    case "masked": {
+      const preset = field.maskPreset ? MASK_PRESETS[field.maskPreset] : undefined;
+      const mask = field.mask ?? preset?.mask;
+      if (mask) rules.push(...buildMaskRules(mask, preset));
+      break;
+    }
+    case "otp": {
+      const length = field.otpLength ?? 6;
+      rules.push({
+        type: "custom",
+        message: `Ingresa los ${length} caracteres`,
+        validate: (v) => !v || String(v).length === length,
+      });
+      break;
+    }
+    case "color":
+      rules.push(COLOR_RULE);
+      break;
+    case "numberrange":
+      rules.push(...NUMBER_RANGE_RULES);
+      if (required) {
+        rules.push({
+          type: "custom",
+          message: "Indica el mínimo y el máximo",
+          validate: (v) => Array.isArray(v) && v.every((n) => n !== null && n !== undefined),
+        });
+      }
+      break;
     case "file":
       if (field.maxFiles !== undefined && !has("maxFiles")) {
         rules.push({ type: "maxFiles", value: field.maxFiles });
@@ -341,6 +388,9 @@ const WIDE_TYPES = new Set([
   "range",
   "daterange",
   "richtext",
+  "signature",
+  "tags",
+  "numberrange",
 ]);
 
 export const getDefaultGrid = (

@@ -29,6 +29,14 @@ export type CnFormFieldType =
   | "rating"
   | "file"
   | "richtext"
+  | "otp"
+  | "masked"
+  | "tags"
+  | "segmented"
+  | "color"
+  | "signature"
+  | "country"
+  | "numberrange"
   | "custom";
 
 export type CnFormSectionContext = {
@@ -54,6 +62,14 @@ export type CnFormSelectOption = {
   group?: string;
   /** Texto extra usado al buscar en autocomplete (sinónimos, claves...). */
   searchText?: string;
+  /** Ícono del registro de CnIcon. */
+  icon?: string;
+  /** URL de imagen (avatar de persona, logo…). Solo http(s), blob: o relativa. */
+  avatar?: string;
+  /** Iniciales cuando no hay avatar (se calculan de `label` si se pasa `true`). */
+  initials?: string | true;
+  /** Código de país para mostrar su bandera. */
+  flag?: string;
 };
 
 /** Alias para usar las opciones fuera de `CnForm`. */
@@ -301,6 +317,48 @@ export type CnFormField = CnFormGridProps & {
   maxDays?: number;
   /** daterange: atajos ("Últimos 7 días"…). */
   presets?: boolean;
+
+  /** otp: número de caracteres. */
+  otpLength?: number;
+  /** masked: máscara (`#` dígito, `A` letra, `*` alfanumérico). */
+  mask?: string;
+  /** masked: preset (creditCard, cardExpiry, cvv, clabe, nss, curp, rfcMoral, rfcFisica, postalCodeMX, phoneMX, time). */
+  maskPreset?:
+    | "creditCard"
+    | "cardExpiry"
+    | "cvv"
+    | "clabe"
+    | "postalCodeMX"
+    | "phoneMX"
+    | "nss"
+    | "curp"
+    | "rfcMoral"
+    | "rfcFisica"
+    | "time";
+  /** masked: `raw` (sin separadores) o `masked`. */
+  valueMode?: "raw" | "masked";
+  /** tags: reglas por etiqueta (p. ej. `[{ type: "email" }]`). */
+  tagRules?: CnValidationRule[];
+  maxTags?: number;
+  suggestions?: string[];
+  /** color: paleta sugerida. */
+  colorPresets?: string[];
+  /** password: requisitos visibles (`minLength`, `uppercase`, `lowercase`, `number`, `symbol`). */
+  passwordRequirements?:
+    | {
+        minLength?: number;
+        uppercase?: boolean;
+        lowercase?: boolean;
+        number?: boolean;
+        symbol?: boolean;
+      }
+    | false;
+  /** password: botón para generar una contraseña segura. */
+  allowGenerate?: boolean;
+  /** country: países que aparecen primero. */
+  priorityCountries?: string[];
+  /** segmented: solo íconos. */
+  iconOnly?: boolean;
 
   marks?: boolean | { value: number; label?: string }[];
   precision?: number;
