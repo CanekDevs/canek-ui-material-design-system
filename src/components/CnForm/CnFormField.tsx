@@ -6,7 +6,6 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormHelperText from "@mui/material/FormHelperText";
 import FormLabel from "@mui/material/FormLabel";
 import Grid from "@mui/material/Grid";
-import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
@@ -14,7 +13,9 @@ import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import type { ReactNode } from "react";
 import { isValidElement } from "react";
-import type { CnFormField, CnFormSelectOption } from "./CnForm.types";
+import type { CnTextFieldType } from "../CnTextField";
+import { CnTextField } from "../CnTextField";
+import type { CnFormField, CnFormFieldType, CnFormSelectOption } from "./CnForm.types";
 
 type CnFormFieldControlProps = {
   field: CnFormField;
@@ -118,6 +119,21 @@ const textFieldSx = {
   },
 };
 
+type CnFormTextFieldType = Extract<CnFormFieldType, CnTextFieldType>;
+
+const CN_TEXT_FIELD_TYPES: readonly CnFormTextFieldType[] = [
+  "text",
+  "email",
+  "tel",
+  "url",
+  "number",
+  "password",
+  "textarea",
+];
+
+const isCnTextFieldType = (type: CnFormField["type"]): type is CnFormTextFieldType =>
+  (CN_TEXT_FIELD_TYPES as readonly string[]).includes(type);
+
 export const CnFormFieldControl = ({
   field,
   value,
@@ -140,13 +156,43 @@ export const CnFormFieldControl = ({
     xl: field.xl,
   };
 
-  const helperTextNode: ReactNode = error
+  const helperTextNode: string | undefined = error
     ? error
     : typeof field.helperText === "string"
       ? field.helperText
       : undefined;
 
   const renderContent = (): ReactNode => {
+    if (isCnTextFieldType(field.type)) {
+      const startAdornment = renderAdornment(field.startAdornment, value, formValues);
+      const endAdornment = renderAdornment(field.endAdornment, value, formValues);
+      const isMultiline = field.type === "textarea" || Boolean(field.multiline);
+      return (
+        <CnTextField
+          name={field.name}
+          label={field.label}
+          placeholder={field.placeholder}
+          helperText={helperTextNode}
+          error={Boolean(error)}
+          required={isRequired}
+          disabled={isDisabled}
+          readOnly={fieldReadOnly}
+          type={field.type}
+          value={String(value ?? "")}
+          onChange={(next) => onChange(next)}
+          autoComplete={field.autoComplete}
+          autoFocus={field.autoFocus}
+          multiline={isMultiline}
+          rows={field.rows}
+          minRows={field.minRows}
+          maxRows={field.maxRows}
+          startAdornment={startAdornment}
+          endAdornment={endAdornment}
+          reserveHelperSpace
+        />
+      );
+    }
+
     if (field.type === "checkbox") {
       return (
         <FormControl error={Boolean(error)} disabled={isDisabled} fullWidth>
@@ -287,49 +333,7 @@ export const CnFormFieldControl = ({
       );
     }
 
-    const startAdornment = renderAdornment(field.startAdornment, value, formValues);
-    const endAdornment = renderAdornment(field.endAdornment, value, formValues);
-
-    const isMultiline = field.type === "textarea" || field.multiline;
-    const inputType = field.type === "textarea" ? "text" : field.type;
-
-    return (
-      <TextField
-        fullWidth
-        label={field.label}
-        placeholder={field.placeholder}
-        type={inputType}
-        value={String(value ?? "")}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={isDisabled}
-        required={isRequired}
-        error={Boolean(error)}
-        helperText={helperTextNode}
-        autoComplete={field.autoComplete}
-        autoFocus={field.autoFocus}
-        multiline={isMultiline}
-        rows={field.rows}
-        minRows={field.minRows}
-        maxRows={field.maxRows}
-        slotProps={{
-          input: {
-            startAdornment: startAdornment ? (
-              <InputAdornment position="start">{startAdornment}</InputAdornment>
-            ) : undefined,
-            endAdornment: endAdornment ? (
-              <InputAdornment position="end">{endAdornment}</InputAdornment>
-            ) : undefined,
-            inputProps: {
-              min: field.min,
-              max: field.max,
-              step: field.step,
-              readOnly: fieldReadOnly,
-            },
-          },
-        }}
-        sx={textFieldSx}
-      />
-    );
+    return null;
   };
 
   return (

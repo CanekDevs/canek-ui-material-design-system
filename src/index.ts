@@ -98,31 +98,51 @@ export type {
 
 export { CnForm, CnFormFieldControl } from "./components/CnForm";
 export type {
-  CnFormProps,
-  CnFormField,
+  CnFormButtonProps,
   CnFormCustomElement,
+  CnFormField,
   CnFormFieldOrCustom,
   CnFormFieldType,
-  CnFormSelectOption,
+  CnFormProps,
   CnFormSectionContext,
-  CnFormVariant,
+  CnFormSelectOption,
   CnFormSize,
-  CnFormButtonProps,
-  CnValidationRule,
+  CnFormVariant,
+  CnValidationRule
 } from "./components/CnForm";
 
 export {
-  getNestedValue,
-  setNestedValue,
-  flattenObject,
-  expandObject,
-  validateFieldValue,
   combineRules,
+  expandObject,
+  flattenObject,
+  getNestedValue,
   registerValidator,
+  setNestedValue,
   useFieldValidation,
+  validateFieldValue
 } from "./components/CnForm";
 
-export type { ValidatorFn, UseFieldValidationOptions } from "./components/CnForm";
+export type { UseFieldValidationOptions, ValidatorFn } from "./components/CnForm";
+
+export { CnTextField } from "./components/CnTextField";
+export type {
+  CnTextFieldProps,
+  CnTextFieldSize,
+  CnTextFieldSlotProps,
+  CnTextFieldTransform,
+  CnTextFieldType,
+  CnTextFieldVariant
+} from "./components/CnTextField";
+
+export { resolveFieldState } from "./utils/field-state";
+export type { FieldStateInput, FieldStateOutput } from "./utils/field-state";
+
+export type {
+  CnDateStringFormat,
+  CnPhoneCountryCode,
+  CnPostalCodeFormat,
+  UseFieldValidationReturn,
+} from "./components/CnForm";
 
 export { CanekThemeProvider, createCanekTheme } from "./theme";
 export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";

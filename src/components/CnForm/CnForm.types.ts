@@ -1,4 +1,4 @@
-import type { GridSize } from "@mui/material";
+import type { GridSize, SxProps, Theme } from "@mui/material";
 import type { ReactNode } from "react";
 
 export type CnFormFieldType =
@@ -34,6 +34,42 @@ export type CnFormSelectOption = {
   disabled?: boolean;
 };
 
+export type CnPhoneCountryCode =
+  | "MX"
+  | "US"
+  | "ES"
+  | "AR"
+  | "CO"
+  | "CL"
+  | "BR"
+  | "PE"
+  | "GT"
+  | "CR"
+  | "PA"
+  | "DO"
+  | "GB"
+  | "FR"
+  | "DE"
+  | "IT";
+
+export type CnPostalCodeFormat =
+  | "mx"
+  | "us"
+  | "es"
+  | "ar"
+  | "co"
+  | "cl"
+  | "br"
+  | "uk"
+  | "ca"
+  | "de"
+  | "fr"
+  | "it"
+  | "pt"
+  | "intl";
+
+export type CnDateStringFormat = "YYYY-MM-DD" | "DD/MM/YYYY" | "MM/DD/YYYY";
+
 export type CnValidationRule =
   | { type: "required"; message?: CnFormDynamicMessage }
   | { type: "email"; message?: CnFormDynamicMessage }
@@ -48,19 +84,88 @@ export type CnValidationRule =
   | { type: "integer"; message?: CnFormDynamicMessage }
   | { type: "positive"; message?: CnFormDynamicMessage }
   | { type: "negative"; message?: CnFormDynamicMessage }
-  | { type: "pattern"; value: RegExp; message?: CnFormDynamicMessage }
+  | { type: "pattern"; value: RegExp; filterPattern?: RegExp; message?: CnFormDynamicMessage }
   | { type: "equalTo"; field: string; message?: CnFormDynamicMessage }
   | { type: "notEqualTo"; field: string; message?: CnFormDynamicMessage }
-  | { type: "passwordStrength"; level?: "weak" | "medium" | "strong"; message?: CnFormDynamicMessage }
   | {
-      type: "custom";
-      message: CnFormDynamicMessage;
-      validate: (
-        value: unknown,
-        formValues: Record<string, unknown>,
-        ctx?: CnFormSectionContext,
-      ) => boolean;
-    };
+    type: "passwordStrength";
+    level?: "weak" | "medium" | "strong";
+    message?: CnFormDynamicMessage;
+  }
+  | {
+    type: "custom";
+    message: CnFormDynamicMessage;
+    validate: (
+      value: unknown,
+      formValues: Record<string, unknown>,
+      ctx?: CnFormSectionContext,
+    ) => boolean;
+  }
+  | { type: "alphanumeric"; message?: CnFormDynamicMessage }
+  | { type: "alphabetic"; message?: CnFormDynamicMessage }
+  | { type: "uppercase"; message?: CnFormDynamicMessage }
+  | { type: "lowercase"; message?: CnFormDynamicMessage }
+  | { type: "noSpaces"; message?: CnFormDynamicMessage }
+  | {
+    type: "tel";
+    message?: CnFormDynamicMessage;
+    country?: CnFormDynamicValue<CnPhoneCountryCode>;
+  }
+  | {
+    type: "phone";
+    message?: CnFormDynamicMessage;
+    country?: CnFormDynamicValue<CnPhoneCountryCode>;
+  }
+  | { type: "whatsapp"; message?: CnFormDynamicMessage }
+  | {
+    type: "rfc";
+    message?: CnFormDynamicMessage;
+    personType?: CnFormDynamicValue<"moral" | "fisica">;
+  }
+  | { type: "curp"; message?: CnFormDynamicMessage }
+  | { type: "ine"; message?: CnFormDynamicMessage }
+  | { type: "nss"; message?: CnFormDynamicMessage }
+  | { type: "nssOrSsn"; message?: CnFormDynamicMessage }
+  | { type: "cpf"; message?: CnFormDynamicMessage }
+  | { type: "cnpj"; message?: CnFormDynamicMessage }
+  | { type: "nif"; message?: CnFormDynamicMessage }
+  | { type: "nie"; message?: CnFormDynamicMessage }
+  | { type: "ssn"; message?: CnFormDynamicMessage }
+  | { type: "ein"; message?: CnFormDynamicMessage }
+  | { type: "passport"; message?: CnFormDynamicMessage }
+  | {
+    type: "licensePlate";
+    message?: CnFormDynamicMessage;
+    country?: CnFormDynamicValue<"MX" | "US" | "ES" | "AR">;
+  }
+  | {
+    type: "postalCode";
+    message?: CnFormDynamicMessage;
+    format?: CnFormDynamicValue<CnPostalCodeFormat>;
+  }
+  | { type: "creditCard"; message?: CnFormDynamicMessage }
+  | { type: "creditCardExpiry"; message?: CnFormDynamicMessage }
+  | { type: "creditCardCVV"; message?: CnFormDynamicMessage }
+  | {
+    type: "date";
+    message?: CnFormDynamicMessage;
+    format?: CnFormDynamicValue<CnDateStringFormat>;
+    minDate?: string | ((formValues: Record<string, unknown>) => string);
+    maxDate?: string | ((formValues: Record<string, unknown>) => string);
+  }
+  | { type: "time"; message?: CnFormDynamicMessage; format?: CnFormDynamicValue<"12h" | "24h"> }
+  | { type: "datetime"; message?: CnFormDynamicMessage }
+  | { type: "decimal"; message?: CnFormDynamicMessage; decimals?: number }
+  | { type: "domain"; message?: CnFormDynamicMessage }
+  | {
+    type: "ip";
+    message?: CnFormDynamicMessage;
+    version?: "ipv4" | "ipv6" | "both";
+  }
+  | { type: "maxFiles"; value: number; message?: CnFormDynamicMessage }
+  | { type: "minFiles"; value: number; message?: CnFormDynamicMessage }
+  | { type: "maxSize"; value: number; message?: CnFormDynamicMessage }
+  | { type: "fileType"; types: string[]; message?: CnFormDynamicMessage };
 
 export type CnFormField = {
   name: string;
@@ -118,7 +223,15 @@ export type CnFormSubmitMode = "json";
 export type CnFormButtonProps = {
   label?: string;
   variant?: "contained" | "outlined" | "text";
-  color?: "primary" | "secondary" | "success" | "warning" | "error" | "info" | "accent" | "neutral";
+  color?:
+  | "primary"
+  | "secondary"
+  | "success"
+  | "warning"
+  | "error"
+  | "info"
+  | "accent"
+  | "neutral";
   size?: "small" | "medium" | "large";
   fullWidth?: boolean;
   icon?: string;
@@ -164,7 +277,7 @@ export type CnFormProps<TValue extends Record<string, unknown> = Record<string, 
 
   allFieldsForValidation?: readonly CnFormFieldOrCustom[];
 
-  sx?: React.ComponentProps<"form">["style"];
+  sx?: SxProps<Theme>;
   className?: string;
-  fieldSx?: React.ComponentProps<"div">["style"];
+  fieldSx?: SxProps<Theme>;
 };
