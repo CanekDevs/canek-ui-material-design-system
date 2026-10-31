@@ -8,17 +8,11 @@ import Tooltip from "@mui/material/Tooltip";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { MouseEvent, MouseEventHandler, ReactNode } from "react";
 import { forwardRef } from "react";
+import { CnIcon } from "../CnIcon";
 
 export type CnButtonVariant = "contained" | "outlined" | "text";
 export type CnButtonColor =
-  | "primary"
-  | "secondary"
-  | "success"
-  | "warning"
-  | "info"
-  | "error"
-  | "accent"
-  | "neutral";
+  "primary" | "secondary" | "success" | "warning" | "info" | "error" | "accent" | "neutral";
 export type CnButtonSize = "small" | "medium" | "large";
 export type CnButtonShape = "rounded" | "pill" | "square";
 export type CnButtonLoadingPosition = "start" | "end" | "center";
@@ -258,12 +252,11 @@ function buildButtonSx(
   return base;
 }
 
-function renderIconSlot(
-  slot: IconInput | undefined,
-  sizePx: number,
-): ReactNode | undefined {
-  if (slot === undefined || slot === null) return undefined;
-  if (typeof slot === "string" || typeof slot === "number") return slot;
+function renderIconSlot(slot: IconInput | undefined, sizePx: number): ReactNode | undefined {
+  if (slot === undefined || slot === null || slot === "") return undefined;
+  // Los nombres se resuelven con el registro de CnIcon, igual que en el resto de componentes.
+  if (typeof slot === "string") return <CnIcon name={slot} size={sizePx} />;
+  if (typeof slot === "number") return slot;
   return <span style={{ display: "inline-flex", width: sizePx, height: sizePx }}>{slot}</span>;
 }
 
@@ -383,11 +376,19 @@ export const CnButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, CnButt
     const leadingIcon =
       loading && loadingPosition === "start"
         ? loadingSpinner
-        : startIconResolved ?? (loading && loadingPosition === "center" ? loadingSpinner : undefined);
+        : (startIconResolved ??
+          (loading && loadingPosition === "center" ? loadingSpinner : undefined));
 
     const trailingIcon = loading && loadingPosition === "end" ? loadingSpinner : endIconResolved;
 
-    const buttonSx = buildButtonSx(variant, color, size, shape, loading, isLink && resolvedDisabled);
+    const buttonSx = buildButtonSx(
+      variant,
+      color,
+      size,
+      shape,
+      loading,
+      isLink && resolvedDisabled,
+    );
 
     const buttonSxMerged = [buttonSx, ...(Array.isArray(sx) ? sx : [sx])];
 

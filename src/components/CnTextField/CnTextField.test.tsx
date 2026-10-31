@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CnTextField } from "./CnTextField";
@@ -155,5 +156,64 @@ describe("CnTextField", () => {
     expect(root).toHaveAttribute("data-cn-text-field-type", "email");
     expect(root).toHaveAttribute("data-cn-text-field-size", "lg");
     expect(root).toHaveAttribute("data-cn-text-field-variant", "filled");
+  });
+
+  it("emits the transformed value while typing (submit with Enter gets final value)", () => {
+    const onChange = vi.fn();
+    render(<CnTextField transform="uppercase" onChange={onChange} />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "abc" } });
+    expect(onChange).toHaveBeenLastCalledWith("ABC");
+  });
+
+  it("syncs external resets even while focused", () => {
+    const Wrapper = () => {
+      const [value, setValue] = useState("hola");
+      return (
+        <>
+          <CnTextField value={value} onChange={setValue} />
+          <button type="button" onClick={() => setValue("")}>
+            reset
+          </button>
+        </>
+      );
+    };
+    render(<Wrapper />);
+    const input = screen.getByRole("textbox");
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "hola mundo" } });
+    fireEvent.click(screen.getByRole("button", { name: "reset" }));
+    expect(input).toHaveValue("");
+  });
+
+  it("keeps + in emails and _ in urls", () => {
+    const onChange = vi.fn();
+    render(<CnTextField rules={[{ type: "email" }]} onChange={onChange} />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "ana+news@canek.mx" } });
+    expect(onChange).toHaveBeenLastCalledWith("ana+news@canek.mx");
+  });
+
+  it("keeps accented letters with alphanumeric rule", () => {
+    const onChange = vi.fn();
+    render(<CnTextField rules={[{ type: "alphanumeric" }]} onChange={onChange} />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "Peña 12!" } });
+    expect(onChange).toHaveBeenLastCalledWith("Peña 12");
+  });
+
+  it("shows a password strength meter", () => {
+    const { container } = render(
+      <CnTextField type="password" showPasswordStrength defaultValue="Abcdef1!xyz9" />,
+    );
+    expect(screen.getByRole("meter", { name: "Fortaleza de la contraseña" })).toBeInTheDocument();
+    expect(container.querySelector("[data-cn-password-strength]")).toHaveAttribute(
+      "data-cn-password-strength",
+      "4",
+    );
+  });
+
+  it("skips internal validation when disabled", async () => {
+    render(<CnTextField label="X" rules={[{ type: "required" }]} internalValidation={false} />);
+    fireEvent.blur(screen.getByLabelText("X"));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.queryByText("Campo requerido")).not.toBeInTheDocument();
   });
 });

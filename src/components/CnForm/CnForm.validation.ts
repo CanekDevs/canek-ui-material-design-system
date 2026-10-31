@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  isValidNationalNumber,
+  onlyDigits,
+  parsePhoneValue,
+  PHONE_COUNTRIES,
+} from "../../utils/phone-countries";
 import type {
   CnFormDynamicMessage,
   CnFormDynamicValue,
   CnFormSectionContext,
+  CnPhoneCountryCode,
   CnValidationRule,
 } from "./CnForm.types";
 
@@ -23,7 +30,7 @@ const resolveMessage = (
   return message;
 };
 
-const resolveDynamicValue = <T,>(
+const resolveDynamicValue = <T>(
   value: CnFormDynamicValue<T> | undefined,
   formValues: Record<string, unknown>,
   ctx?: CnFormSectionContext,
@@ -35,37 +42,62 @@ const resolveDynamicValue = <T,>(
   return value;
 };
 
-const isEmpty = (value: unknown): boolean =>
+export const isEmptyValue = (value: unknown): boolean =>
   value === undefined ||
   value === null ||
-  value === "" ||
+  (typeof value === "string" && value.trim() === "") ||
   value === false ||
+  (typeof value === "number" && Number.isNaN(value)) ||
   (Array.isArray(value) && value.length === 0);
+
+const EMPTY_FORM_VALUES: Record<string, unknown> = Object.freeze({}) as Record<string, unknown>;
+
+/** Parsea una fecha estricta (rechaza 2024-02-30) en hora local. */
+export const parseDateInput = (raw: string, format: string = "YYYY-MM-DD"): Date | null => {
+  const value = raw.trim();
+  let year: number;
+  let month: number;
+  let day: number;
+  if (format === "DD/MM/YYYY" || format === "MM/DD/YYYY") {
+    const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value);
+    if (!match) return null;
+    const first = Number(match[1]);
+    const second = Number(match[2]);
+    year = Number(match[3]);
+    day = format === "DD/MM/YYYY" ? first : second;
+    month = format === "DD/MM/YYYY" ? second : first;
+  } else {
+    const match = /^(\d{4})-(\d{2})-(\d{2})(?:[T\s].*)?$/.exec(value);
+    if (!match) return null;
+    year = Number(match[1]);
+    month = Number(match[2]);
+    day = Number(match[3]);
+  }
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null;
+  }
+  return date;
+};
+
+const toDateBoundary = (
+  bound: string | ((formValues: Record<string, unknown>) => string) | undefined,
+  formValues: Record<string, unknown>,
+): Date | null => {
+  if (!bound) return null;
+  const raw = typeof bound === "function" ? bound(formValues) : bound;
+  if (!raw) return null;
+  return parseDateInput(raw, "YYYY-MM-DD");
+};
+
+const formatDateEs = (date: Date): string =>
+  `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
 
 const cleanNumber = (value: string): string => value.replace(/\D/g, "");
 const cleanSpaces = (value: string): string => value.replace(/\s/g, "");
 
 const isAlphanumericWithAccents = (str: string): boolean => /^[\p{L}\p{N}\s]+$/u.test(str);
 const isAlphabeticWithAccents = (str: string): boolean => /^[\p{L}\s]+$/u.test(str);
-
-const phoneValidators: Record<string, (value: string) => boolean> = {
-  MX: (value) => /^(\d{10}|\d{11})$/.test(cleanNumber(value)),
-  US: (value) => /^\d{10}$/.test(cleanNumber(value)),
-  ES: (value) => /^\d{9}$/.test(cleanNumber(value)),
-  AR: (value) => /^\d{10}$/.test(cleanNumber(value)),
-  CO: (value) => /^\d{10}$/.test(cleanNumber(value)),
-  CL: (value) => /^\d{9}$/.test(cleanNumber(value)),
-  BR: (value) => /^\d{10,11}$/.test(cleanNumber(value)),
-  PE: (value) => /^\d{9}$/.test(cleanNumber(value)),
-  GT: (value) => /^\d{8}$/.test(cleanNumber(value)),
-  CR: (value) => /^\d{8}$/.test(cleanNumber(value)),
-  PA: (value) => /^\d{8}$/.test(cleanNumber(value)),
-  DO: (value) => /^\d{10}$/.test(cleanNumber(value)),
-  GB: (value) => /^\d{10}$/.test(cleanNumber(value)),
-  FR: (value) => /^\d{9}$/.test(cleanNumber(value)),
-  DE: (value) => /^\d{10,11}$/.test(cleanNumber(value)),
-  IT: (value) => /^\d{10}$/.test(cleanNumber(value)),
-};
 
 const getNestedFieldValue = (obj: Record<string, unknown>, path: string): unknown => {
   if (!path) return undefined;
@@ -82,7 +114,7 @@ const getNestedFieldValue = (obj: Record<string, unknown>, path: string): unknow
 
 const baseValidators: Record<string, ValidatorFn> = {
   required: (value, rule, formValues, ctx) => {
-    if (isEmpty(value)) {
+    if (isEmptyValue(value)) {
       return resolveMessage(rule.message, formValues, ctx) ?? "Campo requerido";
     }
     return null;
@@ -207,7 +239,7 @@ const baseValidators: Record<string, ValidatorFn> = {
     if (rule.type !== "equalTo") return null;
     const other = getNestedFieldValue(formValues, rule.field);
     if (value !== other) {
-      return resolveMessage(rule.message, formValues) ?? `No coincide con ${rule.field}`;
+      return resolveMessage(rule.message, formValues) ?? "Los valores no coinciden";
     }
     return null;
   },
@@ -306,31 +338,29 @@ const baseValidators: Record<string, ValidatorFn> = {
 
   tel: (value, rule, formValues, ctx) => {
     if (!value) return null;
-    const country =
+    const requested =
       (rule.type === "tel" || rule.type === "phone"
         ? resolveDynamicValue(rule.country, formValues, ctx)
         : undefined) ?? "MX";
-    const validator = phoneValidators[country];
-    if (validator) {
-      if (!validator(value.toString())) {
-        const custom = resolveMessage(rule.message, formValues, ctx);
-        if (custom) return custom;
-        const messages: Record<string, string> = {
-          MX: "Teléfono inválido. Formato: 55 1234 5678 o 33 1234 5678",
-          US: "Invalid phone number. Format: (555) 123-4567",
-          ES: "Teléfono inválido. Formato: 612 345 678",
-          AR: "Teléfono inválido. Formato: 11 2345 6789",
-          CO: "Teléfono inválido. Formato: 312 345 6789",
-          CL: "Teléfono inválido. Formato: 9 1234 5678",
-          BR: "Telefone inválido. Formato: (11) 91234-5678",
-        };
-        return messages[country] ?? "Teléfono no válido";
-      }
-    } else {
-      const cleaned = cleanNumber(value.toString());
+    const raw = value.toString();
+    const known = PHONE_COUNTRIES[requested as CnPhoneCountryCode];
+    if (!known) {
+      const cleaned = cleanNumber(raw);
       if (cleaned.length < 8 || cleaned.length > 15) {
         return resolveMessage(rule.message, formValues, ctx) ?? "Teléfono no válido";
       }
+      return null;
+    }
+    // Acepta número nacional ("55 1234 5678") o E.164 ("+525512345678").
+    const parsed = raw.trim().startsWith("+")
+      ? parsePhoneValue(raw, [known.code], known.code)
+      : { country: known.code, national: onlyDigits(raw) };
+    const country = PHONE_COUNTRIES[parsed.country];
+    if (!isValidNationalNumber(parsed.national, country)) {
+      return (
+        resolveMessage(rule.message, formValues, ctx) ??
+        `Teléfono inválido para ${country.name}. Ejemplo: ${country.example}`
+      );
     }
     return null;
   },
@@ -601,18 +631,26 @@ const baseValidators: Record<string, ValidatorFn> = {
     const format =
       (rule.type === "date" ? resolveDynamicValue(rule.format, formValues, ctx) : undefined) ??
       "YYYY-MM-DD";
-    let date: Date | null = null;
-    if (format === "DD/MM/YYYY") {
-      const parts = value.toString().split("/");
-      if (parts.length === 3) date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-    } else if (format === "MM/DD/YYYY") {
-      const parts = value.toString().split("/");
-      if (parts.length === 3) date = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
-    } else {
-      date = new Date(value.toString());
+    const date = parseDateInput(value.toString(), format);
+    if (!date) {
+      return (
+        resolveMessage(rule.message, formValues, ctx) ?? `Fecha no válida (Formato: ${format})`
+      );
     }
-    if (!date || Number.isNaN(date.getTime())) {
-      return resolveMessage(rule.message, formValues, ctx) ?? `Fecha no válida (Formato: ${format})`;
+    if (rule.type !== "date") return null;
+    const minDate = toDateBoundary(rule.minDate, formValues);
+    if (minDate && date < minDate) {
+      return (
+        resolveMessage(rule.message, formValues, ctx) ??
+        `La fecha debe ser igual o posterior al ${formatDateEs(minDate)}`
+      );
+    }
+    const maxDate = toDateBoundary(rule.maxDate, formValues);
+    if (maxDate && date > maxDate) {
+      return (
+        resolveMessage(rule.message, formValues, ctx) ??
+        `La fecha debe ser igual o anterior al ${formatDateEs(maxDate)}`
+      );
     }
     return null;
   },
@@ -624,7 +662,8 @@ const baseValidators: Record<string, ValidatorFn> = {
       "24h";
     const pattern24h = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     const pattern12h = /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i;
-    const valid = format === "12h" ? pattern12h.test(value.toString()) : pattern24h.test(value.toString());
+    const valid =
+      format === "12h" ? pattern12h.test(value.toString()) : pattern24h.test(value.toString());
     if (!valid) {
       return (
         resolveMessage(rule.message, formValues, ctx) ??
@@ -651,7 +690,7 @@ const baseValidators: Record<string, ValidatorFn> = {
       return resolveMessage(rule.message, formValues) ?? "Debe ser un número decimal";
     }
     const decimals = rule.type === "decimal" ? (rule.decimals ?? 2) : 2;
-    const regex = new RegExp(`^\\d+(\\.\\d{1,${decimals}})?$`);
+    const regex = new RegExp(`^-?\\d+(\\.\\d{1,${decimals}})?$`);
     if (!regex.test(String(num))) {
       return resolveMessage(rule.message, formValues) ?? `Debe tener máximo ${decimals} decimales`;
     }
@@ -668,7 +707,7 @@ const baseValidators: Record<string, ValidatorFn> = {
   ip: (value, rule, formValues) => {
     if (!value) return null;
     const version = rule.type === "ip" ? (rule.version ?? "both") : "both";
-    const ipv4 = /^(\d{1,3}\.){3}\d{1,3}$/;
+    const ipv4 = /^((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
     const ipv6 = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
     let valid = false;
     if (version === "ipv4") valid = ipv4.test(value.toString());
@@ -678,6 +717,28 @@ const baseValidators: Record<string, ValidatorFn> = {
       return (
         resolveMessage(rule.message, formValues) ??
         `IP no válida (${version === "both" ? "IPv4 o IPv6" : version.toUpperCase()})`
+      );
+    }
+    return null;
+  },
+
+  minItems: (value, rule, formValues) => {
+    if (rule.type !== "minItems") return null;
+    if (Array.isArray(value) && value.length < rule.value) {
+      return (
+        resolveMessage(rule.message, formValues) ??
+        `Selecciona al menos ${rule.value} ${rule.value === 1 ? "elemento" : "elementos"}`
+      );
+    }
+    return null;
+  },
+
+  maxItems: (value, rule, formValues) => {
+    if (rule.type !== "maxItems") return null;
+    if (Array.isArray(value) && value.length > rule.value) {
+      return (
+        resolveMessage(rule.message, formValues) ??
+        `Selecciona como máximo ${rule.value} ${rule.value === 1 ? "elemento" : "elementos"}`
       );
     }
     return null;
@@ -703,7 +764,11 @@ const baseValidators: Record<string, ValidatorFn> = {
     if (rule.type !== "maxSize") return null;
     if (
       Array.isArray(value) &&
-      value.some((f) => (f as { size?: number }).size !== undefined && (f as { size: number }).size > rule.value * 1024 * 1024)
+      value.some(
+        (f) =>
+          (f as { size?: number }).size !== undefined &&
+          (f as { size: number }).size > rule.value * 1024 * 1024,
+      )
     ) {
       return resolveMessage(rule.message, formValues) ?? `Archivo excede ${rule.value}MB`;
     }
@@ -783,7 +848,7 @@ export type UseFieldValidationReturn = {
 export const useFieldValidation = (
   value: unknown,
   rules: CnValidationRule[] | undefined,
-  formValues: Record<string, unknown> = {},
+  formValues: Record<string, unknown> = EMPTY_FORM_VALUES,
   options: UseFieldValidationOptions = {},
 ): UseFieldValidationReturn => {
   const {
@@ -796,22 +861,31 @@ export const useFieldValidation = (
   const [hasInteracted, setHasInteracted] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Las reglas y el contexto suelen declararse inline: se leen desde un ref para
+  // no reiniciar el debounce en cada render del padre.
+  const latestRef = useRef({ value, rules, formValues, sectionContext });
+  latestRef.current = { value, rules, formValues, sectionContext };
+
   const validate = useCallback((): string => {
-    const result = validateFieldValue(value, rules, formValues, sectionContext);
+    const current = latestRef.current;
+    const result = validateFieldValue(
+      current.value,
+      current.rules,
+      current.formValues,
+      current.sectionContext,
+    );
     setError(result);
     return result;
-  }, [value, rules, formValues, sectionContext]);
+  }, []);
 
   useEffect(() => {
     if (!validateOnChange || !hasInteracted) return;
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      validate();
-    }, debounceMs);
+    timerRef.current = setTimeout(validate, debounceMs);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [value, validate, validateOnChange, hasInteracted, debounceMs]);
+  }, [value, formValues, validate, validateOnChange, hasInteracted, debounceMs]);
 
   const handleBlur = useCallback(() => {
     setHasInteracted(true);
@@ -819,10 +893,11 @@ export const useFieldValidation = (
   }, [validate, validateOnBlur]);
 
   const handleChange = useCallback(() => {
-    if (!hasInteracted) setHasInteracted(true);
-  }, [hasInteracted]);
+    setHasInteracted(true);
+  }, []);
 
   const reset = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
     setHasInteracted(false);
     setError("");
   }, []);

@@ -31,6 +31,9 @@ export const transformValue = (value: string, transform: string): string => {
       return value.toLocaleLowerCase();
     case "capitalize":
       return capitalizeText(value);
+    case "numeric":
+    case "currency":
+      return value.replace(/[^\d.-]/g, "");
     default:
       return value;
   }
@@ -41,7 +44,11 @@ export const getFilterPattern = (rules?: CnValidationRule[]): RegExp | null => {
   for (const rule of rules) {
     switch (rule.type) {
       case "alphanumeric":
-        return /[^A-Za-z0-9\s]/g;
+        return /[^\p{L}\p{N}\s]/gu;
+      case "alphabetic":
+        return /[^\p{L}\s]/gu;
+      case "noSpaces":
+        return /\s/g;
       case "numeric":
       case "integer":
       case "positive":
@@ -55,7 +62,7 @@ export const getFilterPattern = (rules?: CnValidationRule[]): RegExp | null => {
       case "curp":
         return /[^A-Za-z0-9Ñ&]/g;
       case "email":
-        return /[^a-zA-Z0-9@._-]/g;
+        return /[^a-zA-Z0-9@._+-]/g;
       case "passwordStrength":
         return null;
       case "tel":
@@ -64,7 +71,7 @@ export const getFilterPattern = (rules?: CnValidationRule[]): RegExp | null => {
       case "creditCard":
         return /\D/g;
       case "url":
-        return /[^a-zA-Z0-9:/?#[\]@!$&'()*+,;=%-.]/g;
+        return /[^a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]/g;
       case "pattern":
         if (rule.filterPattern) return rule.filterPattern;
         break;
@@ -127,4 +134,23 @@ export const getInputModeFromRules = (
     }
   }
   return "text";
+};
+
+export type PasswordStrength = {
+  /** 0 (muy débil) a 4 (fuerte). */
+  score: 0 | 1 | 2 | 3 | 4;
+  missing: string[];
+};
+
+export const getPasswordStrength = (value: string): PasswordStrength => {
+  const missing: string[] = [];
+  if (value.length < 8) missing.push("8+ caracteres");
+  if (!/[A-Z]/.test(value)) missing.push("una mayúscula");
+  if (!/[a-z]/.test(value)) missing.push("una minúscula");
+  if (!/\d/.test(value)) missing.push("un número");
+  if (!/[^A-Za-z0-9]/.test(value)) missing.push("un símbolo");
+  let points = 5 - missing.length;
+  if (value.length >= 12) points += 1;
+  const score = Math.max(0, Math.min(4, points - 2)) as PasswordStrength["score"];
+  return { score, missing };
 };

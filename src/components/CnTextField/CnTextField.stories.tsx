@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CnTextField } from "./CnTextField";
 
 const meta: Meta<typeof CnTextField> = {
-  title: "Components/CnTextField",
+  title: "Forms/CnTextField",
   component: CnTextField,
   tags: ["autodocs"],
   argTypes: {

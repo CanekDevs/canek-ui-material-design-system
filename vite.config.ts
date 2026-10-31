@@ -15,6 +15,7 @@ const isExternal = (id: string): boolean => {
   if (EXTERNAL_IDS.has(id)) return true;
   if (id.startsWith("@mui/")) return true;
   if (id.startsWith("@emotion/")) return true;
+  if (id.startsWith("@tiptap/")) return true;
   return false;
 };
 
@@ -40,10 +41,13 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: resolve(process.cwd(), "src/index.ts"),
-      name: "CanekDesignSystem",
+      // `rich-text` es una entrada aparte: depende de tiptap (peer opcional).
+      entry: {
+        index: resolve(process.cwd(), "src/index.ts"),
+        "rich-text": resolve(process.cwd(), "src/rich-text.tsx"),
+      },
       formats: ["es", "cjs"],
-      fileName: (format) => (format === "es" ? "index.js" : "index.cjs"),
+      fileName: (format, entryName) => `${entryName}.${format === "es" ? "js" : "cjs"}`,
       cssFileName: "tokens",
     },
     rollupOptions: {
