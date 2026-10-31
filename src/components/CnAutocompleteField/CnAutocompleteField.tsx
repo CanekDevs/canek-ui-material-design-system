@@ -7,6 +7,7 @@ import { forwardRef, useMemo } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { getOutlinedFieldSx, mergeSx, MUI_FIELD_SIZE } from "../../utils/field-styles";
+import { hasOptionMedia, OptionContent, OptionMedia } from "../../utils/option-media";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
 
 export type CnAutocompleteValue = string | number | null | Array<string | number>;
@@ -194,28 +195,9 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
               {...rest}
               sx={{
                 fontSize: "var(--cn-font-size-base, 13px)",
-                flexDirection: "column",
-                alignItems: "flex-start !important",
               }}
             >
-              {renderOption ? (
-                renderOption(option)
-              ) : (
-                <>
-                  <span>{option.label}</span>
-                  {option.description && (
-                    <Box
-                      component="span"
-                      sx={{
-                        fontSize: "var(--cn-font-size-xs, 11px)",
-                        color: "var(--cn-color-text-muted, #6e7682)",
-                      }}
-                    >
-                      {option.description}
-                    </Box>
-                  )}
-                </>
-              )}
+              {renderOption ? renderOption(option) : <OptionContent option={option} />}
             </Box>
           );
         }}
@@ -235,6 +217,14 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
               inputLabel: params.InputLabelProps,
               input: {
                 ...params.InputProps,
+                startAdornment:
+                  !multiple && selected && !Array.isArray(selected) && hasOptionMedia(selected) ? (
+                    <Box component="span" sx={{ display: "inline-flex", ml: "4px", mr: "2px" }}>
+                      <OptionMedia option={selected} size={20} />
+                    </Box>
+                  ) : (
+                    params.InputProps.startAdornment
+                  ),
                 endAdornment: (
                   <>
                     {loading && <CircularProgress size={16} aria-label="Cargando" />}

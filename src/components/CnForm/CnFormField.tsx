@@ -4,6 +4,17 @@ import type { GridSize } from "@mui/material";
 import type { ReactNode } from "react";
 import { isValidElement, memo } from "react";
 import type { CnFieldSize } from "../../utils/field-styles";
+import { CnColorField } from "../CnColorField";
+import { CnCountryField } from "../CnCountryField";
+import { CnMaskedField } from "../CnMaskedField";
+import { CnNumberRangeField } from "../CnNumberRangeField";
+import type { CnNumberRangeValue } from "../CnNumberRangeField";
+import { CnOtpField } from "../CnOtpField";
+import { CnPasswordField } from "../CnPasswordField";
+import { CnSegmentedField } from "../CnSegmentedField";
+import type { CnSegmentedValue } from "../CnSegmentedField";
+import { CnSignatureField } from "../CnSignatureField";
+import { CnTagsField } from "../CnTagsField";
 import { CnAutocompleteField } from "../CnAutocompleteField";
 import { CnCheckboxField } from "../CnCheckboxField";
 import type { CnCheckboxValue } from "../CnCheckboxField";
@@ -78,7 +89,6 @@ export type CnFormFieldControlProps = {
 const TEXT_TYPES: Record<string, CnTextFieldType> = {
   text: "text",
   email: "email",
-  password: "password",
   tel: "tel",
   url: "url",
   search: "search",
@@ -138,6 +148,26 @@ const FieldContent = ({
     sx: field.sx,
     className: field.className,
   };
+
+  const stringValue = value === null || value === undefined ? "" : String(value);
+
+  if (field.type === "password") {
+    return (
+      <CnPasswordField
+        {...common}
+        placeholder={placeholder}
+        value={stringValue}
+        onChange={onChange}
+        requirements={field.passwordRequirements ?? false}
+        showStrength={field.showPasswordStrength ?? false}
+        allowGenerate={field.allowGenerate}
+        autoComplete={field.autoComplete ?? "new-password"}
+        autoFocus={field.autoFocus}
+        reserveHelperSpace
+        {...field.componentProps}
+      />
+    );
+  }
 
   const textType = TEXT_TYPES[field.type];
   if (textType) {
@@ -407,6 +437,112 @@ const FieldContent = ({
           {...field.componentProps}
           value={(Array.isArray(value) ? value : []) as CnFileValue[]}
           onChange={onChange}
+        />
+      );
+    case "otp":
+      return (
+        <CnOtpField
+          {...common}
+          value={stringValue}
+          onChange={onChange}
+          length={field.otpLength}
+          autoFocus={field.autoFocus}
+          {...field.componentProps}
+        />
+      );
+    case "masked":
+      return (
+        <CnMaskedField
+          {...common}
+          placeholder={placeholder}
+          value={stringValue}
+          onChange={onChange}
+          mask={field.mask}
+          preset={field.maskPreset}
+          valueMode={field.valueMode}
+          autoComplete={field.autoComplete}
+          autoFocus={field.autoFocus}
+          reserveHelperSpace
+          {...field.componentProps}
+        />
+      );
+    case "tags":
+      return (
+        <CnTagsField
+          {...common}
+          placeholder={placeholder}
+          value={Array.isArray(value) ? (value as string[]) : []}
+          onChange={onChange}
+          tagRules={field.tagRules}
+          maxTags={field.maxTags}
+          suggestions={field.suggestions}
+          autoFocus={field.autoFocus}
+          {...field.componentProps}
+        />
+      );
+    case "segmented":
+      return (
+        <CnSegmentedField
+          {...common}
+          options={options}
+          multiple={field.multiple}
+          iconOnly={field.iconOnly}
+          value={(value ?? (field.multiple ? [] : "")) as CnSegmentedValue}
+          onChange={onChange}
+          {...field.componentProps}
+        />
+      );
+    case "color":
+      return (
+        <CnColorField
+          {...common}
+          placeholder={placeholder}
+          value={stringValue}
+          onChange={onChange}
+          presets={field.colorPresets}
+          reserveHelperSpace
+          {...field.componentProps}
+        />
+      );
+    case "signature":
+      return (
+        <CnSignatureField
+          {...common}
+          value={stringValue}
+          onChange={onChange}
+          {...field.componentProps}
+        />
+      );
+    case "country":
+      return (
+        <CnCountryField
+          {...common}
+          placeholder={placeholder}
+          multiple={field.multiple}
+          priority={field.priorityCountries}
+          value={(value ?? (field.multiple ? [] : null)) as string | null | string[]}
+          onChange={onChange}
+          autoFocus={field.autoFocus}
+          reserveHelperSpace
+          {...field.componentProps}
+        />
+      );
+    case "numberrange":
+      return (
+        <CnNumberRangeField
+          {...common}
+          value={(Array.isArray(value) ? value : [null, null]) as CnNumberRangeValue}
+          onChange={onChange}
+          min={min}
+          max={max}
+          step={field.step}
+          decimals={field.decimals}
+          prefix={field.prefix}
+          suffix={field.suffix}
+          controls={field.controls}
+          thousandSeparator={field.thousandSeparator}
+          reserveHelperSpace
+          {...field.componentProps}
         />
       );
     case "custom":
