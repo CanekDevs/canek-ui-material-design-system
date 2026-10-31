@@ -1,6 +1,6 @@
 {
   "name": "@canek-ui/material-design-system",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Design system de Canek. Componentes React sobre MUI 7 con tokens de diseño y theming unificado.",
   "license": "MIT",
   "author": "Angel Rodriguez",
