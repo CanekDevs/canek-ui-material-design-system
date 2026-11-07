@@ -75,6 +75,10 @@ export type {
   CnSkeletonVariant,
 } from "./components/CnSkeleton";
 
+// Gráficas: skeletons, tarjeta, paleta y formatos (sin @mui/x-charts).
+// Las gráficas están en "@canek-ui/material-design-system/charts".
+export * from "./components/CnCharts";
+
 export { CnBadge } from "./components/CnBadge";
 export type {
   CnBadgeColor,
