@@ -6,6 +6,7 @@ import { CnButton } from "../CnButton";
 import { CnChip } from "../CnChip";
 import { CnIcon } from "../CnIcon";
 import { CnCard } from "./CnCard";
+import { CnCardSkeleton } from "./CnCardSkeleton";
 
 const meta: Meta<typeof CnCard> = {
   title: "Components/CnCard",
@@ -348,4 +349,34 @@ export const DashboardGrid: Story = {
       </Box>
     );
   },
+};
+
+/** Estado de carga: el skeleton sigue las variantes de la tarjeta (`skeleton` o `CnCardSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+        gap: 2,
+        alignItems: "start",
+      }}
+    >
+      <CnCard
+        variant="outlined"
+        title="Pedido #1024"
+        subtitle="Hace 2 horas"
+        icon="receipt"
+        description="Contenido que llega del servidor."
+        footer={<CnButton size="small">Ver</CnButton>}
+        skeleton
+      />
+      <CnCardSkeleton icon headerActions={2} footer />
+      <CnCardSkeleton variant="outlined" media avatar lines={2} footer={1} />
+      <CnCardSkeleton variant="filled" size="sm" lines={2} />
+      <CnCardSkeleton variant="ghost" size="lg" icon content={80} dividers footer />
+      <CnCardSkeleton variant="outlined" accent accentPosition="left" lines={2} />
+      <CnCardSkeleton variant="outlined" layout="horizontal" media lines={2} footer={1} />
+    </Box>
+  ),
 };

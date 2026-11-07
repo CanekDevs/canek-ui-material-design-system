@@ -6,6 +6,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { MouseEvent, ReactElement, ReactNode } from "react";
 import { forwardRef, isValidElement } from "react";
 import { CnIcon } from "../CnIcon";
+import { CnChipSkeleton } from "./CnChipSkeleton";
 
 export type CnChipVariant = "filled" | "outlined" | "soft" | "light" | "ghost";
 export type CnChipColor =
@@ -53,6 +54,8 @@ export type CnChipProps = Omit<
   compact?: boolean;
   pulse?: boolean;
   glow?: boolean;
+  /** Muestra el skeleton del chip (mismas variantes) en lugar del chip. */
+  skeleton?: boolean;
   sx?: SxProps<Theme>;
   className?: string;
 };
@@ -247,6 +250,7 @@ export const CnChip = forwardRef<HTMLDivElement, CnChipProps>(function CnChip(
     compact = false,
     pulse = false,
     glow = false,
+    skeleton = false,
     sx,
     className,
     ...rest
@@ -272,6 +276,25 @@ export const CnChip = forwardRef<HTMLDivElement, CnChipProps>(function CnChip(
 
   const isClickable = clickable ?? Boolean(onClick);
   const isInteractive = isClickable && !disabled;
+
+  if (skeleton) {
+    return (
+      <CnChipSkeleton
+        variant={variant}
+        size={size}
+        shape={shape}
+        label={typeof label === "string" || typeof label === "number" ? label : Boolean(label)}
+        subtitle={typeof subtitle === "string" ? subtitle : Boolean(subtitle)}
+        icon={Boolean(icon)}
+        avatar={Boolean(avatar)}
+        deletable={Boolean(onDelete)}
+        withChevron={withChevron}
+        compact={compact}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   const renderIconSlot = (): ReactElement | undefined => {
     if (!icon) return undefined;

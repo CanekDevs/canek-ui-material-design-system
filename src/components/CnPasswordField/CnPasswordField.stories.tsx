@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnPasswordField } from "./CnPasswordField";
+import Stack from "@mui/material/Stack";
+import { CnPasswordFieldSkeleton } from "./CnPasswordFieldSkeleton";
 
 const meta: Meta<typeof CnPasswordField> = {
   title: "Forms/CnPasswordField",
@@ -25,4 +27,23 @@ export const Login: Story = {
     showStrength: false,
     autoComplete: "current-password",
   },
+};
+
+/** Estado de carga: fortaleza, requisitos y generador (`skeleton` o `CnPasswordFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 420 }}>
+      <CnPasswordField label="Contraseña" allowGenerate skeleton />
+      <CnPasswordFieldSkeleton size="sm" showStrength={false} />
+      <CnPasswordFieldSkeleton showRequirements />
+      <CnPasswordFieldSkeleton
+        size="lg"
+        showRequirements
+        requirements={5}
+        allowGenerate
+        helperText
+      />
+      <CnPasswordFieldSkeleton variant="filled" />
+    </Stack>
+  ),
 };

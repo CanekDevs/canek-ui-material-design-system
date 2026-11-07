@@ -2,8 +2,9 @@ import type { AvatarGroupProps } from "@mui/material/AvatarGroup";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
-import { forwardRef } from "react";
+import { Children, forwardRef } from "react";
 import type { CnAvatarSize, CnAvatarVariant } from "./CnAvatar";
+import { CnAvatarGroupSkeleton } from "./CnAvatarSkeleton";
 
 export type CnAvatarGroupSpacing = "tight" | "normal" | "loose" | number;
 
@@ -18,6 +19,8 @@ export type CnAvatarGroupProps = Omit<
   variant?: CnAvatarVariant;
   size?: CnAvatarSize | number;
   renderSurplus?: (surplus: number) => ReactNode;
+  /** Muestra el skeleton del grupo (mismo número, tamaño, forma y superposición). */
+  skeleton?: boolean;
   sx?: SxProps<Theme>;
 };
 
@@ -53,11 +56,27 @@ export const CnAvatarGroup = forwardRef<HTMLDivElement, CnAvatarGroupProps>(func
     variant = "circular",
     size = "md",
     renderSurplus,
+    skeleton = false,
     sx,
     ...rest
   },
   ref,
 ) {
+  if (skeleton) {
+    return (
+      <CnAvatarGroupSkeleton
+        count={Children.toArray(children).length}
+        max={max}
+        total={total}
+        spacing={spacing}
+        variant={variant}
+        size={size}
+        sx={sx}
+        className={rest.className}
+      />
+    );
+  }
+
   const sizePx = resolveSize(size);
   const spacingPx = resolveSpacing(spacing);
   const fontSize = clampFontSize(sizePx);

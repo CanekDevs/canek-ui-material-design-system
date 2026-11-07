@@ -1,5 +1,7 @@
+import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnTagsField } from "./CnTagsField";
+import { CnTagsFieldSkeleton } from "./CnTagsFieldSkeleton";
 
 const meta: Meta<typeof CnTagsField> = {
   title: "Forms/CnTagsField",
@@ -37,4 +39,16 @@ export const WithSuggestions: Story = {
       "PostgreSQL",
     ],
   },
+};
+
+/** Estado de carga: el skeleton sigue las variantes del campo (`skeleton` o `CnTagsFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 480 }}>
+      <CnTagsField label="Etiquetas" defaultValue={["react", "mui"]} skeleton />
+      <CnTagsFieldSkeleton size="sm" tags={0} />
+      <CnTagsFieldSkeleton size="lg" tags={6} maxTags={10} helperText />
+      <CnTagsFieldSkeleton tags={4} readOnly />
+    </Stack>
+  ),
 };

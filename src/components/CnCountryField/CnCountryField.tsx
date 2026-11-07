@@ -3,6 +3,7 @@ import { PHONE_COUNTRIES } from "../../utils/phone-countries";
 import type { CnAutocompleteFieldProps } from "../CnAutocompleteField";
 import { CnAutocompleteField } from "../CnAutocompleteField";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
+import { CnCountryFieldSkeleton } from "./CnCountryFieldSkeleton";
 
 /** Códigos ISO 3166-1 alfa-2. */
 export const ISO_COUNTRY_CODES = (
@@ -58,7 +59,14 @@ export const getCountryOptions = (
 /** Selector de país con búsqueda (nombre, código ISO o lada), bandera y destacados. */
 export const CnCountryField = forwardRef<HTMLDivElement, CnCountryFieldProps>(
   function CnCountryField(
-    { countries, priority = [], locale = "es-MX", placeholder = "Busca un país", ...rest },
+    {
+      countries,
+      priority = [],
+      locale = "es-MX",
+      placeholder = "Busca un país",
+      skeleton = false,
+      ...rest
+    },
     ref,
   ) {
     const options = useMemo(
@@ -67,6 +75,22 @@ export const CnCountryField = forwardRef<HTMLDivElement, CnCountryFieldProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [(countries ?? []).join(","), locale, priority.join(",")],
     );
+    if (skeleton) {
+      const { value, defaultValue } = rest;
+      const picked = value !== undefined ? value : defaultValue;
+      return (
+        <CnCountryFieldSkeleton
+          size={rest.size}
+          label={Boolean(rest.label)}
+          helperText={Boolean(rest.helperText)}
+          multiple={rest.multiple}
+          selectedCount={Array.isArray(picked) && picked.length > 0 ? picked.length : undefined}
+          limitTags={rest.limitTags}
+          sx={rest.sx}
+          className={rest.className}
+        />
+      );
+    }
     return <CnAutocompleteField ref={ref} {...rest} placeholder={placeholder} options={options} />;
   },
 );

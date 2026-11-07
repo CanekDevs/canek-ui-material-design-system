@@ -10,12 +10,10 @@ export type {
   CnCardRadius,
   CnCardShadow,
   CnCardSize,
-  CnCardVariant
+  CnCardVariant,
 } from "./CnCard";
 
-export {
-  CnCardBody,
-  CnCardFooter,
-  CnCardHeader,
-  CnCardMedia
-} from "./CnCardPrimitives";
+export { CnCardBody, CnCardFooter, CnCardHeader, CnCardMedia } from "./CnCardPrimitives";
+
+export { CnCardSkeleton } from "./CnCardSkeleton";
+export type { CnCardSkeletonProps } from "./CnCardSkeleton";

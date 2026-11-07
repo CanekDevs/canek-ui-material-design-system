@@ -5,6 +5,7 @@ import { CnConfirmProvider, useConfirm } from "../CnConfirmDialog";
 import { CnMetricCard } from "../CnMetricCard";
 import { CnToastProvider, useToast } from "../CnToast";
 import { CnPageContainer } from "./CnPageContainer";
+import { CnPageContainerSkeleton } from "./CnPageContainerSkeleton";
 
 const meta: Meta<typeof CnPageContainer> = {
   title: "Layout/CnPageContainer",
@@ -149,3 +150,29 @@ const Page = ({ loading = false }: { loading?: boolean }) => (
 
 export const Complete: Story = { render: () => <Page /> };
 export const Loading: Story = { render: () => <Page loading /> };
+
+/** Estado de carga: el skeleton sigue la estructura de la página (`loading`/`skeleton` o `CnPageContainerSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "48px" }}>
+      <CnPageContainer
+        title="ACME Corp"
+        subtitle="Cliente desde 2020"
+        icon="apartment"
+        breadcrumbs={[{ label: "Inicio", href: "#" }, { label: "ACME" }]}
+        actions={<CnButton>Guardar</CnButton>}
+        skeleton
+        skeletonContent="cards"
+      />
+      <CnPageContainerSkeleton back icon tabs content="table" />
+      <CnPageContainerSkeleton breadcrumbs={2} subtitle={false} actions={1} paper />
+      <CnPageContainerSkeleton
+        breadcrumbs={false}
+        actions={false}
+        maxWidth="md"
+        content="cards"
+        items={2}
+      />
+    </Box>
+  ),
+};

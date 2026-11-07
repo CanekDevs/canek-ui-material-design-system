@@ -5,6 +5,7 @@ import { forwardRef, useCallback, useMemo, useState } from "react";
 import { formatNumber } from "../../utils/number-utils";
 import type { CnNumberFieldProps } from "../CnNumberField";
 import { CnNumberField } from "../CnNumberField";
+import { CnCurrencyFieldSkeleton } from "./CnCurrencyFieldSkeleton";
 
 export type CnCurrencySelectorMode = "editable" | "readonly" | "hidden";
 
@@ -47,6 +48,7 @@ export const CnCurrencyField = forwardRef<HTMLDivElement, CnCurrencyFieldProps>(
       controls = "none",
       disabled,
       readOnly,
+      skeleton = false,
       ...rest
     },
     ref,
@@ -100,6 +102,23 @@ export const CnCurrencyField = forwardRef<HTMLDivElement, CnCurrencyFieldProps>(
           </span>
         </InputAdornment>
       );
+
+    if (skeleton) {
+      return (
+        <CnCurrencyFieldSkeleton
+          size={rest.size}
+          label={Boolean(rest.label)}
+          helperText={Boolean(rest.helperText)}
+          currencySelectorMode={currencySelectorMode}
+          controls={controls}
+          suffix={Boolean(rest.suffix || rest.endAdornment)}
+          clearable={rest.clearable}
+          textAlign={rest.textAlign}
+          sx={rest.sx}
+          className={rest.className}
+        />
+      );
+    }
 
     return (
       <CnNumberField

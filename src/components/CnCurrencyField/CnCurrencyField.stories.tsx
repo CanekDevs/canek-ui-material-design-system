@@ -1,6 +1,7 @@
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnCurrencyField } from "./CnCurrencyField";
+import { CnCurrencyFieldSkeleton } from "./CnCurrencyFieldSkeleton";
 
 const meta: Meta<typeof CnCurrencyField> = {
   title: "Forms/CnCurrencyField",
@@ -39,6 +40,19 @@ export const Modes: Story = {
         currencies={["MXN", "USD", "EUR"]}
         currencySelectorMode="editable"
       />
+    </Stack>
+  ),
+};
+
+/** Estado de carga: el prefijo sigue el modo de moneda (`skeleton` o `CnCurrencyFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 320 }}>
+      <CnCurrencyField label="Monto" helperText="Incluye IVA" skeleton />
+      <CnCurrencyFieldSkeleton size="sm" />
+      <CnCurrencyFieldSkeleton currencySelectorMode="readonly" />
+      <CnCurrencyFieldSkeleton size="lg" currencySelectorMode="editable" clearable />
+      <CnCurrencyFieldSkeleton controls="stacked" variant="filled" />
     </Stack>
   ),
 };

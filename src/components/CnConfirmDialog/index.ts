@@ -5,3 +5,5 @@ export {
   useConfirm,
 } from "./CnConfirmDialog";
 export type { CnConfirmDialogProps, CnConfirmOptions, CnConfirmVariant } from "./CnConfirmDialog";
+export { CnConfirmDialogSkeleton } from "./CnConfirmDialogSkeleton";
+export type { CnConfirmDialogSkeletonProps } from "./CnConfirmDialogSkeleton";

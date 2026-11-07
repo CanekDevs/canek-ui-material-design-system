@@ -18,6 +18,7 @@ import {
   mergeSx,
 } from "../../utils/field-styles";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
+import { CnCheckboxFieldSkeleton } from "./CnCheckboxFieldSkeleton";
 
 export type CnCheckboxValue = boolean | Array<string | number>;
 
@@ -30,6 +31,8 @@ export type CnCheckboxFieldProps = CnFieldBaseProps<CnCheckboxValue> & {
   /** Agrega una casilla "Seleccionar todo" en modo grupo. */
   selectAll?: boolean | string;
   labelPlacement?: "start" | "end" | "top" | "bottom";
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 const OptionLabel = ({ label, description }: { label: ReactNode; description?: ReactNode }) => (
@@ -81,6 +84,7 @@ export const CnCheckboxField = forwardRef<HTMLDivElement, CnCheckboxFieldProps>(
       description,
       selectAll = false,
       labelPlacement = "end",
+      skeleton = false,
     },
     ref,
   ) {
@@ -107,6 +111,23 @@ export const CnCheckboxField = forwardRef<HTMLDivElement, CnCheckboxFieldProps>(
     });
     const muiSize = size === "sm" ? "small" : "medium";
     const blocked = disabled || readOnly;
+
+    if (skeleton) {
+      return (
+        <CnCheckboxFieldSkeleton
+          size={size}
+          direction={direction}
+          labelPlacement={labelPlacement}
+          label={Boolean(label)}
+          description={Boolean(description)}
+          helperText={Boolean(control.helperText)}
+          options={options}
+          selectAll={selectAll}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     const emit = (next: CnCheckboxValue) => {
       if (blocked) return;

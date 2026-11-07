@@ -3,6 +3,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { mergeSx } from "../../utils/field-styles";
+import { CnFlagIconSkeleton } from "./CnFlagIconSkeleton";
 
 export type CnFlagIconVariant = "icon" | "with-name" | "full";
 
@@ -19,6 +20,8 @@ export type CnFlagIconProps = {
    * se usan banderas SVG integradas, sin peticiones a terceros.
    */
   getFlagUrl?: (code: string) => string;
+  /** Muestra el skeleton de la bandera (mismo tamaño y variante). */
+  skeleton?: boolean;
   sx?: SxProps<Theme>;
   className?: string;
 };
@@ -186,11 +189,26 @@ export const CnFlagIcon = ({
   name,
   dialCode,
   getFlagUrl,
+  skeleton = false,
   sx,
   className,
 }: CnFlagIconProps) => {
   const upper = code.toUpperCase();
   const [imageFailed, setImageFailed] = useState(false);
+
+  if (skeleton) {
+    return (
+      <CnFlagIconSkeleton
+        size={size}
+        variant={variant}
+        name={name ?? false}
+        dialCode={dialCode ?? false}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
+
   const width = Math.round(size * 1.5);
   const render = FLAGS[upper];
   const url = getFlagUrl && !imageFailed ? getFlagUrl(upper) : undefined;

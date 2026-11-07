@@ -9,6 +9,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { MouseEvent, MouseEventHandler, ReactNode } from "react";
 import { forwardRef } from "react";
 import { CnIcon } from "../CnIcon";
+import { CnButtonSkeleton } from "./CnButtonSkeleton";
 
 export type CnButtonVariant = "contained" | "outlined" | "text";
 export type CnButtonColor =
@@ -39,6 +40,8 @@ type CnButtonOwnProps = {
   target?: React.HTMLAttributeAnchorTarget;
   rel?: string;
   "aria-label"?: string;
+  /** Muestra el skeleton del botón (mismas variantes) en lugar del botón. */
+  skeleton?: boolean;
 };
 
 type ButtonPassThrough = Omit<
@@ -286,6 +289,8 @@ export const CnButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, CnButt
       disabled,
       "aria-label": ariaLabel,
       type,
+      skeleton = false,
+      className,
       ...rest
     },
     ref,
@@ -294,6 +299,23 @@ export const CnButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, CnButt
     const resolvedDisabled = Boolean(disabled) || loading;
     const sizeTokens = SIZE_TOKENS[size];
     const content = children ?? label;
+
+    if (skeleton) {
+      return (
+        <CnButtonSkeleton
+          variant={variant}
+          size={size}
+          shape={shape}
+          iconOnly={iconOnly}
+          label={typeof content === "string" ? content : Boolean(content)}
+          startIcon={Boolean(startIcon)}
+          endIcon={Boolean(endIcon)}
+          fullWidth={fullWidth}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     const handleClick = (event: MouseEvent<HTMLElement>) => {
       if (resolvedDisabled) {
@@ -353,6 +375,7 @@ export const CnButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, CnButt
           component={isLink ? "a" : "button"}
           type={isLink ? undefined : (type ?? "button")}
           sx={iconButtonSxMerged}
+          className={className}
           {...rest}
         >
           {loading ? loadingSpinner : renderIconSlot(iconElement, sizeTokens.icon)}
@@ -411,6 +434,7 @@ export const CnButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, CnButt
         type={isLink ? undefined : (type ?? "button")}
         fullWidth={fullWidth}
         sx={buttonSxMerged}
+        className={className}
         {...rest}
       >
         {loading && loadingPosition === "center" ? (

@@ -1,6 +1,7 @@
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnMaskedField } from "./CnMaskedField";
+import { CnMaskedFieldSkeleton } from "./CnMaskedFieldSkeleton";
 
 const meta: Meta<typeof CnMaskedField> = {
   title: "Forms/CnMaskedField",
@@ -34,6 +35,20 @@ export const Presets: Story = {
         mask="AAA-###-*"
         helperText="AAA-###-* (letras, dígitos, alfanumérico)"
       />
+    </Stack>
+  ),
+};
+
+/** Estado de carga: el valor sigue los bloques de la máscara (`skeleton` o `CnMaskedFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 360 }}>
+      <CnMaskedField label="Tarjeta" preset="creditCard" helperText="Visa o Mastercard" skeleton />
+      <CnMaskedFieldSkeleton size="sm" preset="phoneMX" />
+      <CnMaskedFieldSkeleton preset="clabe" />
+      <CnMaskedFieldSkeleton size="lg" preset="curp" helperText />
+      <CnMaskedFieldSkeleton preset="cardExpiry" variant="filled" />
+      <CnMaskedFieldSkeleton mask="AAA-####" startIcon />
     </Stack>
   ),
 };

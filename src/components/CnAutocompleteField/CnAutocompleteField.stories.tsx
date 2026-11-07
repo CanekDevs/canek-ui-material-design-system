@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useEffect, useState } from "react";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
 import { CnAutocompleteField } from "./CnAutocompleteField";
+import Stack from "@mui/material/Stack";
+import { CnAutocompleteFieldSkeleton } from "./CnAutocompleteFieldSkeleton";
 
 const cities: CnFieldOption[] = [
   { value: "cdmx", label: "Ciudad de México", group: "México", searchText: "CDMX DF" },
@@ -95,4 +97,18 @@ export const MinSearchLength: Story = {
     },
     options: undefined,
   },
+};
+
+/** Estado de carga: el skeleton sigue las variantes del campo (`skeleton` o `CnAutocompleteFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 360 }}>
+      <CnAutocompleteField label="Ciudad" options={cities} helperText="Busca por nombre" skeleton />
+      <CnAutocompleteFieldSkeleton size="sm" optionMedia />
+      <CnAutocompleteFieldSkeleton size="lg" freeSolo helperText />
+      <CnAutocompleteFieldSkeleton multiple selectedCount={2} />
+      <CnAutocompleteFieldSkeleton multiple selectedCount={6} limitTags={3} />
+      <CnAutocompleteFieldSkeleton variant="filled" />
+    </Stack>
+  ),
 };

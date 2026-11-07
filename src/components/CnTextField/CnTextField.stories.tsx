@@ -2,6 +2,7 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnTextField } from "./CnTextField";
+import { CnTextFieldSkeleton } from "./CnTextFieldSkeleton";
 
 const meta: Meta<typeof CnTextField> = {
   title: "Forms/CnTextField",
@@ -230,4 +231,19 @@ export const FormContextValidation: Story = {
     rules: [{ type: "equalTo", field: "password", message: "No coincide con password" }],
     formValues: { password: "secreto" },
   },
+};
+
+/** Estado de carga: el skeleton sigue las variantes del campo (`skeleton` o `CnTextFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 420 }}>
+      <CnTextField label="Nombre" helperText="Como aparece en tu identificación" skeleton />
+      <CnTextFieldSkeleton size="sm" startIcon />
+      <CnTextFieldSkeleton size="lg" endIcon clearable helperText />
+      <CnTextFieldSkeleton variant="filled" />
+      <CnTextFieldSkeleton variant="standard" />
+      <CnTextFieldSkeleton type="password" showPasswordStrength />
+      <CnTextFieldSkeleton type="textarea" rows={4} showCounter helperText />
+    </Stack>
+  ),
 };

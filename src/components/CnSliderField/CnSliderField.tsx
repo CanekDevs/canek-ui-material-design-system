@@ -8,6 +8,7 @@ import { forwardRef } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
+import { CnSliderFieldSkeleton } from "./CnSliderFieldSkeleton";
 
 export type CnSliderValue = number | [number, number];
 
@@ -23,6 +24,8 @@ export type CnSliderFieldProps = CnFieldBaseProps<CnSliderValue> & {
   formatValue?: (value: number) => string;
   /** Muestra el valor actual junto a la etiqueta. */
   showValue?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 export const CnSliderField = forwardRef<HTMLDivElement, CnSliderFieldProps>(function CnSliderField(
@@ -58,6 +61,7 @@ export const CnSliderField = forwardRef<HTMLDivElement, CnSliderFieldProps>(func
     valueLabelDisplay = "auto",
     formatValue = (v) => String(v),
     showValue = true,
+    skeleton = false,
   },
   ref,
 ) {
@@ -92,6 +96,25 @@ export const CnSliderField = forwardRef<HTMLDivElement, CnSliderFieldProps>(func
   const valueText = Array.isArray(normalized)
     ? `${formatValue(normalized[0])} – ${formatValue(normalized[1])}`
     : formatValue(normalized);
+
+  if (skeleton) {
+    return (
+      <CnSliderFieldSkeleton
+        size={size}
+        range={range}
+        marks={marks}
+        min={min}
+        max={max}
+        step={step}
+        valueLabelDisplay={valueLabelDisplay}
+        showValue={showValue}
+        label={Boolean(label)}
+        helperText={Boolean(control.helperText)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <FormControl

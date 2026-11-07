@@ -11,6 +11,7 @@ import { useControllableValue, useFieldControl } from "../../utils/field-control
 import { FIELD_SIZE_TOKENS, groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
 import { OptionMedia } from "../../utils/option-media";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
+import { CnSegmentedFieldSkeleton } from "./CnSegmentedFieldSkeleton";
 
 export type CnSegmentedValue = string | number | "" | null | Array<string | number>;
 
@@ -24,6 +25,8 @@ export type CnSegmentedFieldProps = CnFieldBaseProps<CnSegmentedValue> & {
   /** Solo íconos (la etiqueta queda como texto accesible). */
   iconOnly?: boolean;
   orientation?: "horizontal" | "vertical";
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 const keyOf = (value: string | number) => `${typeof value}:${value}`;
@@ -64,6 +67,7 @@ export const CnSegmentedField = forwardRef<HTMLDivElement, CnSegmentedFieldProps
       fullWidth = false,
       iconOnly = false,
       orientation = "horizontal",
+      skeleton = false,
     },
     ref,
   ) {
@@ -93,6 +97,22 @@ export const CnSegmentedField = forwardRef<HTMLDivElement, CnSegmentedFieldProps
       : current === "" || current === null || current === undefined || Array.isArray(current)
         ? null
         : keyOf(current);
+
+    if (skeleton) {
+      return (
+        <CnSegmentedFieldSkeleton
+          size={size}
+          options={options}
+          iconOnly={iconOnly}
+          fullWidth={fullWidth}
+          orientation={orientation}
+          label={Boolean(label)}
+          helperText={Boolean(control.helperText)}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <FormControl

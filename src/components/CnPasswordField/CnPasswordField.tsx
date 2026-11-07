@@ -11,6 +11,7 @@ import { useControllableValue } from "../../utils/field-control";
 import { CnButton } from "../CnButton";
 import type { CnValidationRule } from "../CnForm/CnForm.types";
 import { CnTextField } from "../CnTextField";
+import { CnPasswordFieldSkeleton } from "./CnPasswordFieldSkeleton";
 
 export type CnPasswordRequirement = {
   id: string;
@@ -39,6 +40,8 @@ export type CnPasswordFieldProps = CnFieldBaseProps<string> & {
   /** `new-password` para registros, `current-password` para inicio de sesión. */
   autoComplete?: string;
   autoFocus?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 export const DEFAULT_PASSWORD_REQUIREMENTS: CnPasswordRequirementsConfig = {
@@ -127,6 +130,7 @@ export const CnPasswordField = forwardRef<HTMLDivElement, CnPasswordFieldProps>(
       autoComplete = "new-password",
       disabled,
       readOnly,
+      skeleton = false,
       ...rest
     },
     ref,
@@ -152,6 +156,22 @@ export const CnPasswordField = forwardRef<HTMLDivElement, CnPasswordFieldProps>(
         setCopied(false);
       }
     };
+
+    if (skeleton) {
+      return (
+        <CnPasswordFieldSkeleton
+          size={rest.size}
+          label={Boolean(rest.label)}
+          helperText={Boolean(rest.helperText)}
+          showStrength={showStrength}
+          requirements={list.length}
+          showRequirements={list.length > 0 && current.length > 0}
+          allowGenerate={allowGenerate && !blocked}
+          sx={rest.sx}
+          className={rest.className}
+        />
+      );
+    }
 
     return (
       <Box

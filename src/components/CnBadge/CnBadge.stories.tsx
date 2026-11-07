@@ -6,6 +6,7 @@ import { CnAvatar } from "../CnAvatar";
 import { CnButton } from "../CnButton";
 import { CnIcon } from "../CnIcon";
 import { CnBadge } from "./CnBadge";
+import { CnBadgeSkeleton } from "./CnBadgeSkeleton";
 
 const meta: Meta<typeof CnBadge> = {
   title: "Components/CnBadge",
@@ -302,6 +303,40 @@ export const InContext: Story = {
           <CnButton iconOnly icon="cloud_done" variant="outlined" aria-label="Sincronizado" />
         </CnBadge>
       </Box>
+    </Stack>
+  ),
+};
+
+/** Estado de carga: punto, contador o etiqueta, suelto o sobre su elemento (`skeleton` o `CnBadgeSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3}>
+      <Stack direction="row" spacing={3} alignItems="center">
+        <CnBadge content={5} skeleton>
+          <CnIcon name="notifications" size={24} />
+        </CnBadge>
+        <CnBadge variant="dot" overlap="circular" skeleton>
+          <CnAvatar name="Ana López" />
+        </CnBadge>
+        <CnBadge variant="label" content="Nuevo" skeleton />
+      </Stack>
+      <Stack direction="row" spacing={3} alignItems="center">
+        <CnBadgeSkeleton variant="dot" size="sm" />
+        <CnBadgeSkeleton variant="dot" size="lg" />
+        <CnBadgeSkeleton content={3} />
+        <CnBadgeSkeleton content={1250} max={99} size="lg" />
+        <CnBadgeSkeleton variant="label" content="Beta" />
+      </Stack>
+      <Stack direction="row" spacing={4} alignItems="center">
+        <CnBadgeSkeleton child content={8} />
+        <CnBadgeSkeleton child overlap="circular" variant="dot" childSize={48} />
+        <CnBadgeSkeleton
+          child
+          overlap="circular"
+          content={120}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        />
+      </Stack>
     </Stack>
   ),
 };

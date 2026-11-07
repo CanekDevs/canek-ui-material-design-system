@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CnButton } from "../CnButton";
 import type { CnConfirmVariant } from "./CnConfirmDialog";
 import { CnConfirmDialog, CnConfirmProvider, useConfirm } from "./CnConfirmDialog";
+import { CnConfirmDialogSkeleton } from "./CnConfirmDialogSkeleton";
 
 const meta: Meta<typeof CnConfirmDialog> = {
   title: "Feedback/CnConfirmDialog",
@@ -107,4 +108,43 @@ export const UseConfirm: Story = {
       <UseConfirmDemo />
     </CnConfirmProvider>
   ),
+};
+
+/**
+ * Estado de carga: el skeleton del cuerpo se dibuja en línea (`CnConfirmDialogSkeleton`) o
+ * dentro del diálogo abierto con la prop `skeleton` mientras llegan los datos.
+ */
+export const Skeleton: Story = {
+  render: function SkeletonStory() {
+    const [open, setOpen] = useState(false);
+    const [loadingData, setLoadingData] = useState(false);
+    return (
+      <Stack spacing={3} alignItems="flex-start">
+        <CnButton
+          variant="outlined"
+          color="neutral"
+          onClick={() => {
+            setOpen(true);
+            setLoadingData(true);
+            void wait(1500).then(() => setLoadingData(false));
+          }}
+        >
+          Abrir con datos que tardan
+        </CnButton>
+        <CnConfirmDialog
+          open={open}
+          variant="delete"
+          title="¿Eliminar a ACME Corp?"
+          message="Se eliminarán también sus 12 contratos."
+          skeleton={loadingData}
+          onClose={() => setOpen(false)}
+          onConfirm={() => wait(700)}
+        />
+        <CnConfirmDialogSkeleton surface variant="delete" />
+        <CnConfirmDialogSkeleton surface variant="info" lines={3} />
+        <CnConfirmDialogSkeleton surface variant="update" details requireText />
+        <CnConfirmDialogSkeleton surface variant="success" icon={false} hideCancel lines={1} />
+      </Stack>
+    );
+  },
 };

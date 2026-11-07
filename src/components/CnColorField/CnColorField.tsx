@@ -7,6 +7,7 @@ import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue } from "../../utils/field-control";
 import type { CnValidationRule } from "../CnForm/CnForm.types";
 import { CnTextField } from "../CnTextField";
+import { CnColorFieldSkeleton } from "./CnColorFieldSkeleton";
 
 export type CnColorFieldProps = CnFieldBaseProps<string> & {
   /** Colores sugeridos (hex). Por defecto, la paleta de canek. */
@@ -14,6 +15,8 @@ export type CnColorFieldProps = CnFieldBaseProps<string> & {
   /** Permite escribir el color manualmente. */
   allowInput?: boolean;
   placeholder?: string;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 export const DEFAULT_COLOR_PRESETS = [
@@ -90,6 +93,7 @@ export const CnColorField = forwardRef<HTMLDivElement, CnColorFieldProps>(functi
     disabled,
     readOnly,
     label,
+    skeleton = false,
     ...rest
   },
   ref,
@@ -103,6 +107,19 @@ export const CnColorField = forwardRef<HTMLDivElement, CnColorFieldProps>(functi
   const pick = (color: string) => {
     setCurrent(normalizeHex(color) ?? color);
   };
+
+  if (skeleton) {
+    return (
+      <CnColorFieldSkeleton
+        size={rest.size}
+        label={Boolean(label)}
+        helperText={Boolean(rest.helperText)}
+        presets={presets}
+        sx={rest.sx}
+        className={rest.className}
+      />
+    );
+  }
 
   return (
     <Box ref={anchorRef} sx={{ width: "100%" }}>

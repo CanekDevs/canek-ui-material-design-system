@@ -6,6 +6,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode, SyntheticEvent } from "react";
 import { forwardRef, isValidElement } from "react";
 import { CnIcon } from "../CnIcon";
+import { CnTabsSkeleton } from "./CnTabsSkeleton";
 
 export type CnTabsVariant = "line" | "pill" | "soft" | "contained" | "outlined";
 export type CnTabsColor =
@@ -55,6 +56,9 @@ export type CnTabsProps = Omit<
   loadingIndicator?: ReactNode;
 
   verticalWidth?: number | string;
+
+  /** Muestra el skeleton de las pestañas (mismas variantes) en lugar de las pestañas. */
+  skeleton?: boolean;
 
   onTabClick?: (option: CnTabOption, index: number, event: SyntheticEvent) => void;
 
@@ -213,6 +217,7 @@ export const CnTabs = forwardRef<HTMLDivElement, CnTabsProps>(function CnTabs(
     errorIcon,
     loadingIndicator,
     verticalWidth = 240,
+    skeleton = false,
     onTabClick,
     sx,
     tabSx,
@@ -586,6 +591,33 @@ export const CnTabs = forwardRef<HTMLDivElement, CnTabsProps>(function CnTabs(
     }),
     ...(fullWidth && !isVertical && { width: "100%" }),
   };
+
+  if (skeleton) {
+    return (
+      <CnTabsSkeleton
+        tabs={options.length || 3}
+        variant={variant}
+        size={size}
+        orientation={orientation}
+        fullWidth={fullWidth}
+        centered={centered}
+        icons={options.some((o) => Boolean(o.icon))}
+        showIconOnly={showIconOnly}
+        iconPosition={iconPosition}
+        subtitles={options.some((o) => Boolean(o.subtitle))}
+        subtitlePosition={subtitlePosition}
+        badges={options.some((o) => o.badge !== undefined)}
+        showIndicator={showIndicator}
+        selectedIndex={Math.max(
+          0,
+          options.findIndex((o) => o.id === value),
+        )}
+        verticalWidth={verticalWidth}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <Tabs

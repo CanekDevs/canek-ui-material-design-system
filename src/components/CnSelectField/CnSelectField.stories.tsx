@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { CnSelectValue } from "./CnSelectField";
 import { CnSelectField } from "./CnSelectField";
+import { CnSelectFieldSkeleton } from "./CnSelectFieldSkeleton";
 
 const options = [
   { value: "mx", label: "México", group: "América" },
@@ -69,4 +70,19 @@ export const CustomRender: Story = {
     renderValue: (_value, selected) =>
       Array.isArray(selected) || !selected ? null : `${selected.label} (${selected.group})`,
   },
+};
+
+/** Estado de carga: el skeleton sigue las variantes del campo (`skeleton` o `CnSelectFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 360 }}>
+      <CnSelectField label="País" options={options} helperText="Elige uno" skeleton />
+      <CnSelectFieldSkeleton size="sm" />
+      <CnSelectFieldSkeleton size="lg" clearable optionMedia helperText />
+      <CnSelectFieldSkeleton multiple chips selectedCount={4} clearable />
+      <CnSelectFieldSkeleton multiple selectedCount={3} />
+      <CnSelectFieldSkeleton variant="filled" startAdornment />
+      <CnSelectFieldSkeleton variant="standard" value={false} />
+    </Stack>
+  ),
 };

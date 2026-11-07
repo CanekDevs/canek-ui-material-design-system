@@ -4,5 +4,7 @@ export type {
   CnBadgeOverlap,
   CnBadgeProps,
   CnBadgeSize,
-  CnBadgeVariant
+  CnBadgeVariant,
 } from "./CnBadge";
+export { CnBadgeSkeleton } from "./CnBadgeSkeleton";
+export type { CnBadgeSkeletonProps } from "./CnBadgeSkeleton";

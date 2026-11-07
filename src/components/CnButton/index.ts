@@ -5,5 +5,7 @@ export type {
   CnButtonProps,
   CnButtonShape,
   CnButtonSize,
-  CnButtonVariant
+  CnButtonVariant,
 } from "./CnButton";
+export { CnButtonSkeleton } from "./CnButtonSkeleton";
+export type { CnButtonSkeletonProps } from "./CnButtonSkeleton";
