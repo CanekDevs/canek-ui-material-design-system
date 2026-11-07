@@ -38,6 +38,7 @@ import type {
   ColumnPinningState,
   ColumnSizingState,
   ExpandedState,
+  GroupingState,
   PaginationState,
   RowSelectionState,
   SortingState,
@@ -45,7 +46,9 @@ import type {
 } from "@tanstack/react-table";
 import {
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
+  getGroupedRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -71,16 +74,38 @@ import type {
   CnSortItem,
   CnTableQuery,
 } from "./CnDataTable.types";
-import type { CnExportColumn, CnExportFormat, CnExportRow } from "./export";
+import type { CnExportColumn, CnExportFormat, CnExportKind, CnExportRow } from "./export";
 import { copyRows, exportRows, printRows } from "./export";
 
 // ─── Constantes ───────────────────────────────────────────────────────────
 
 const FORMATS: Record<CnExportFormat, { label: string; description: string; icon: string }> = {
-  xls: { label: "Excel", description: "Hoja de cálculo (.xls)", icon: "table_view" },
+  xlsx: {
+    label: "Excel (XLSX)",
+    description: "Hoja de cálculo con formato y filtros",
+    icon: "table_view",
+  },
+  xls: {
+    label: "Excel (XLSX)",
+    description: "Hoja de cálculo con formato y filtros",
+    icon: "table_view",
+  },
   csv: { label: "CSV", description: "Valores separados por comas", icon: "dataset" },
   tsv: { label: "TSV", description: "Valores separados por tabuladores", icon: "view_list" },
   json: { label: "JSON", description: "Estructura de datos JSON", icon: "data_object" },
+  html: { label: "HTML", description: "Página web autocontenida", icon: "code" },
+  pdf: { label: "PDF", description: "Documento para imprimir o guardar", icon: "picture_as_pdf" },
+};
+
+const KIND_BY_TYPE: Partial<Record<string, CnExportKind>> = {
+  number: "number",
+  currency: "currency",
+  percent: "percent",
+  progress: "percent",
+  rating: "number",
+  duration: "number",
+  date: "date",
+  datetime: "datetime",
 };
 
 const COPY_FORMATS = [
@@ -146,6 +171,7 @@ const DEFAULT_WIDTH: Partial<Record<string, number>> = {
 };
 
 const LEAD_SELECT = 48;
+const LEAD_NUMBER = 52;
 const LEAD_EXPAND = 44;
 
 type Scope = "all" | "page" | "selected";
@@ -160,6 +186,7 @@ type Stored = {
   order?: ColumnOrderState;
   sizing?: ColumnSizingState;
   pinning?: ColumnPinningState;
+  grouping?: GroupingState;
 };
 
 const readStore = (key: string | undefined): Stored => {
@@ -253,7 +280,7 @@ export const CnDataTable = <T extends CnRow>({
   columnFilters: columnFiltersEnabled = false,
   columnToggle = true,
   densityToggle = true,
-  exportFormats = ["xls", "csv", "tsv", "json"],
+  exportFormats = ["xlsx", "csv", "tsv", "json", "html", "pdf"],
   copyable = true,
   exportFilename,
   fetchAllRows,
@@ -285,6 +312,12 @@ export const CnDataTable = <T extends CnRow>({
   fullscreenToggle = true,
   columnReorder = true,
   columnResize = true,
+  rowNumbers = false,
+  selectOnRowClick = false,
+  columnActions = true,
+  groupable = true,
+  defaultGrouping = [],
+  exportDetail,
   emptyTitle = "Sin registros",
   emptyDescription = "No hay información para mostrar.",
   emptyIcon = "inbox",
@@ -320,6 +353,7 @@ export const CnDataTable = <T extends CnRow>({
   const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(
     stored.pinning ?? initialPinning,
   );
+  const [grouping, setGrouping] = useState<GroupingState>(stored.grouping ?? defaultGrouping);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [showFilters, setShowFilters] = useState(columnFiltersEnabled);
@@ -349,12 +383,14 @@ export const CnDataTable = <T extends CnRow>({
       order: columnOrder,
       sizing: columnSizing,
       pinning: columnPinning,
+      grouping,
     });
   }, [
     columnOrder,
     columnPinning,
     columnSizing,
     density,
+    grouping,
     paginationState.pageSize,
     persistKey,
     sorting,
@@ -403,6 +439,7 @@ export const CnDataTable = <T extends CnRow>({
         enableHiding: column.hideable !== false,
         enableColumnFilter: column.filterable !== false,
         enablePinning: true,
+        enableGrouping: groupable && column.groupable !== false,
         sortingFn: (a, b) => {
           const va = valueOf(column, a.original);
           const vb = valueOf(column, b.original);
@@ -422,7 +459,7 @@ export const CnDataTable = <T extends CnRow>({
           );
         },
       })),
-    [columnResize, columns, sortable],
+    [columnResize, columns, groupable, sortable],
   );
 
   const isServer = Boolean(serverSide);
@@ -461,7 +498,11 @@ export const CnDataTable = <T extends CnRow>({
         : paginationState,
       rowSelection: selection,
       expanded,
+      grouping,
     },
+    groupedColumnMode: false,
+    onGroupingChange: setGrouping,
+    enableSubRowSelection: true,
     columnResizeMode: "onChange",
     manualPagination: isServer,
     manualSorting: isServer,
@@ -470,7 +511,7 @@ export const CnDataTable = <T extends CnRow>({
     enableMultiSort: true,
     isMultiSortEvent: (event) => (event as MouseEvent).shiftKey,
     enableRowSelection: selectable,
-    getRowCanExpand: () => Boolean(renderDetail),
+    getRowCanExpand: (row) => row.getIsGrouped() || Boolean(renderDetail),
     globalFilterFn: (row, _id, needle: string) => {
       const q = normalizeSearchText(needle ?? "");
       if (!q) return true;
@@ -510,12 +551,29 @@ export const CnDataTable = <T extends CnRow>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: isServer ? undefined : getSortedRowModel(),
     getFilteredRowModel: isServer ? undefined : getFilteredRowModel(),
+    getGroupedRowModel: grouping.length ? getGroupedRowModel() : undefined,
+    getExpandedRowModel: getExpandedRowModel(),
     getPaginationRowModel: pagination && !isServer ? getPaginationRowModel() : undefined,
   });
 
   useEffect(() => {
     if (!isServer) setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [filters, isServer, search]);
+
+  const groupingKey = grouping.join("|");
+  useEffect(() => {
+    if (!groupingKey) return;
+    const ids = table
+      .getGroupedRowModel()
+      .flatRows.filter((row) => row.getIsGrouped())
+      .map((row) => row.id);
+    setExpanded((prev) => ({
+      ...(typeof prev === "object" ? prev : {}),
+      ...Object.fromEntries(ids.map((id) => [id, true])),
+    }));
+    // Solo cuando cambia la agrupación.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupingKey]);
 
   const pageCount = table.getPageCount();
   useEffect(() => {
@@ -538,16 +596,71 @@ export const CnDataTable = <T extends CnRow>({
   const showSelection = selectable && selectionVisible;
 
   // ─── Exportación / impresión ──────────────────────────────────────────
-  const exportColumns: CnExportColumn[] = visibleColumns.map((column) => ({
-    id: column.id,
-    header: headerText(column),
-  }));
-  const toExportRows = (rows: T[]): CnExportRow[] =>
-    rows.map((row) => Object.fromEntries(visibleColumns.map((c) => [c.id, textOf(c, row)])));
+  const kindOf = (column: CnColumn<object>): CnExportKind =>
+    column.exportValue ? "text" : (KIND_BY_TYPE[column.type ?? "text"] ?? "text");
+  const rawOf = (column: CnColumn<object>, row: object): unknown => {
+    const value = valueOf(column, row);
+    if (column.type === "percent" && column.cellOptions?.percentScale === "fraction")
+      return Number(value) * 100;
+    if (column.type === "progress") return (Number(value) / (column.cellOptions?.max ?? 100)) * 100;
+    return value;
+  };
+  const exportColumns: CnExportColumn[] = [
+    ...visibleColumns.map((column) => ({
+      id: column.id,
+      header: headerText(column),
+      kind: kindOf(column as CnColumn<object>),
+    })),
+    ...(exportDetail?.columns ?? []).map((column) => ({
+      id: `__detail__.${column.id}`,
+      header: headerText(column),
+      kind: kindOf(column),
+    })),
+  ];
+  const buildExport = (rows: T[]) => {
+    const text: CnExportRow[] = [];
+    const raw: CnExportRow[] = [];
+    for (const row of rows) {
+      const baseText = Object.fromEntries(visibleColumns.map((c) => [c.id, textOf(c, row)]));
+      const baseRaw = Object.fromEntries(
+        visibleColumns.map((c) => [c.id, rawOf(c as CnColumn<object>, row)]),
+      );
+      const details = exportDetail?.accessor(row) ?? [];
+      if (!exportDetail || details.length === 0) {
+        text.push(baseText);
+        raw.push(baseRaw);
+        continue;
+      }
+      for (const detail of details) {
+        text.push({
+          ...baseText,
+          ...Object.fromEntries(
+            exportDetail.columns.map((c) => [`__detail__.${c.id}`, textOf(c, detail)]),
+          ),
+        });
+        raw.push({
+          ...baseRaw,
+          ...Object.fromEntries(
+            exportDetail.columns.map((c) => [`__detail__.${c.id}`, rawOf(c, detail)]),
+          ),
+        });
+      }
+    }
+    return { text, raw };
+  };
+  const toExportRows = (rows: T[]): CnExportRow[] => buildExport(rows).text;
 
   const rowsForScope = async (scope: Scope): Promise<T[]> => {
     if (scope === "selected") return selectedRows;
-    if (scope === "page") return pageRows.map((row) => row.original);
+    if (scope === "page") {
+      const seen = new Set<string>();
+      return pageRows
+        .flatMap((row) =>
+          row.getIsGrouped() ? row.getLeafRows().filter((r) => !r.getIsGrouped()) : [row],
+        )
+        .filter((row) => (seen.has(row.id) ? false : (seen.add(row.id), true)))
+        .map((row) => row.original);
+    }
     if (isServer && fetchAllRows) return fetchAllRows();
     return isServer ? (data as T[]) : filteredRows;
   };
@@ -560,7 +673,15 @@ export const CnDataTable = <T extends CnRow>({
     setBusy(true);
     try {
       const rows = await rowsForScope(scope);
-      exportRows(format, exportColumns, toExportRows(rows), baseName);
+      const built = buildExport(rows);
+      const ok = exportRows(format, exportColumns, built.text, baseName, {
+        title: typeof title === "string" ? title : baseName,
+        raw: built.raw,
+      });
+      if (!ok) {
+        setNotice("Permite las ventanas emergentes para generar el PDF");
+        return;
+      }
       setNotice(
         `${rows.length} ${rows.length === 1 ? "registro exportado" : "registros exportados"}`,
       );
@@ -640,10 +761,18 @@ export const CnDataTable = <T extends CnRow>({
     setVisibility(initialVisibility);
     setColumnPinning(initialPinning);
     setSorting(defaultSort);
+    setGrouping(defaultGrouping);
   };
 
   // ─── Geometría para columnas fijadas ──────────────────────────────────
-  const leadWidth = (showSelection ? LEAD_SELECT : 0) + (renderDetail ? LEAD_EXPAND : 0);
+  const expandColumn = Boolean(renderDetail);
+  const numberLeft = (showSelection ? LEAD_SELECT : 0) + (expandColumn ? LEAD_EXPAND : 0);
+  const leadWidth = numberLeft + (rowNumbers ? LEAD_NUMBER : 0);
+  const pageOffset = isServer
+    ? (serverSide?.query.pageIndex ?? 0) * (serverSide?.query.pageSize ?? 0)
+    : pagination
+      ? paginationState.pageIndex * paginationState.pageSize
+      : 0;
   const pinnedLeftIds = new Set(columnPinning.left ?? []);
   const leftOffset = (columnId: string) => leadWidth + table.getColumn(columnId)!.getStart("left");
   const lastPinned = [...leafColumns].reverse().find((c) => pinnedLeftIds.has(c.id))?.id;
@@ -668,7 +797,14 @@ export const CnDataTable = <T extends CnRow>({
     return (
       <Box sx={{ display: "flex", justifyContent: "center", gap: "2px" }}>
         {inline.map((action) => (
-          <Tooltip key={action.id} title={action.label} arrow>
+          <Tooltip
+            key={action.id}
+            title={
+              (typeof action.tooltip === "function" ? action.tooltip(row) : action.tooltip) ??
+              action.label
+            }
+            arrow
+          >
             <span>
               <IconButton
                 size="small"
@@ -1130,7 +1266,11 @@ export const CnDataTable = <T extends CnRow>({
   );
 
   const totalCols =
-    (showSelection ? 1 : 0) + (renderDetail ? 1 : 0) + visibleColumns.length + (hasActions ? 1 : 0);
+    (showSelection ? 1 : 0) +
+    (renderDetail ? 1 : 0) +
+    (rowNumbers ? 1 : 0) +
+    visibleColumns.length +
+    (hasActions ? 1 : 0);
   const showFooter =
     !loading && !isEmptyResult && visibleColumns.some((c) => c.aggregate || c.footer);
   const tableWidth = leadWidth + table.getTotalSize() + (hasActions ? 88 : 0);
@@ -1276,17 +1416,45 @@ export const CnDataTable = <T extends CnRow>({
               </Box>
             </Tooltip>
           )}
-          <IconButton
-            size="small"
-            aria-label="Opciones de columna"
-            aria-haspopup="menu"
-            onClick={(event) =>
-              setMenu({ kind: "column", anchor: event.currentTarget, columnId: column.id })
-            }
-            sx={{ p: "2px", color: "var(--cn-color-neutral-500, #6e7682)" }}
-          >
-            <MoreVertIcon sx={{ fontSize: 18 }} />
-          </IconButton>
+          {column.description && (
+            <Tooltip title={column.description} arrow>
+              <Box
+                component="span"
+                tabIndex={0}
+                aria-label={`Ayuda: ${column.description}`}
+                sx={{
+                  display: "inline-flex",
+                  color: "var(--cn-color-neutral-400, #9aa1aa)",
+                  cursor: "help",
+                }}
+              >
+                <CnIcon name="info" size={15} />
+              </Box>
+            </Tooltip>
+          )}
+          {grouping.includes(column.id) && (
+            <Tooltip title="Agrupada" arrow>
+              <Box
+                component="span"
+                sx={{ display: "inline-flex", color: "var(--cn-color-brand-500, #3562a6)" }}
+              >
+                <CnIcon name="account_tree" size={15} />
+              </Box>
+            </Tooltip>
+          )}
+          {columnActions && column.columnMenu !== false && (
+            <IconButton
+              size="small"
+              aria-label="Opciones de columna"
+              aria-haspopup="menu"
+              onClick={(event) =>
+                setMenu({ kind: "column", anchor: event.currentTarget, columnId: column.id })
+              }
+              sx={{ p: "2px", color: "var(--cn-color-neutral-500, #6e7682)" }}
+            >
+              <MoreVertIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          )}
         </Box>
 
         {showFilters && (
@@ -1399,12 +1567,12 @@ export const CnDataTable = <T extends CnRow>({
   });
 
   // ─── Cuerpo ───────────────────────────────────────────────────────────
-  const bodyRowSx = (index: number, selected: boolean, tone?: keyof typeof TONES) => ({
+  const bodyRowSx = (index: number, selected: boolean, tone?: string) => ({
     cursor: onRowClick ? "pointer" : undefined,
     backgroundColor: selected
       ? "rgba(37, 77, 135, 0.06)"
       : tone
-        ? TONES[tone]
+        ? (TONES[tone as keyof typeof TONES] ?? tone)
         : striped && index % 2 === 1
           ? "var(--cn-color-neutral-50, #fafbfc)"
           : "var(--cn-color-surface, #ffffff)",
@@ -1504,6 +1672,22 @@ export const CnDataTable = <T extends CnRow>({
                 }}
               />
             )}
+            {rowNumbers && (
+              <Box
+                component="th"
+                scope="col"
+                sx={{
+                  ...headCellBase,
+                  ...stickyCell(numberLeft, 4),
+                  width: LEAD_NUMBER,
+                  textAlign: "center",
+                  fontSize: "0.8rem",
+                  fontWeight: 800,
+                }}
+              >
+                #
+              </Box>
+            )}
             {hasActions && rowActionsPosition === "start" && (
               <Box component="th" sx={{ ...headCellBase, width: 88, textAlign: "center" }}>
                 <Box component="span" sx={{ fontSize: "0.8rem", fontWeight: 800 }}>
@@ -1550,24 +1734,173 @@ export const CnDataTable = <T extends CnRow>({
             const original = row.original;
             const isExpanded = row.getIsExpanded();
             const selected = row.getIsSelected();
+            if (row.getIsGrouped()) {
+              const groupColumn = columnsById.get(row.groupingColumnId ?? "") as CnColumn<T>;
+              const leaves = row.getLeafRows().filter((leaf) => !leaf.getIsGrouped());
+              const leafData = leaves.map((leaf) => leaf.original);
+              const aggregates = visibleColumns.filter(
+                (c) => c.aggregate && c.id !== groupColumn?.id,
+              );
+              return (
+                <Box
+                  component="tr"
+                  key={row.id}
+                  data-group-row={row.id}
+                  sx={{
+                    backgroundColor: `rgba(37, 77, 135, ${0.05 + Math.max(0, 2 - row.depth) * 0.02})`,
+                  }}
+                >
+                  <Box
+                    component="td"
+                    colSpan={totalCols}
+                    sx={{
+                      padding: "6px 12px",
+                      borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: "sticky",
+                        left: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: "8px",
+                        pl: `${row.depth * 20}px`,
+                        width: "fit-content",
+                        maxWidth: "calc(100vw - 80px)",
+                      }}
+                    >
+                      {showSelection && (
+                        <Checkbox
+                          size="small"
+                          checked={row.getIsAllSubRowsSelected()}
+                          indeterminate={row.getIsSomeSelected() && !row.getIsAllSubRowsSelected()}
+                          onChange={row.getToggleSelectedHandler()}
+                          slotProps={{
+                            input: {
+                              "aria-label": `Seleccionar grupo ${textOf(groupColumn, original)}`,
+                            },
+                          }}
+                        />
+                      )}
+                      <IconButton
+                        size="small"
+                        aria-label={isExpanded ? "Contraer grupo" : "Expandir grupo"}
+                        aria-expanded={isExpanded}
+                        onClick={row.getToggleExpandedHandler()}
+                      >
+                        <ChevronRightIcon
+                          fontSize="small"
+                          sx={{
+                            transform: isExpanded ? "rotate(90deg)" : "none",
+                            transition: "transform 160ms ease",
+                          }}
+                        />
+                      </IconButton>
+                      <Box
+                        component="span"
+                        sx={{
+                          fontSize: "0.72rem",
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.04em",
+                          color: "var(--cn-color-text-muted, #6e7682)",
+                        }}
+                      >
+                        {groupColumn ? headerText(groupColumn) : ""}
+                      </Box>
+                      {groupColumn && renderCellContent(groupColumn, original, index)}
+                      <Box
+                        component="span"
+                        sx={{
+                          px: "8px",
+                          py: "2px",
+                          borderRadius: "999px",
+                          fontSize: "0.7rem",
+                          fontWeight: 700,
+                          color: "var(--cn-color-brand-700, #1c3d6d)",
+                          backgroundColor: "rgba(37, 77, 135, 0.1)",
+                        }}
+                      >
+                        {leaves.length} {leaves.length === 1 ? "registro" : "registros"}
+                      </Box>
+                      {aggregates.map((column) => {
+                        const value = aggregate(column, leafData);
+                        if (value === null) return null;
+                        const formatted =
+                          column.aggregate === "count"
+                            ? value.toLocaleString("es-MX")
+                            : formatCellText(
+                                column.type === "currency" || column.type === "percent"
+                                  ? column.type
+                                  : column.type === "progress"
+                                    ? "percent"
+                                    : "number",
+                                value,
+                                {},
+                                column.cellOptions,
+                              );
+                        return (
+                          <Box
+                            key={column.id}
+                            component="span"
+                            sx={{
+                              fontSize: "0.72rem",
+                              color: "var(--cn-color-text-muted, #6e7682)",
+                            }}
+                          >
+                            {AGGREGATE_LABELS[column.aggregate as CnAggregate]} de{" "}
+                            {headerText(column)}:{" "}
+                            <Box
+                              component="strong"
+                              sx={{
+                                fontFamily: "var(--cn-font-mono, ui-monospace, monospace)",
+                                color: "var(--cn-color-brand-700, #1c3d6d)",
+                              }}
+                            >
+                              {formatted}
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                </Box>
+              );
+            }
+            const rowNumber = pageOffset + index + 1;
+            const toggleOnClick = selectOnRowClick && showSelection;
             return (
               <Fragment key={row.id}>
                 <Box
                   component="tr"
                   data-row-id={row.id}
                   aria-selected={showSelection ? selected : undefined}
-                  tabIndex={onRowClick ? 0 : undefined}
-                  onClick={onRowClick ? () => onRowClick(original) : undefined}
+                  tabIndex={onRowClick || toggleOnClick ? 0 : undefined}
+                  onClick={
+                    onRowClick || toggleOnClick
+                      ? () => {
+                          if (toggleOnClick) row.toggleSelected();
+                          onRowClick?.(original);
+                        }
+                      : undefined
+                  }
                   onKeyDown={
-                    onRowClick
+                    onRowClick || toggleOnClick
                       ? (event: React.KeyboardEvent) => {
-                          if (event.key === "Enter" && event.target === event.currentTarget)
-                            onRowClick(original);
+                          if (event.target !== event.currentTarget) return;
+                          if (event.key === "Enter") onRowClick?.(original);
+                          if (event.key === " " && toggleOnClick) {
+                            event.preventDefault();
+                            row.toggleSelected();
+                          }
                         }
                       : undefined
                   }
                   sx={{
                     ...bodyRowSx(index, selected, getRowTone?.(original)),
+                    cursor: onRowClick || toggleOnClick ? "pointer" : undefined,
                     opacity: loading ? 0.6 : 1,
                   }}
                 >
@@ -1615,10 +1948,25 @@ export const CnDataTable = <T extends CnRow>({
                       </IconButton>
                     </Box>
                   )}
+                  {rowNumbers && (
+                    <Box
+                      component="td"
+                      sx={{
+                        ...stickyCell(numberLeft, 2),
+                        backgroundColor: "inherit !important",
+                        textAlign: "center",
+                        fontFamily: "var(--cn-font-mono, ui-monospace, monospace)",
+                        fontSize: "0.72rem !important",
+                        color: "var(--cn-color-text-muted, #6e7682) !important",
+                      }}
+                    >
+                      {rowNumber}
+                    </Box>
+                  )}
                   {hasActions && rowActionsPosition === "start" && (
                     <td>{renderActionsCell(original)}</td>
                   )}
-                  {row.getVisibleCells().map((cell) => {
+                  {row.getVisibleCells().map((cell, cellIndex) => {
                     const column = columnsById.get(cell.column.id) as CnColumn<T>;
                     const pinned = pinnedLeftIds.has(column.id);
                     return (
@@ -1638,7 +1986,13 @@ export const CnDataTable = <T extends CnRow>({
                             }),
                         }}
                       >
-                        {renderCellContent(column, original, index)}
+                        {row.depth > 0 && cellIndex === 0 ? (
+                          <Box sx={{ pl: `${row.depth * 20}px` }}>
+                            {renderCellContent(column, original, index)}
+                          </Box>
+                        ) : (
+                          renderCellContent(column, original, index)
+                        )}
                       </Box>
                     );
                   })}
@@ -1685,6 +2039,7 @@ export const CnDataTable = <T extends CnRow>({
                   length:
                     (showSelection ? 1 : 0) +
                     (renderDetail ? 1 : 0) +
+                    (rowNumbers ? 1 : 0) +
                     (hasActions && rowActionsPosition === "start" ? 1 : 0),
                 },
                 (_, i) => (
@@ -1945,6 +2300,87 @@ export const CnDataTable = <T extends CnRow>({
         }}
       >
         {toolbar}
+        {grouping.length > 0 && (
+          <Box
+            role="region"
+            aria-label="Agrupación"
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "6px",
+              px: "14px",
+              py: "8px",
+              borderBottom: "1px solid var(--cn-color-border-subtle, #eceef1)",
+              backgroundColor: "rgba(37, 77, 135, 0.03)",
+              fontSize: "0.75rem",
+            }}
+          >
+            <CnIcon
+              name="account_tree"
+              size="sm"
+              sx={{ color: "var(--cn-color-brand-600, #254d87)" }}
+            />
+            <Box
+              component="span"
+              sx={{ fontWeight: 600, color: "var(--cn-color-text-muted, #6e7682)" }}
+            >
+              Agrupado por
+            </Box>
+            {grouping.map((id, i) => {
+              const column = columnsById.get(id);
+              return (
+                <Fragment key={id}>
+                  {i > 0 && (
+                    <ChevronRightIcon
+                      sx={{ fontSize: 14, color: "var(--cn-color-neutral-400, #9aa1aa)" }}
+                    />
+                  )}
+                  <Box
+                    component="span"
+                    sx={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "2px",
+                      pl: "10px",
+                      pr: "2px",
+                      py: "1px",
+                      borderRadius: "999px",
+                      fontWeight: 700,
+                      color: "var(--cn-color-brand-700, #1c3d6d)",
+                      backgroundColor: "rgba(37, 77, 135, 0.1)",
+                    }}
+                  >
+                    {column ? headerText(column) : id}
+                    <IconButton
+                      size="small"
+                      aria-label={`Quitar agrupación por ${column ? headerText(column) : id}`}
+                      onClick={() => setGrouping((prev) => prev.filter((g) => g !== id))}
+                      sx={{ p: "2px" }}
+                    >
+                      <ClearIcon sx={{ fontSize: 14 }} />
+                    </IconButton>
+                  </Box>
+                </Fragment>
+              );
+            })}
+            <Box sx={{ flex: 1 }} />
+            <CnButton
+              size="small"
+              variant="text"
+              color="neutral"
+              onClick={() => table.toggleAllRowsExpanded(true)}
+            >
+              Expandir todo
+            </CnButton>
+            <CnButton size="small" variant="text" color="neutral" onClick={() => setExpanded({})}>
+              Contraer todo
+            </CnButton>
+            <CnButton size="small" variant="text" onClick={() => setGrouping([])}>
+              Quitar agrupación
+            </CnButton>
+          </Box>
+        )}
         {error && (
           <Box
             role="alert"
@@ -2245,6 +2681,22 @@ export const CnDataTable = <T extends CnRow>({
               </MenuItem>
             ),
             <Divider key="d1" />,
+            menuTableColumn.getCanGroup() && (
+              <MenuItem
+                key="group"
+                onClick={() => {
+                  menuTableColumn.toggleGrouping();
+                  closeMenu();
+                }}
+              >
+                <ListItemIcon>
+                  <CnIcon name="account_tree" size="sm" />
+                </ListItemIcon>
+                {menuTableColumn.getIsGrouped()
+                  ? "Desagrupar"
+                  : `Agrupar por ${headerText(menuColumn)}`}
+              </MenuItem>
+            ),
             menuColumn.filterable !== false && (
               <MenuItem
                 key="filter"

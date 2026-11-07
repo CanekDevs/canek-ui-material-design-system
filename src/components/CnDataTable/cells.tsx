@@ -3,6 +3,7 @@ import Popover from "@mui/material/Popover";
 import Tooltip from "@mui/material/Tooltip";
 import type { MouseEvent, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { formatIsoDisplay } from "../../utils/date-utils";
 import { getInitials } from "../../utils/option-media";
 import { getSafeUrl } from "../CnFileField/file-utils";
 import { normalizeDateValue } from "../CnForm/CnForm.engine";
@@ -29,6 +30,7 @@ export type CnCellType =
   | "status"
   | "tags"
   | "avatar"
+  | "contact"
   | "email"
   | "phone"
   | "link"
@@ -89,7 +91,66 @@ export type CnCellOptions = {
   copyable?: boolean;
   /** phone: acceso directo a WhatsApp. */
   whatsapp?: boolean;
+  /** date / datetime / time: formato propio (`"D [de] MMMM YYYY"`, `"HH:mm"`…). */
+  dateFormat?: string;
+  /** text / code: transformación del texto. */
+  transform?: "uppercase" | "lowercase" | "capitalize";
+  /** text: en negritas. */
+  bold?: boolean;
+  /** id: sufijo; number: unidad (`"kg"`, `"pzas"`, `"hrs"`). */
+  suffix?: string;
+  /** text / code: caracteres visibles (el texto completo queda en el tooltip). */
+  maxLength?: number;
+  /** duration: unidad del valor. Por defecto minutos. */
+  durationUnit?: "seconds" | "minutes" | "hours";
+  /** Contexto del vacío: `not_assigned`, `pending`, `not_applicable`… */
+  emptyContext?: CnEmptyContext;
+  /** number / currency / percent: sin píldora (solo el número). */
+  plain?: boolean;
+  /** percent: barra de avance junto al valor. */
+  bar?: boolean;
+  /** avatar / contact: forma del avatar. */
+  avatarShape?: "circle" | "rounded" | "square";
+  /** avatar: insignia junto al nombre (rol, estado…). */
+  badge?: (row: unknown) => { label: ReactNode; tone?: CnCellTone } | undefined;
+  /** location: enlace para abrir la dirección en Google Maps. */
+  mapLink?: boolean;
+  /** link: texto del enlace (por defecto el dominio). */
+  linkLabel?: (row: unknown) => string | undefined;
+  /** contact / image: máximo de elementos visibles. */
+  maxItems?: number;
+  /** Acción al hacer clic en la celda (avatar, contact, tags, text, code, id). */
+  onClick?: (value: unknown, row: unknown) => void;
 };
+
+/** Contacto para celdas `contact` (uno o una lista). */
+export type CnContact = {
+  name: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+  position?: string;
+};
+
+export type CnEmptyContext =
+  | "empty"
+  | "not_assigned"
+  | "not_available"
+  | "not_applicable"
+  | "pending"
+  | "none"
+  | "no_data"
+  | "not_found"
+  | "inactive"
+  | "deleted"
+  | "success"
+  | "active"
+  | "cancelled"
+  | "expired"
+  | "draft"
+  | "archived"
+  | "no_value"
+  | "null";
 
 // ─── Paleta ─────────────────────────────────────────────────────────────
 
@@ -175,6 +236,74 @@ const formatPhone = (raw: string): string => {
   return raw;
 };
 
+const AVATAR_COLORS = [
+  "#254d87",
+  "#2f7dc4",
+  "#228740",
+  "#b8831a",
+  "#8e44ad",
+  "#c0392b",
+  "#16a085",
+  "#5b6b7f",
+];
+
+/** Color estable por nombre (mismo nombre, mismo color). */
+export const colorFromText = (text: string): string => {
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) | 0;
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+};
+
+const applyTransform = (text: string, transform?: CnCellOptions["transform"]) => {
+  if (transform === "uppercase") return text.toLocaleUpperCase("es");
+  if (transform === "lowercase") return text.toLocaleLowerCase("es");
+  if (transform === "capitalize") {
+    return text
+      .toLocaleLowerCase("es")
+      .replace(
+        /(^|\s|-)(\p{L})/gu,
+        (_, sep: string, ch: string) => sep + ch.toLocaleUpperCase("es"),
+      );
+  }
+  return text;
+};
+
+const truncate = (text: string, max?: number) =>
+  max && text.length > max ? `${text.slice(0, Math.max(1, max - 1))}…` : text;
+
+const asContacts = (value: unknown): CnContact[] => {
+  const list = Array.isArray(value) ? value : [value];
+  return list
+    .filter(Boolean)
+    .map((item) =>
+      typeof item === "string"
+        ? { name: item }
+        : {
+            name: String(
+              (item as Record<string, unknown>).name ??
+                (item as Record<string, unknown>).label ??
+                "",
+            ),
+            email: (item as CnContact).email,
+            phone: (item as CnContact).phone,
+            avatar: (item as CnContact).avatar,
+            position: (item as CnContact).position,
+          },
+    )
+    .filter((c) => c.name);
+};
+
+const toImageList = (value: unknown): string[] =>
+  (Array.isArray(value) ? value : [value])
+    .map((item) =>
+      typeof item === "string"
+        ? item
+        : String(
+            (item as Record<string, unknown>)?.url ?? (item as Record<string, unknown>)?.src ?? "",
+          ),
+    )
+    .filter(Boolean);
+
 const RFC_RE = /^([A-ZÑ&]{3,4})(\d{6})([A-Z\d]{3})$/;
 const CURP_RE = /^[A-Z][AEIOUX][A-Z]{2}\d{6}[HMX][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z\d]\d$/;
 
@@ -192,15 +321,21 @@ export const formatCellText = (
   const locale = options.locale ?? "es-MX";
   switch (type) {
     case "id":
-      return `${options.prefix ?? ""}${String(value)}`;
+      return `${options.prefix ?? ""}${String(value)}${options.suffix ?? ""}`;
+    case "contact":
+      return asContacts(value)
+        .map((c) => c.name)
+        .join(", ");
+    case "image":
+      return toImageList(value).join(", ");
     case "number": {
       const n = toNumber(value);
-      return n === null
-        ? String(value)
-        : n.toLocaleString(locale, {
-            minimumFractionDigits: options.decimals,
-            maximumFractionDigits: options.decimals ?? 2,
-          });
+      if (n === null) return String(value);
+      const formatted = n.toLocaleString(locale, {
+        minimumFractionDigits: options.decimals,
+        maximumFractionDigits: options.decimals ?? 2,
+      });
+      return `${options.prefix ?? ""}${formatted}${options.suffix ? ` ${options.suffix}` : ""}`;
     }
     case "currency": {
       const n = toNumber(value);
@@ -229,16 +364,37 @@ export const formatCellText = (
     case "time": {
       const date = toDate(value, type);
       if (!date) return String(value);
+      if (options.dateFormat) {
+        const iso =
+          type === "time"
+            ? `${pad(date.getHours())}:${pad(date.getMinutes())}`
+            : `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return formatIsoDisplay(
+          iso,
+          type === "time" ? "time" : "datetime",
+          options.dateFormat,
+          locale,
+        );
+      }
       const day = `${pad(date.getDate())}/${MONTHS[date.getMonth()]}/${date.getFullYear()}`;
       const time = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
       return type === "date" ? day : type === "time" ? time : `${day} ${time}`;
     }
     case "duration": {
-      const n = toNumber(value);
-      if (n === null) return String(value);
-      const h = Math.floor(n / 60);
-      const m = Math.round(n % 60);
-      return h ? `${h} h${m ? ` ${m} min` : ""}` : `${m} min`;
+      const raw = toNumber(value);
+      if (raw === null) return String(value);
+      const unit = options.durationUnit ?? "minutes";
+      const totalMinutes = unit === "seconds" ? raw / 60 : unit === "hours" ? raw * 60 : raw;
+      const d = Math.floor(totalMinutes / 1440);
+      const h = Math.floor((totalMinutes % 1440) / 60);
+      const m = Math.round(totalMinutes % 60);
+      if (unit === "seconds" && totalMinutes < 1) return `${Math.round(raw)} s`;
+      const parts = [
+        d ? `${d} d` : "",
+        h ? `${h} h` : "",
+        m || (!d && !h) ? `${m} min` : "",
+      ].filter(Boolean);
+      return parts.join(" ");
     }
     case "boolean":
       return value ? String(options.trueLabel ?? "Sí") : String(options.falseLabel ?? "No");
@@ -262,13 +418,15 @@ export const formatCellText = (
           .join(", ");
       }
       return String(value);
-    default:
-      if (Array.isArray(value)) return value.join(", ");
-      if (typeof value === "object") {
+    default: {
+      let text: string;
+      if (Array.isArray(value)) text = value.join(", ");
+      else if (typeof value === "object") {
         const obj = value as Record<string, unknown>;
-        return String(obj.label ?? obj.name ?? obj.value ?? JSON.stringify(value));
-      }
-      return String(value);
+        text = String(obj.label ?? obj.name ?? obj.value ?? JSON.stringify(value));
+      } else text = String(value);
+      return applyTransform(text, options.transform);
+    }
   }
 };
 
@@ -473,12 +631,42 @@ const EMPTY_BY_TYPE: Partial<Record<CnCellType, { text: string; icon: string; to
     rfc: { text: "Sin RFC", icon: "badge", tone: "neutral" },
     curp: { text: "Sin CURP", icon: "badge", tone: "neutral" },
     avatar: { text: "Sin asignar", icon: "person_off", tone: "neutral" },
+    contact: { text: "Sin contacto", icon: "person_off", tone: "neutral" },
     tags: { text: "Sin etiquetas", icon: "label_off", tone: "neutral" },
   };
 
-/** Celda vacía con contexto ("Sin teléfono", "Sin fecha"…). */
-export const CnEmptyCell = ({ type, text }: { type: CnCellType; text?: string }) => {
-  const preset = EMPTY_BY_TYPE[type];
+const EMPTY_CONTEXTS: Record<CnEmptyContext, { text: string; icon: string; tone: CnCellTone }> = {
+  empty: { text: "Sin datos", icon: "inbox", tone: "accent" },
+  not_assigned: { text: "Sin asignar", icon: "person_off", tone: "warning" },
+  not_available: { text: "No disponible", icon: "not_interested", tone: "error" },
+  not_applicable: { text: "N/A", icon: "block", tone: "accent" },
+  pending: { text: "Pendiente", icon: "pending", tone: "warning" },
+  none: { text: "Ninguno", icon: "do_not_disturb_on", tone: "neutral" },
+  no_data: { text: "Sin datos", icon: "cloud_off", tone: "neutral" },
+  not_found: { text: "No encontrado", icon: "search_off", tone: "error" },
+  inactive: { text: "Inactivo", icon: "pause_circle", tone: "neutral" },
+  deleted: { text: "Eliminado", icon: "delete", tone: "error" },
+  success: { text: "Completado", icon: "check_circle", tone: "success" },
+  active: { text: "Activo", icon: "check_circle", tone: "success" },
+  cancelled: { text: "Cancelado", icon: "cancel", tone: "error" },
+  expired: { text: "Expirado", icon: "timer_off", tone: "warning" },
+  draft: { text: "Borrador", icon: "edit_note", tone: "neutral" },
+  archived: { text: "Archivado", icon: "archive", tone: "neutral" },
+  no_value: { text: "Sin valor", icon: "remove", tone: "neutral" },
+  null: { text: "Nulo", icon: "block", tone: "neutral" },
+};
+
+/** Celda vacía con contexto ("Sin teléfono", "Sin asignar", "N/A"…). */
+export const CnEmptyCell = ({
+  type,
+  text,
+  context,
+}: {
+  type: CnCellType;
+  text?: string;
+  context?: CnEmptyContext;
+}) => {
+  const preset = context ? EMPTY_CONTEXTS[context] : EMPTY_BY_TYPE[type];
   if (!preset && !text) {
     return (
       <Box
@@ -539,37 +727,6 @@ const STATUS_FALLBACK: Record<string, CnStatusOption> = {
   false: { label: "No", color: "error", icon: "cancel" },
 };
 
-/** Presets de estados frecuentes para `cellOptions.statusMap`. */
-export const CN_STATUS_PRESETS = {
-  activeInactive: {
-    active: { label: "Activo", color: "success", icon: "check_circle" },
-    inactive: { label: "Inactivo", color: "error", icon: "cancel" },
-  },
-  approval: {
-    pending: { label: "Pendiente", color: "warning", icon: "schedule" },
-    approved: { label: "Aprobado", color: "success", icon: "task_alt" },
-    rejected: { label: "Rechazado", color: "error", icon: "block" },
-  },
-  payment: {
-    pending: { label: "Por pagar", color: "warning", icon: "schedule" },
-    paid: { label: "Pagado", color: "success", icon: "paid" },
-    overdue: { label: "Vencido", color: "error", icon: "warning" },
-    refunded: { label: "Reembolsado", color: "info", icon: "undo" },
-  },
-  priority: {
-    low: { label: "Baja", color: "neutral", icon: "keyboard_arrow_down" },
-    medium: { label: "Media", color: "info", icon: "drag_handle" },
-    high: { label: "Alta", color: "warning", icon: "keyboard_arrow_up" },
-    critical: { label: "Crítica", color: "error", icon: "priority_high" },
-  },
-  task: {
-    todo: { label: "Por hacer", color: "neutral", icon: "radio_button_unchecked" },
-    in_progress: { label: "En curso", color: "info", icon: "autorenew" },
-    blocked: { label: "Bloqueada", color: "error", icon: "block" },
-    done: { label: "Terminada", color: "success", icon: "task_alt" },
-  },
-} satisfies Record<string, Record<string, CnStatusOption>>;
-
 const TagsCell = ({ tags, max }: { tags: string[]; max: number }) => {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const visible = tags.slice(0, max);
@@ -607,6 +764,264 @@ const TagsCell = ({ tags, max }: { tags: string[]; max: number }) => {
   );
 };
 
+const ContactAvatar = ({
+  contact,
+  shape,
+  ring = false,
+}: {
+  contact: CnContact;
+  shape?: CnCellOptions["avatarShape"];
+  ring?: boolean;
+}) => {
+  const safe = contact.avatar ? getSafeUrl(contact.avatar) : undefined;
+  return (
+    <Box
+      aria-hidden
+      title={contact.name}
+      sx={{
+        width: 32,
+        height: 32,
+        flexShrink: 0,
+        borderRadius: shape === "square" ? "6px" : shape === "rounded" ? "10px" : "50%",
+        overflow: "hidden",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#fff",
+        backgroundColor: colorFromText(contact.name),
+        boxShadow: ring ? "0 0 0 2px var(--cn-color-surface, #fff)" : undefined,
+      }}
+    >
+      {safe ? (
+        <Box
+          component="img"
+          src={safe}
+          alt=""
+          sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        getInitials(contact.name)
+      )}
+    </Box>
+  );
+};
+
+/** Al hacer clic muestra la ficha de contacto(s) con correo y teléfono. */
+const ContactPopover = ({
+  contacts,
+  shape,
+  children,
+}: {
+  contacts: CnContact[];
+  shape?: CnCellOptions["avatarShape"];
+  children: ReactNode;
+}) => {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  return (
+    <>
+      <Box
+        component="button"
+        type="button"
+        aria-label={`Ver ${contacts.length === 1 ? "contacto" : `${contacts.length} contactos`}`}
+        onClick={(event: MouseEvent) => {
+          event.stopPropagation();
+          setAnchor(event.currentTarget as HTMLElement);
+        }}
+        sx={{
+          all: "unset",
+          cursor: "pointer",
+          maxWidth: "100%",
+          borderRadius: "999px",
+          "&:focus-visible": { outline: "2px solid var(--cn-color-brand-400, #5081c4)" },
+        }}
+      >
+        {children}
+      </Box>
+      <Popover
+        open={Boolean(anchor)}
+        anchorEl={anchor}
+        onClose={() => setAnchor(null)}
+        onClick={(event) => event.stopPropagation()}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        slotProps={{
+          paper: {
+            sx: { p: "8px", minWidth: 260, maxWidth: 340, maxHeight: 360, borderRadius: "12px" },
+          },
+        }}
+      >
+        <Box
+          component="ul"
+          sx={{
+            listStyle: "none",
+            m: 0,
+            p: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+          }}
+        >
+          {contacts.map((contact, i) => (
+            <Box
+              component="li"
+              key={`${contact.name}-${i}`}
+              sx={{
+                display: "flex",
+                gap: "10px",
+                p: "8px",
+                borderRadius: "8px",
+                "&:hover": { backgroundColor: "var(--cn-color-neutral-50, #fafbfc)" },
+              }}
+            >
+              <ContactAvatar contact={contact} shape={shape} />
+              <Box sx={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "4px" }}>
+                <Box>
+                  <Box sx={{ fontSize: "0.82rem", fontWeight: 700 }}>{contact.name}</Box>
+                  {contact.position && (
+                    <Box sx={{ fontSize: "0.7rem", color: "var(--cn-color-text-muted, #6e7682)" }}>
+                      {contact.position}
+                    </Box>
+                  )}
+                </Box>
+                {contact.email && (
+                  <CnCellPill
+                    label={contact.email}
+                    icon="mail"
+                    tone="accent"
+                    mono
+                    href={`mailto:${contact.email}`}
+                    maxWidth={250}
+                  />
+                )}
+                {contact.phone && (
+                  <CnCellPill
+                    label={formatPhone(contact.phone)}
+                    icon="call"
+                    tone="info"
+                    mono
+                    href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}
+                  />
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Popover>
+    </>
+  );
+};
+
+const ImageGallery = ({ images, max }: { images: string[]; max: number }) => {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [active, setActive] = useState(0);
+  return (
+    <>
+      <Box
+        component="button"
+        type="button"
+        aria-label={`Ver ${images.length} imágenes`}
+        onClick={(event: MouseEvent) => {
+          event.stopPropagation();
+          setAnchor(event.currentTarget as HTMLElement);
+        }}
+        sx={{
+          all: "unset",
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          "&:focus-visible": { outline: "2px solid var(--cn-color-brand-400, #5081c4)" },
+        }}
+      >
+        {images.slice(0, max).map((src, i) => (
+          <Box
+            key={src}
+            component="img"
+            src={src}
+            alt=""
+            loading="lazy"
+            sx={{
+              width: 36,
+              height: 36,
+              objectFit: "cover",
+              borderRadius: "8px",
+              ml: i === 0 ? 0 : "-10px",
+              border: "2px solid var(--cn-color-surface, #fff)",
+              boxShadow: "0 1px 3px rgba(17,20,24,0.15)",
+            }}
+          />
+        ))}
+        {images.length > max && (
+          <Box
+            component="span"
+            sx={{
+              ml: "6px",
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              color: "var(--cn-color-text-muted, #6e7682)",
+            }}
+          >
+            +{images.length - max}
+          </Box>
+        )}
+      </Box>
+      <Popover
+        open={Boolean(anchor)}
+        anchorEl={anchor}
+        onClose={() => setAnchor(null)}
+        onClick={(event) => event.stopPropagation()}
+        slotProps={{ paper: { sx: { p: "10px", borderRadius: "12px", maxWidth: 420 } } }}
+      >
+        <Box
+          component="img"
+          src={images[active]}
+          alt=""
+          sx={{
+            display: "block",
+            width: "100%",
+            maxHeight: 300,
+            objectFit: "contain",
+            borderRadius: "8px",
+            backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
+          }}
+        />
+        <Box sx={{ display: "flex", gap: "6px", mt: "8px", flexWrap: "wrap" }}>
+          {images.map((src, i) => (
+            <Box
+              key={src}
+              component="button"
+              type="button"
+              aria-label={`Imagen ${i + 1}`}
+              aria-pressed={i === active}
+              onClick={() => setActive(i)}
+              sx={{
+                all: "unset",
+                cursor: "pointer",
+                borderRadius: "6px",
+                outline: i === active ? "2px solid var(--cn-color-brand-500, #3562a6)" : "none",
+                "&:focus-visible": { outline: "2px solid var(--cn-color-brand-400, #5081c4)" },
+              }}
+            >
+              <Box
+                component="img"
+                src={src}
+                alt=""
+                sx={{
+                  display: "block",
+                  width: 48,
+                  height: 48,
+                  objectFit: "cover",
+                  borderRadius: "6px",
+                }}
+              />
+            </Box>
+          ))}
+        </Box>
+      </Popover>
+    </>
+  );
+};
+
 const trendOf = (current: number, previous: number | undefined) => {
   if (previous === undefined) return null;
   if (current > previous) return { icon: "trending_up", tone: "success" as const };
@@ -622,8 +1037,14 @@ export const renderTypedCell = (
   options: CnCellOptions = {},
 ): ReactNode => {
   if (isEmpty(value) && type !== "boolean" && type !== "rating") {
-    return <CnEmptyCell type={type} text={options.emptyText} />;
+    return <CnEmptyCell type={type} text={options.emptyText} context={options.emptyContext} />;
   }
+  const handleClick = options.onClick
+    ? (event: MouseEvent) => {
+        event.stopPropagation();
+        options.onClick?.(value, row);
+      }
+    : undefined;
   const text = formatCellText(type, value, row, options);
   const subtitle = options.subtitle?.(row);
   const copy = options.copyable;
@@ -631,18 +1052,26 @@ export const renderTypedCell = (
   switch (type) {
     case "id":
       return withCopy(
-        <CnCellPill label={text} icon="tag" tone={options.tone ?? "primary"} mono />,
+        <CnCellPill
+          label={text}
+          icon="tag"
+          tone={options.tone ?? "primary"}
+          mono
+          onClick={handleClick}
+        />,
         text,
         copy ?? true,
       );
     case "code":
       return withCopy(
         <CnCellPill
-          label={text}
+          label={truncate(applyTransform(text, options.transform), options.maxLength)}
           icon={options.icon ?? "qr_code_2"}
           tone={options.tone ?? "neutral"}
           mono
           subtitle={subtitle}
+          title={options.maxLength && text.length > options.maxLength ? text : undefined}
+          onClick={handleClick}
         />,
         text,
         copy ?? true,
@@ -681,7 +1110,49 @@ export const renderTypedCell = (
               ? { icon: "trending_flat", tone: "warning" as const }
               : { icon: "trending_down", tone: "error" as const }
           : null;
-      const indicator = trend ?? auto;
+      const indicator = options.plain ? null : (trend ?? auto);
+      if (type === "percent" && options.bar) {
+        const pct = Math.max(0, Math.min(100, scaled));
+        const tone: CnCellTone =
+          indicator?.tone ?? (pct >= 80 ? "success" : pct >= 50 ? "warning" : "error");
+        return (
+          <Box sx={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 110 }}>
+            <Box
+              role="progressbar"
+              aria-valuenow={Math.round(pct)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              sx={{
+                flex: 1,
+                height: 6,
+                borderRadius: 6,
+                backgroundColor: `rgba(${TONE[tone].rgb}, 0.15)`,
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                sx={{
+                  width: `${pct}%`,
+                  height: "100%",
+                  borderRadius: 6,
+                  backgroundColor: `rgb(${TONE[tone].rgb})`,
+                }}
+              />
+            </Box>
+            <Box
+              component="span"
+              sx={{
+                fontFamily: MONO,
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                color: TONE[tone].dark,
+              }}
+            >
+              {text}
+            </Box>
+          </Box>
+        );
+      }
       if (!indicator) {
         return withCopy(
           <Box
@@ -708,6 +1179,24 @@ export const renderTypedCell = (
     case "currency": {
       const n = toNumber(value) ?? 0;
       const trend = trendOf(n, options.previous?.(row));
+      if (options.plain) {
+        return withCopy(
+          <Box
+            component="span"
+            sx={{
+              fontFamily: MONO,
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              fontVariantNumeric: "tabular-nums",
+              color: n < 0 ? TONE.error.dark : "inherit",
+            }}
+          >
+            {text}
+          </Box>,
+          text,
+          copy ?? false,
+        );
+      }
       return withCopy(
         <CnCellPill
           label={text}
@@ -834,6 +1323,13 @@ export const renderTypedCell = (
     case "avatar": {
       const src = options.image?.(row);
       const safe = src ? getSafeUrl(src) : undefined;
+      const badge = options.badge?.(row);
+      const radius =
+        options.avatarShape === "square"
+          ? "6px"
+          : options.avatarShape === "rounded"
+            ? "10px"
+            : "50%";
       return withCopy(
         <Box
           sx={{
@@ -850,7 +1346,7 @@ export const renderTypedCell = (
               width: 32,
               height: 32,
               flexShrink: 0,
-              borderRadius: "50%",
+              borderRadius: radius,
               overflow: "hidden",
               display: "inline-flex",
               alignItems: "center",
@@ -858,7 +1354,7 @@ export const renderTypedCell = (
               fontSize: 12,
               fontWeight: 700,
               color: "#fff",
-              backgroundColor: "var(--cn-color-brand-500, #3562a6)",
+              backgroundColor: colorFromText(text),
               boxShadow:
                 "0 0 0 2px var(--cn-color-surface, #fff), 0 0 0 3px rgba(37, 77, 135, 0.18)",
             }}
@@ -877,16 +1373,44 @@ export const renderTypedCell = (
           <Box sx={{ minWidth: 0, display: "flex", flexDirection: "column", lineHeight: 1.3 }}>
             <Box
               component="span"
-              sx={{
-                fontSize: "0.8rem",
-                fontWeight: 700,
-                color: "var(--cn-color-text, #222831)",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
+              sx={{ display: "inline-flex", alignItems: "center", gap: "6px", minWidth: 0 }}
             >
-              {text}
+              <Box
+                component={handleClick ? "button" : "span"}
+                type={handleClick ? "button" : undefined}
+                onClick={handleClick}
+                sx={{
+                  ...(handleClick && {
+                    all: "unset",
+                    cursor: "pointer",
+                    "&:hover": { textDecoration: "underline" },
+                  }),
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  color: "var(--cn-color-text, #222831)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {text}
+              </Box>
+              {badge && (
+                <Box
+                  component="span"
+                  sx={{
+                    flexShrink: 0,
+                    px: "6px",
+                    borderRadius: "999px",
+                    fontSize: "0.6rem",
+                    fontWeight: 700,
+                    color: TONE[badge.tone ?? "primary"].dark,
+                    backgroundColor: `rgba(${TONE[badge.tone ?? "primary"].rgb}, 0.1)`,
+                  }}
+                >
+                  {badge.label}
+                </Box>
+              )}
             </Box>
             {subtitle && (
               <Box
@@ -906,6 +1430,90 @@ export const renderTypedCell = (
         </Box>,
         text,
         copy ?? false,
+      );
+    }
+    case "contact": {
+      const contacts = asContacts(value);
+      if (contacts.length === 0)
+        return (
+          <CnEmptyCell type="contact" text={options.emptyText} context={options.emptyContext} />
+        );
+      if (contacts.length === 1) {
+        const contact = contacts[0];
+        return (
+          <ContactPopover contacts={contacts} shape={options.avatarShape}>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+              <ContactAvatar contact={contact} shape={options.avatarShape} />
+              <Box
+                sx={{
+                  minWidth: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  lineHeight: 1.3,
+                  textAlign: "left",
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                    color: "var(--cn-color-text, #222831)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {contact.name}
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    fontSize: "0.68rem",
+                    color: "var(--cn-color-text-muted, #6e7682)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {contact.position ?? contact.email ?? contact.phone ?? ""}
+                </Box>
+              </Box>
+            </Box>
+          </ContactPopover>
+        );
+      }
+      const max = options.maxItems ?? 4;
+      return (
+        <ContactPopover contacts={contacts} shape={options.avatarShape}>
+          <Box sx={{ display: "inline-flex", alignItems: "center" }}>
+            {contacts.slice(0, max).map((contact, i) => (
+              <Box key={`${contact.name}-${i}`} sx={{ ml: i === 0 ? 0 : "-8px", zIndex: max - i }}>
+                <ContactAvatar contact={contact} shape={options.avatarShape} ring />
+              </Box>
+            ))}
+            {contacts.length > max && (
+              <Box
+                sx={{
+                  ml: "-8px",
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "var(--cn-color-neutral-700, #3a4048)",
+                  backgroundColor: "var(--cn-color-neutral-150, #e9ecef)",
+                  boxShadow: "0 0 0 2px var(--cn-color-surface, #fff)",
+                }}
+              >
+                +{contacts.length - max}
+              </Box>
+            )}
+          </Box>
+        </ContactPopover>
       );
     }
     case "email": {
@@ -975,7 +1583,7 @@ export const renderTypedCell = (
       }
       return withCopy(
         <CnCellPill
-          label={options.href ? text : host}
+          label={options.linkLabel?.(row) ?? (options.href ? text : host)}
           icon="link"
           tone="accent"
           href={safe}
@@ -993,14 +1601,24 @@ export const renderTypedCell = (
           icon="location_on"
           tone="error"
           maxWidth={240}
-          title={text}
+          title={options.mapLink ? `Abrir en Google Maps: ${text}` : text}
           subtitle={subtitle}
+          chevron={options.mapLink}
+          href={
+            options.mapLink
+              ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`
+              : undefined
+          }
         />,
         text,
         copy ?? true,
       );
     case "image": {
-      const safe = getSafeUrl(String(value));
+      const images = toImageList(value)
+        .map((url) => getSafeUrl(url))
+        .filter(Boolean) as string[];
+      if (images.length > 1) return <ImageGallery images={images} max={options.maxItems ?? 3} />;
+      const safe = images[0];
       return safe ? (
         <Box
           component="img"
@@ -1044,10 +1662,12 @@ export const renderTypedCell = (
       if (options.pill) {
         return withCopy(
           <CnCellPill
-            label={text}
+            label={truncate(text, options.maxLength)}
             icon={options.icon}
             tone={options.tone ?? "neutral"}
             subtitle={subtitle}
+            title={options.maxLength && text.length > options.maxLength ? text : undefined}
+            onClick={handleClick}
           />,
           text,
           copy ?? true,
@@ -1068,19 +1688,31 @@ export const renderTypedCell = (
           )}
           <Box component="span" sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
             <Box
-              component="span"
-              title={text.length > 40 ? text : undefined}
+              component={handleClick ? "button" : "span"}
+              type={handleClick ? "button" : undefined}
+              onClick={handleClick}
+              title={
+                text.length > 40 || (options.maxLength && text.length > options.maxLength)
+                  ? text
+                  : undefined
+              }
               sx={{
+                ...(handleClick && {
+                  all: "unset",
+                  cursor: "pointer",
+                  color: "var(--cn-color-brand-700, #1c3d6d)",
+                  "&:hover": { textDecoration: "underline" },
+                }),
                 display: "-webkit-box",
                 WebkitLineClamp: lines,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
                 overflowWrap: "anywhere",
                 fontSize: "0.8rem",
-                fontWeight: options.icon ? 600 : 400,
+                fontWeight: options.bold ? 700 : options.icon ? 600 : 400,
               }}
             >
-              {text}
+              {truncate(text, options.maxLength)}
             </Box>
             {subtitle && (
               <Box
@@ -1098,3 +1730,18 @@ export const renderTypedCell = (
     }
   }
 };
+
+export type CnCellProps = CnCellOptions & {
+  type?: CnCellType;
+  value: unknown;
+  /** Fila completa (para subtítulos, imágenes, insignias…). */
+  row?: unknown;
+};
+
+/**
+ * Celda tipada independiente: úsala en `column.cell` para combinar formatos
+ * (`<CnCell type="currency" value={row.total} />`) o fuera de la tabla.
+ */
+export const CnCell = ({ type = "text", value, row, ...options }: CnCellProps) => (
+  <>{renderTypedCell(type, value, row ?? {}, options)}</>
+);

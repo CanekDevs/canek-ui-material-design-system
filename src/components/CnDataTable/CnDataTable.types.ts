@@ -41,6 +41,12 @@ export type CnColumn<T extends CnRow = CnRow> = {
   filter?: "text" | "select";
   /** Ancho redimensionable. Por defecto `true`. */
   resizable?: boolean;
+  /** Texto de ayuda junto al encabezado (ícono ⓘ con tooltip). */
+  description?: string;
+  /** Muestra el menú (⋮) de la columna. Por defecto `true`. */
+  columnMenu?: boolean;
+  /** Se puede agrupar por esta columna. Por defecto `true`. */
+  groupable?: boolean;
   /** Muestra la columna en la vista de tarjetas (móvil). Por defecto `true`. */
   showInCards?: boolean;
 };
@@ -57,6 +63,8 @@ export type CnRowAction<T extends CnRow = CnRow> = {
   confirm?: CnConfirmOptions | ((row: T) => CnConfirmOptions);
   /** Se muestra como botón de ícono en lugar de dentro del menú. */
   inline?: boolean;
+  /** Tooltip (texto o según la fila, p. ej. por qué está deshabilitada). */
+  tooltip?: string | ((row: T) => string | undefined);
 };
 
 export type CnBulkAction<T extends CnRow = CnRow> = {
@@ -128,7 +136,26 @@ export type CnDataTableProps<T extends CnRow = CnRow> = {
   onRowClick?: (row: T) => void;
   /** Contenido expandible bajo cada fila. */
   renderDetail?: (row: T) => ReactNode;
-  getRowTone?: (row: T) => "error" | "warning" | "success" | "info" | undefined;
+  /** Resalta filas: tono predefinido o color CSS (`"#fff8e1"`). */
+  getRowTone?: (row: T) => "error" | "warning" | "success" | "info" | (string & {}) | undefined;
+  /** Columna con el número de fila. */
+  rowNumbers?: boolean;
+  /** Con selección activa, un clic en la fila la selecciona. */
+  selectOnRowClick?: boolean;
+  /** Menú (⋮) en los encabezados. Por defecto `true`. */
+  columnActions?: boolean;
+  /** Agrupar filas desde el menú de columna. Por defecto `true`. */
+  groupable?: boolean;
+  /** Columnas agrupadas al inicio. */
+  defaultGrouping?: string[];
+  /**
+   * Exporta una fila por cada elemento de detalle (partidas de una orden,
+   * integrantes de un equipo…), repitiendo los datos de la fila principal.
+   */
+  exportDetail?: {
+    accessor: (row: T) => readonly object[] | undefined;
+    columns: readonly CnColumn<object>[];
+  };
 
   density?: "compact" | "comfortable" | "spacious";
   /** Casilla en la barra para mostrar/ocultar la columna de selección. */
