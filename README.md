@@ -15,6 +15,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 - [Componentes](#componentes)
 - [Formularios](#formularios)
 - [Retroalimentación y layout](#retroalimentación-y-layout)
+- [Tabla de datos](#tabla-de-datos)
 - [Temas](#temas)
 - [Tokens de diseño](#tokens-de-diseño)
 - [Estructura del proyecto](#estructura-del-proyecto)
@@ -551,6 +552,52 @@ Indicadores con `format`, `prefix`/`suffix`, `icon`, `trend` (`upIsGood: false` 
 malo, p. ej. costos), `progress` hacia una meta, `sparkline` (línea, área o barras; también
 disponible como `CnSparkline`), `footer`, variantes `outlined` / `elevated` / `filled`, `loading`
 y `onClick`.
+
+## Tabla de datos
+
+`CnDataTable` usa `@tanstack/react-table` como motor (dependencia incluida) y pinta con MUI y los
+tokens de Canek.
+
+```tsx
+const columns: CnColumn<Contract>[] = [
+  { id: "folio", header: "Folio", type: "code", sticky: true },
+  { id: "client.name", header: "Cliente", type: "avatar", cellOptions: { subtitle: (r) => r.client.email } },
+  { id: "status", header: "Estado", type: "status", cellOptions: { statusMap: { active: { label: "Vigente", color: "success" } } } },
+  { id: "amount", header: "Monto", type: "currency", aggregate: "sum" },
+  { id: "rfc", header: "RFC", type: "code", hidden: true },
+];
+
+<CnDataTable
+  title="Contratos"
+  data={contracts}
+  columns={columns}
+  selectable
+  bulkActions={[{ id: "cancel", label: "Cancelar", color: "error", onClick: cancel, confirm: { variant: "danger" } }]}
+  rowActions={[
+    { id: "edit", label: "Editar", icon: "edit", onClick: edit },
+    { id: "delete", label: "Eliminar", icon: "delete", color: "error", confirm: { variant: "delete" }, onClick: remove },
+  ]}
+  renderDetail={(row) => <ContractSummary contract={row} />}
+  persistKey="contracts"
+/>;
+```
+
+- **Celdas tipadas** (`type`): `text`, `number`, `currency`, `percent`, `date`, `datetime`, `time`,
+  `boolean`, `status`, `tags`, `avatar`, `email`, `phone`, `link`, `code`, `progress`, `rating`,
+  `image`, `duration`. El mismo formato se usa para buscar, ordenar y exportar; `cell` y
+  `exportValue` permiten personalizarlo.
+- **Datos:** búsqueda global sin acentos, filtros por columna, orden múltiple (Shift + clic),
+  paginación, agregados en el pie (`sum`, `avg`, `min`, `max`, `count`) y rutas anidadas (`client.name`).
+- **Acciones:** por fila (menú o `inline`, con `visible`, `disabled` y `confirm`), masivas sobre la
+  selección, `onRowClick` y detalle expandible (`renderDetail`).
+- **Exportación:** Excel (.xls), CSV, TSV y JSON de los registros filtrados o seleccionados, y copiar al
+  portapapeles (se pega como tabla). Protege contra inyección de fórmulas.
+- **Vista:** densidad, rayado, columnas visibles, encabezado fijo con `maxHeight`, columna fija
+  (`sticky`), tono por fila (`getRowTone`) y tarjetas en móvil (`mobileLayout="cards"`).
+- **Persistencia:** con `persistKey` guarda columnas visibles, densidad, orden y tamaño de página.
+- **Modo servidor:** `serverSide={{ rowCount, query, onQueryChange }}`; la tabla notifica página, orden,
+  búsqueda y filtros, y `fetchAllRows` permite exportar todo.
+- La búsqueda y la barra siguen visibles cuando no hay resultados.
 
 ## Temas
 

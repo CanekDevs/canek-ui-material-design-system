@@ -385,6 +385,31 @@ export type {
 export { CnMetricCard, CnSparkline } from "./components/CnMetricCard";
 export type { CnMetricCardProps, CnMetricColor, CnMetricTrend } from "./components/CnMetricCard";
 
+export {
+  CnDataTable,
+  copyRows,
+  exportRows,
+  formatCellText,
+  neutralizeFormula,
+  renderTypedCell,
+  serializeRows,
+} from "./components/CnDataTable";
+export type {
+  CnAggregate,
+  CnBulkAction,
+  CnCellOptions,
+  CnCellType,
+  CnColumn,
+  CnDataTableProps,
+  CnExportColumn,
+  CnExportFormat,
+  CnRowAction,
+  CnServerSide,
+  CnSortItem,
+  CnStatusOption,
+  CnTableQuery,
+} from "./components/CnDataTable";
+
 export { CnFormSkeleton } from "./components/CnFormSkeleton";
 export type { CnFormSkeletonProps } from "./components/CnFormSkeleton";
 
