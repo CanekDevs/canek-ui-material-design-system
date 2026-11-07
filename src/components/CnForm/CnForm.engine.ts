@@ -8,11 +8,12 @@ import {
 import { buildDateRangeRules } from "../CnDateField/CnDateField";
 import { buildDateRangeValueRules } from "../CnDateField/CnDateRangeField";
 import { COLOR_RULE } from "../CnColorField/CnColorField";
+import { KEY_VALUE_RULE } from "../CnKeyValueField/CnKeyValueField";
 import { buildMaskRules } from "../CnMaskedField/CnMaskedField";
 import { NUMBER_RANGE_RULES } from "../CnNumberRangeField/CnNumberRangeField";
 import { buildPasswordRule } from "../CnPasswordField/CnPasswordField";
 import { MASK_PRESETS } from "../../utils/mask-utils";
-import { getNestedValue, setNestedValue } from "./CnForm.helpers";
+import { getNestedValue, isDeepEqual, setNestedValue } from "./CnForm.helpers";
 import type {
   CnFormCustomElement,
   CnFormDynamicValue,
@@ -82,6 +83,93 @@ export const getVisibleGroups = <T extends CnFormTab | CnFormStep>(
   values: CnFormValues,
 ): T[] => (groups ?? []).filter((group) => !group.visibleWhen || group.visibleWhen(values));
 
+// ─── Dependencias entre campos ──────────────────────────────────────────
+
+/**
+ * Rutas absolutas de `dependsOn`. Dentro de una sección repetible las rutas
+ * son relativas al elemento; con el prefijo `$.` se refieren a la raíz.
+ */
+export const resolveDependencyPaths = (
+  dependsOn: readonly string[] | undefined,
+  ctx?: CnFormSectionContext,
+): string[] =>
+  (dependsOn ?? []).map((dep) => {
+    if (dep.startsWith("$.")) return dep.slice(2);
+    return ctx ? `${ctx.sectionId}.${ctx.index}.${dep}` : dep;
+  });
+
+const pathTouches = (changed: string, dep: string) =>
+  changed === dep || changed.startsWith(`${dep}.`) || dep.startsWith(`${changed}.`);
+
+/**
+ * Limpia en cascada los campos cuyo `dependsOn` incluye alguna de las rutas
+ * modificadas. Devuelve los valores nuevos y las rutas que se limpiaron.
+ */
+export const applyDependencyResets = (
+  values: CnFormValues,
+  changedPaths: readonly string[],
+  resolveFields: (values: CnFormValues) => CnResolvedField[],
+): { values: CnFormValues; reset: string[] } => {
+  let next = values;
+  const reset: string[] = [];
+  let pending = [...changedPaths];
+  // Límite de seguridad ante dependencias circulares.
+  for (let round = 0; round < 10 && pending.length > 0; round += 1) {
+    const fresh: string[] = [];
+    for (const item of resolveFields(next)) {
+      const { field } = item;
+      if (!field.dependsOn?.length || field.resetOnDependencyChange === false) continue;
+      if (reset.includes(item.path) || changedPaths.includes(item.path)) continue;
+      const deps = resolveDependencyPaths(field.dependsOn, item.ctx);
+      if (!pending.some((changed) => deps.some((dep) => pathTouches(changed, dep)))) continue;
+      const empty = getFieldDefault({ ...field, defaultValue: undefined }, next);
+      next = setNestedValue(next, item.path, empty);
+      reset.push(item.path);
+      fresh.push(item.path);
+    }
+    pending = fresh;
+  }
+  return { values: next, reset };
+};
+
+// ─── Campos calculados ──────────────────────────────────────────────────
+
+/**
+ * Recalcula los campos con `compute`. Se repite unas pocas veces para que un
+ * calculado pueda depender de otro (subtotal → total).
+ */
+export const applyComputedFields = (
+  values: CnFormValues,
+  resolveFields: (values: CnFormValues) => CnResolvedField[],
+): { values: CnFormValues; changed: string[] } => {
+  let next = values;
+  const changed = new Set<string>();
+  for (let round = 0; round < 5; round += 1) {
+    let dirty = false;
+    for (const item of resolveFields(next)) {
+      if (!item.field.compute) continue;
+      const ctx = item.ctx
+        ? {
+            ...item.ctx,
+            item: getNestedValue(next, `${item.ctx.sectionId}.${item.ctx.index}`) as CnFormValues,
+          }
+        : undefined;
+      let computed: unknown;
+      try {
+        computed = item.field.compute(next, ctx);
+      } catch {
+        continue;
+      }
+      if (isDeepEqual(getNestedValue(next, item.path), computed)) continue;
+      next = setNestedValue(next, item.path, computed);
+      changed.add(item.path);
+      dirty = true;
+    }
+    if (!dirty) break;
+  }
+  return { values: next, changed: [...changed] };
+};
+
 // ─── Valores por defecto ────────────────────────────────────────────────
 
 export const getFieldDefault = (field: CnFormField, values: CnFormValues): unknown => {
@@ -118,6 +206,14 @@ export const getFieldDefault = (field: CnFormField, values: CnFormValues): unkno
       return field.multiple ? [] : null;
     case "numberrange":
       return [null, null];
+    case "choicecards":
+      return field.multiple ? [] : "";
+    case "transferlist":
+      return [];
+    case "treeselect":
+      return field.multiple ? [] : null;
+    case "keyvalue":
+      return field.valueFormat === "object" ? {} : [];
     default:
       return "";
   }
@@ -145,8 +241,12 @@ export const buildSectionItem = (section: CnFormSection, values: CnFormValues): 
   return applyFieldDefaults(section.fields, base, values);
 };
 
-export const getInitialItemCount = (section: CnFormSection): number =>
-  Math.max(section.minItems ?? 0, 1);
+export const getInitialItemCount = (section: CnFormSection): number => {
+  if (section.initialItems !== undefined) {
+    return Math.max(section.initialItems, section.minItems ?? 0);
+  }
+  return section.minItems === 0 ? 0 : Math.max(section.minItems ?? 1, 1);
+};
 
 const mergeDeep = (base: CnFormValues, override: CnFormValues): CnFormValues => {
   const result: CnFormValues = { ...base };
@@ -253,12 +353,38 @@ export const getFieldRules = (
   const rules = [...(combineRules(required, declared) ?? [])];
   const has = (type: CnValidationRule["type"]) => rules.some((rule) => rule.type === type);
 
-  switch (field.type) {
+  // `tel` con selector de país se valida igual que `phone`.
+  const kind = field.type === "tel" && field.showCountrySelect ? "phone" : field.type;
+  switch (kind) {
     case "email":
       if (!has("email")) rules.push({ type: "email" });
       break;
     case "url":
       if (!has("url")) rules.push({ type: "url" });
+      break;
+    case "tel":
+      if (!has("tel") && !has("phone")) {
+        rules.push(
+          field.defaultCountry
+            ? { type: "tel", country: field.defaultCountry }
+            : {
+                type: "custom",
+                message: "Teléfono no válido",
+                validate: (v) => {
+                  if (!v) return true;
+                  const digits = String(v).replace(/\D/g, "");
+                  return (
+                    /^\+?[\d\s().-]+$/.test(String(v).trim()) &&
+                    digits.length >= 7 &&
+                    digits.length <= 15
+                  );
+                },
+              },
+        );
+      }
+      if (field.maxLength !== undefined && !has("maxLength")) {
+        rules.push({ type: "maxLength", value: field.maxLength });
+      }
       break;
     case "phone": {
       const preferred = field.defaultCountry ?? "MX";
@@ -282,15 +408,18 @@ export const getFieldRules = (
     case "time":
     case "datetime":
     case "month":
+    case "year":
       rules.push(
         ...buildDateRangeRules({
-          type: field.type,
+          type: field.type as "date" | "time" | "datetime" | "month" | "year",
           min: evaluate(field.minDate, values, ctx),
           max: evaluate(field.maxDate, values, ctx),
           disablePast: field.disablePast,
           disableFuture: field.disableFuture,
           format: field.dateFormat,
-          ampm: field.ampm,
+          ampm: evaluate(field.ampm, values, ctx),
+          minTime: evaluate(field.minTime, values, ctx),
+          maxTime: evaluate(field.maxTime, values, ctx),
         }),
       );
       break;
@@ -351,6 +480,24 @@ export const getFieldRules = (
         rules.push({ type: "maxFiles", value: field.maxFiles });
       }
       break;
+    case "keyvalue":
+      rules.push(KEY_VALUE_RULE);
+      if (required) {
+        rules.push({
+          type: "custom",
+          message: "Campo requerido",
+          validate: (v) =>
+            Array.isArray(v)
+              ? v.some((pair) => String(pair?.key ?? "").trim())
+              : Boolean(v && typeof v === "object" && Object.keys(v).length),
+        });
+      }
+      break;
+    case "transferlist": {
+      const max = evaluate(field.max, values, ctx);
+      if (max !== undefined && !has("maxItems")) rules.push({ type: "maxItems", value: max });
+      break;
+    }
     default:
       if (field.maxLength !== undefined && !has("maxLength")) {
         rules.push({ type: "maxLength", value: field.maxLength });
@@ -359,9 +506,79 @@ export const getFieldRules = (
   return rules;
 };
 
+const DATE_TYPES = new Set(["date", "time", "datetime", "month", "year"]);
+const pad = (n: number) => String(n).padStart(2, "0");
+const ISO_WITH_ZONE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
+
+/**
+ * Convierte lo que llega de una API (objetos `Date`, ISO con zona horaria,
+ * `"2024-05-01 10:30:00"` de Laravel/MySQL) al valor ISO local que usan los
+ * campos de fecha. Lo que no reconoce se devuelve como texto.
+ */
+export const normalizeDateValue = (
+  raw: unknown,
+  type: "date" | "time" | "datetime" | "month" | "year",
+): string => {
+  if (raw === null || raw === undefined || raw === "") return "";
+  let date: Date | null = null;
+  if (raw instanceof Date) date = raw;
+  else if (typeof raw === "number") date = new Date(raw);
+  else if (typeof raw === "string" && ISO_WITH_ZONE.test(raw)) date = new Date(raw);
+  if (date) {
+    if (Number.isNaN(date.getTime())) return "";
+    const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    const time = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    if (type === "date") return day;
+    if (type === "month") return day.slice(0, 7);
+    if (type === "year") return day.slice(0, 4);
+    if (type === "time") return time;
+    return `${day}T${time}`;
+  }
+  const text = String(raw).trim();
+  if (type === "date" && /^\d{4}-\d{2}-\d{2}[T ]/.test(text)) return text.slice(0, 10);
+  if (type === "month" && /^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 7);
+  if (type === "year" && /^\d{4}-\d{2}/.test(text)) return text.slice(0, 4);
+  if (type === "datetime" && /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(text)) {
+    return text.replace(" ", "T").slice(0, 16);
+  }
+  if (type === "datetime" && /^\d{4}-\d{2}-\d{2}$/.test(text)) return `${text}T00:00`;
+  if (type === "time" && /^\d{2}:\d{2}:\d{2}/.test(text)) return text.slice(0, 5);
+  return text;
+};
+
+/** Valor ISO local → `Date` (o `null` si está vacío o incompleto). */
+export const isoToDate = (
+  iso: string,
+  type: "date" | "time" | "datetime" | "month" | "year",
+): Date | null => {
+  if (!iso) return null;
+  if (type === "year") return /^\d{4}$/.test(iso) ? new Date(Number(iso), 0, 1) : null;
+  const match =
+    /^(\d{4})-(\d{2})(?:-(\d{2}))?(?:T(\d{2}):(\d{2}))?$/.exec(iso) ??
+    (type === "time" ? /^()()()(\d{2}):(\d{2})$/.exec(iso) : null);
+  if (!match) return null;
+  const now = new Date();
+  const year = match[1] ? Number(match[1]) : now.getFullYear();
+  const month = match[2] ? Number(match[2]) - 1 : now.getMonth();
+  const day = match[3] ? Number(match[3]) : type === "month" ? 1 : now.getDate();
+  const date = new Date(year, month, day, Number(match[4] ?? 0), Number(match[5] ?? 0));
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+/** Valor del campo como lo validan las reglas (fechas normalizadas a ISO local). */
+export const getComparableValue = (field: CnFormField, value: unknown): unknown => {
+  if (DATE_TYPES.has(field.type)) {
+    return normalizeDateValue(value, field.type as "date" | "time" | "datetime" | "month" | "year");
+  }
+  if (field.type === "daterange" && Array.isArray(value)) {
+    return value.map((item) => normalizeDateValue(item, "date"));
+  }
+  return value;
+};
+
 export const validateResolvedField = (resolved: CnResolvedField, values: CnFormValues): string => {
   if (!resolved.visible) return "";
-  const value = getNestedValue(values, resolved.path);
+  const value = getComparableValue(resolved.field, getNestedValue(values, resolved.path));
   return validateFieldValue(value, getFieldRules(resolved, values), values, resolved.ctx);
 };
 
@@ -380,6 +597,9 @@ export const validateResolvedFields = (
 // ─── Layout ─────────────────────────────────────────────────────────────
 
 const WIDE_TYPES = new Set([
+  "choicecards",
+  "transferlist",
+  "keyvalue",
   "textarea",
   "file",
   "custom",

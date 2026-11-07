@@ -18,6 +18,7 @@ import {
   getWeekdayNames,
   isSameDay,
   isSameMonth,
+  pad2,
   parseIsoDate,
   startOfMonth,
   startOfWeek,
@@ -40,6 +41,10 @@ export type CnCalendarDisableOptions = {
   /** Fechas puntuales deshabilitadas (`YYYY-MM-DD`), p. ej. días festivos. */
   disabledDates?: string[];
   shouldDisableDate?: (isoDate: string) => boolean;
+  /** Deshabilita meses completos en la vista de meses (`YYYY-MM`). */
+  shouldDisableMonth?: (isoMonth: string) => boolean;
+  /** Deshabilita años en la vista de años. */
+  shouldDisableYear?: (year: number) => boolean;
 };
 
 type BaseProps = CnCalendarDisableOptions & {
@@ -194,6 +199,8 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
       disabledDays,
       disabledDates,
       shouldDisableDate,
+      shouldDisableMonth,
+      shouldDisableYear,
     } = props;
 
     const disableOptions = useMemo<CnCalendarDisableOptions>(
@@ -359,7 +366,7 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
           </IconButton>
         )}
         <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
-          {views.includes("year") || views.includes("month") ? (
+          {views.length > 1 && (views.includes("year") || views.includes("month")) ? (
             <ButtonBase
               onClick={() =>
                 setView(
@@ -407,7 +414,9 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
               aria-live="polite"
               sx={{ fontSize: "var(--cn-font-size-md, 14px)", fontWeight: 600 }}
             >
-              {formatMonthYear(monthDate, locale)}
+              {view === "day"
+                ? formatMonthYear(monthDate, locale)
+                : String(monthDate.getFullYear())}
             </Box>
           )}
         </Box>
@@ -559,6 +568,9 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
               (minNav !== null && monthEnd < startOfMonth(minNav)) ||
               (maxNav !== null && date > maxNav);
             const selected = selectedMonthDate ? isSameMonth(date, selectedMonthDate) : false;
+            const monthDisabled = Boolean(
+              shouldDisableMonth?.(`${date.getFullYear()}-${pad2(monthIndex + 1)}`),
+            );
             return (
               <ButtonBase
                 key={name}
@@ -566,7 +578,7 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
                 aria-selected={selected}
                 data-selected={selected || undefined}
                 data-current={isSameMonth(date, today) || undefined}
-                disabled={outOfRange || blocked}
+                disabled={outOfRange || monthDisabled || blocked}
                 onClick={() => {
                   changeMonth(date);
                   if (hasDayView) {
@@ -619,6 +631,10 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
         >
           {yearList.map((year) => {
             const selected = selectedMonthDate ? selectedMonthDate.getFullYear() === year : false;
+            const yearDisabled =
+              (minNav !== null && year < minNav.getFullYear()) ||
+              (maxNav !== null && year > maxNav.getFullYear()) ||
+              Boolean(shouldDisableYear?.(year));
             return (
               <ButtonBase
                 key={year}
@@ -627,10 +643,15 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
                 data-selected={selected || undefined}
                 data-current={year === today.getFullYear() || undefined}
                 data-visible-year={year === visibleMonth.getFullYear() || undefined}
-                disabled={blocked}
+                disabled={blocked || yearDisabled}
                 onClick={() => {
                   const next = new Date(year, visibleMonth.getMonth(), 1);
                   changeMonth(next);
+                  if (!views.includes("month") && !hasDayView) {
+                    // Selector de solo año: el valor es el 1 de enero.
+                    (props.onChange as ((v: string) => void) | undefined)?.(`${year}-01-01`);
+                    return;
+                  }
                   setView(views.includes("month") ? "month" : "day");
                 }}
                 sx={gridButtonSx}

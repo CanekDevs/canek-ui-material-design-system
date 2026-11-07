@@ -30,10 +30,12 @@ import { mergeSx } from "../../utils/field-styles";
 import { moveArrayItem } from "../../utils/use-sortable-list";
 import { CnAlert } from "../CnAlert";
 import { CnButton } from "../CnButton";
+import { CnIcon } from "../CnIcon";
 import { CnFormSkeleton } from "../CnFormSkeleton";
 import { CnTabs } from "../CnTabs";
 import type { CnLayoutGroup, CnResolvedField } from "./CnForm.engine";
 import {
+  applyComputedFields,
   buildInitialValues,
   buildSectionItem,
   collectGroupFields,
@@ -49,6 +51,7 @@ import {
   getNestedValue,
   getServerErrorMessage,
   hasFiles,
+  isDeepEqual,
   omitPaths,
   parseServerErrors,
 } from "./CnForm.helpers";
@@ -95,7 +98,12 @@ const FOCUSABLE =
   'input:not([type="hidden"]):not([hidden]):not([disabled]), textarea:not([disabled]), [role="combobox"], [role="button"][tabindex="0"], [tabindex="0"]';
 
 const isGroupVisible = (group: CnLayoutGroup, values: CnFormValues): boolean => {
-  const visibleWhen = (group as { visibleWhen?: (v: CnFormValues) => boolean }).visibleWhen;
+  const { visibleWhen, disabled } = group as {
+    visibleWhen?: (v: CnFormValues) => boolean;
+    disabled?: boolean;
+  };
+  // Las pestañas deshabilitadas no se validan: el usuario no podría corregirlas.
+  if (disabled) return false;
   return !visibleWhen || visibleWhen(values);
 };
 
@@ -119,6 +127,8 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     onDirtyChange,
     title,
     description,
+    icon,
+    dialogTitle,
     size = "md",
     columns = 1,
     submitLabel,
@@ -128,6 +138,9 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     submitButtonProps,
     cancelButtonProps,
     extraActions,
+    nextButtonProps,
+    backButtonProps,
+    disableActions = false,
     actionsAlign = "end",
     stickyActions = false,
     hideActions = false,
@@ -135,12 +148,13 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     showCancelButton,
     labels: labelsProp,
     isSubmitting: isSubmittingProp = false,
-    isLoading = false,
+    isLoading: isLoadingProp = false,
     loadingStates,
     disabled = false,
     readOnly = false,
     validateOn = "blur",
     serverError,
+    showServerErrorAlert = true,
     error,
     errorSummary = "inline",
     scrollToFirstError = true,
@@ -152,6 +166,7 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     excludeFields,
     omitHiddenFields = false,
     dateFormat,
+    formDataOptions,
     activeTab: activeTabProp,
     onTabChange,
     tabsOrientation = "horizontal",
@@ -165,15 +180,23 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     dialogMaxWidth = "md",
     dialogFullScreen,
     dialogHeaderRight,
+    resetOnOpen = true,
     formRef,
     externalSubmitRef,
     allFieldsForValidation,
+    reinitialize = true,
     id: idProp,
     sx,
     className,
     fieldSx,
   } = props;
 
+  const isLoading = isLoadingProp || Boolean(loadingStates?.global);
+  const anyPartialLoading = [
+    loadingStates?.sections,
+    loadingStates?.tabs,
+    loadingStates?.steps,
+  ].some((map) => Object.values(map ?? {}).some(Boolean));
   const autoId = useId().replace(/:/g, "");
   const formId = idProp ?? `cn-form-${autoId}`;
   const labels = useMemo(() => ({ ...CN_FORM_DEFAULT_LABELS, ...labelsProp }), [labelsProp]);
@@ -186,10 +209,19 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     [variant, fields, sections, tabs, steps],
   );
 
-  // Defaults calculados una sola vez: son el destino de reset().
-  const [initialValues] = useState(() =>
-    buildInitialValues(groups, (defaultValues ?? {}) as CnFormValues),
+  // Defaults: son el destino de reset(). Se recalculan si `defaultValues`
+  // cambia (datos cargados después de montar) mientras no haya cambios.
+  const computeInitial = useCallback(
+    (provided: CnFormValues) =>
+      applyComputedFields(buildInitialValues(groups, provided), (vals) =>
+        groups.flatMap((group) => collectGroupFields(group, vals)),
+      ).values,
+    [groups],
   );
+  const [initialValues, setInitialValues] = useState(() =>
+    computeInitial((defaultValues ?? {}) as CnFormValues),
+  );
+  const lastDefaultsRef = useRef(defaultValues);
 
   const resolveFields = useCallback(
     (vals: CnFormValues): CnResolvedField[] => {
@@ -219,6 +251,16 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
   const formLatest = useRef(form);
   formLatest.current = form;
 
+  useEffect(() => {
+    if (!reinitialize || value !== undefined) return;
+    if (isDeepEqual(lastDefaultsRef.current, defaultValues)) return;
+    lastDefaultsRef.current = defaultValues;
+    if (formLatest.current.dirtyRef.current) return;
+    const next = computeInitial((defaultValues ?? {}) as CnFormValues);
+    setInitialValues(next);
+    formLatest.current.reset(next);
+  }, [computeInitial, defaultValues, reinitialize, value]);
+
   const [internalSubmitting, setInternalSubmitting] = useState(false);
   const submittingRef = useRef(false);
   const isSubmitting = isSubmittingProp || internalSubmitting;
@@ -241,8 +283,10 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
   useEffect(() => {
     const message = serverError ? getServerErrorMessage(serverError) : undefined;
     const hasFieldErrors = Object.keys(parseServerErrors(serverError)).length > 0;
-    setGeneralError(serverError && !hasFieldErrors ? (message ?? null) : null);
-  }, [serverError]);
+    setGeneralError(
+      showServerErrorAlert && serverError && !hasFieldErrors ? (message ?? null) : null,
+    );
+  }, [serverError, showServerErrorAlert]);
 
   // ─── Pestañas y pasos ────────────────────────────────────────────────
   const visibleTabs = useMemo(
@@ -398,6 +442,9 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     [changeTab, currentTab?.id, goToStep, scrollToFirstError, stepIndex, variant, visibleSteps],
   );
 
+  const focusFieldRef = useRef(focusField);
+  focusFieldRef.current = focusField;
+
   const focusFirstError = useCallback(
     (errors: Record<string, string>) => {
       const path = getFirstErrorPath(formLatest.current.resolvedFields, errors);
@@ -405,6 +452,23 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     },
     [focusField],
   );
+
+  // ─── Modal: estado limpio en cada apertura ───────────────────────────
+  const wasOpenRef = useRef(open);
+  useEffect(() => {
+    const reopened = open && !wasOpenRef.current;
+    wasOpenRef.current = open;
+    if (!reopened || mode !== "modal" || !resetOnOpen) return;
+    if (value === undefined) formLatest.current.reset(initialValues);
+    setShowSummary(false);
+    setGeneralError(null);
+    setConfirmDiscard(false);
+    if (activeStepProp === undefined) {
+      setStepState(0);
+      setVisitedSteps(new Set([0]));
+    }
+    if (activeTabProp === undefined) setTabState(tabs?.[0]?.id);
+  }, [activeStepProp, activeTabProp, initialValues, mode, open, resetOnOpen, tabs, value]);
 
   // ─── Helpers / payload / envío ───────────────────────────────────────
   const helpers: CnFormHelpers = useMemo(
@@ -415,6 +479,24 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
         setShowSummary(true);
       },
       setFieldValue: (path, next) => formLatest.current.setFieldValue(path, next),
+      setValues: (patch) => formLatest.current.setValues(patch),
+      getFieldValue: (path) => getNestedValue(formLatest.current.valuesRef.current, path),
+      setFieldError: (path, message) => {
+        formLatest.current.setServerErrors((prev) => ({ ...prev, [path]: message }));
+      },
+      clearErrors: (paths) => {
+        if (paths === undefined) {
+          formLatest.current.setServerErrors({});
+          setShowSummary(false);
+          return;
+        }
+        const list = Array.isArray(paths) ? paths : [paths];
+        formLatest.current.setServerErrors((prev) => {
+          const next = { ...prev };
+          for (const path of list) delete next[path];
+          return next;
+        });
+      },
     }),
     [initialValues],
   );
@@ -431,9 +513,11 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
       if (buildPayload) data = buildPayload(data as never);
       if (excludeFields?.length && submitMode === "json") data = omitPaths(data, excludeFields);
       const asFormData = submitMode === "formdata" || (submitMode === "auto" && hasFiles(data));
-      return asFormData ? buildFormData(data, { excludeFields, dateFormat }) : data;
+      return asFormData
+        ? buildFormData(data, { ...formDataOptions, excludeFields, dateFormat })
+        : data;
     },
-    [buildPayload, dateFormat, excludeFields, omitHiddenFields, submitMode],
+    [buildPayload, dateFormat, excludeFields, formDataOptions, omitHiddenFields, submitMode],
   );
 
   const blocked = disabled || readOnly;
@@ -457,8 +541,9 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     submittingRef.current = true;
     setInternalSubmitting(true);
     try {
-      await onSubmit?.(buildSubmitPayload(current) as never, { values: current as never, helpers });
-      onSuccess?.();
+      const payload = buildSubmitPayload(current);
+      await onSubmit?.(payload as never, { values: current as never, helpers });
+      onSuccess?.(payload as never, current as never);
       if (resetAfterSubmit) {
         formLatest.current.reset(initialValues);
       } else {
@@ -470,10 +555,12 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
       const fieldErrors = parseServerErrors(caught);
       const hasFieldErrors = Object.keys(fieldErrors).length > 0;
       formLatest.current.setServerErrors(fieldErrors);
-      setGeneralError(
-        getServerErrorMessage(caught) ??
-          (hasFieldErrors ? null : "No se pudo guardar. Intenta de nuevo."),
-      );
+      if (showServerErrorAlert) {
+        setGeneralError(
+          getServerErrorMessage(caught) ??
+            (hasFieldErrors ? null : "No se pudo guardar. Intenta de nuevo."),
+        );
+      }
       if (hasFieldErrors) {
         setShowSummary(true);
         focusFirstError(fieldErrors);
@@ -495,6 +582,7 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     onSubmit,
     onSuccess,
     resetAfterSubmit,
+    showServerErrorAlert,
   ]);
 
   const executeSubmitRef = useRef(executeSubmit);
@@ -513,13 +601,21 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     (): CnFormHandle => ({
       ...helpers,
       submit: () => executeSubmitRef.current(),
-      validate: async () => {
-        const errors = await formLatest.current.validate();
-        formLatest.current.setSubmitCount((count) => count + 1);
+      validate: async (paths) => {
+        const list = paths === undefined ? undefined : Array.isArray(paths) ? paths : [paths];
+        if (list) {
+          formLatest.current.touch(list);
+        } else {
+          formLatest.current.setSubmitCount((count) => count + 1);
+        }
+        const errors = await formLatest.current.validate(list);
         return Object.keys(errors).length === 0;
       },
       getValues: () => formLatest.current.valuesRef.current,
+      getErrors: () => ({ ...formLatest.current.visibleErrors }),
       isDirty: () => formLatest.current.dirtyRef.current,
+      focusField: (path) => focusFieldRef.current(path),
+      markSaved: () => formLatest.current.markSaved(),
     }),
     [helpers],
   );
@@ -634,9 +730,15 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
         {list.map((item, index) => {
           if (isCustomElement(item)) {
             if (item.visibleWhen && !item.visibleWhen(values, ctx)) return null;
-            return renderCustomElement(item.component, item, `custom-${prefix ?? ""}-${index}`);
+            return renderCustomElement(
+              item.component,
+              item,
+              `custom-${prefix ?? ""}-${index}`,
+              item.submitOnEnter,
+            );
           }
           if (item.visibleWhen && !item.visibleWhen(values, ctx)) return null;
+          if (item.type === "hidden") return null;
           const path = prefix ? `${prefix}.${item.name}` : item.name;
           const handlers = handlersFor(path);
           return (
@@ -694,10 +796,21 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
           (evaluate(section.canAdd, values) ?? true) &&
           (section.maxItems === undefined || items.length < section.maxItems)
         }
-        canRemove={
-          (evaluate(section.canRemove, values) ?? true) && items.length > (section.minItems ?? 0)
+        canRemove={(index) =>
+          items.length > (section.minItems ?? 0) &&
+          (evaluate(section.canRemove, values, {
+            sectionId: section.id,
+            index,
+            item: items[index],
+          }) ??
+            true)
         }
-        canReorder={Boolean(evaluate(section.canReorder, values))}
+        canReorder={evaluate(section.canReorder, values) ?? true}
+        headerRight={
+          typeof section.headerRight === "function"
+            ? section.headerRight(values)
+            : section.headerRight
+        }
         onAdd={() => addItem(section)}
         onRemove={(index) => removeItem(section, index)}
         onMove={(from, to) => moveItem(section, from, to)}
@@ -1004,21 +1117,26 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
   );
 
   // ─── Acciones ────────────────────────────────────────────────────────
-  const actionsDisabled = blocked || isSubmitting || isLoading;
+  const actionsDisabled =
+    blocked || isSubmitting || isLoading || disableActions || anyPartialLoading;
   const resolvedShowCancel = showCancelButton ?? Boolean(onCancel || (mode === "modal" && onClose));
   const stretch = actionsAlign === "stretch";
   const isWizard = variant === "wizard";
 
   const renderActions = () => {
     if (hideActions) return null;
-    const extras = extraActions?.map((action) => (
+    const visibleExtras = extraActions?.filter(
+      (action) => !action.visibleWhen || action.visibleWhen(values),
+    );
+    const extras = visibleExtras?.map((action) => (
       <CnButton
         key={action.key}
         type="button"
         variant={action.variant ?? "outlined"}
         color={action.color ?? "neutral"}
+        size={action.size ?? "medium"}
         startIcon={action.icon}
-        loading={actionLoading === action.key}
+        loading={actionLoading === action.key || action.loading}
         disabled={
           actionsDisabled ||
           action.disabled ||
@@ -1041,6 +1159,7 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
             size={cancelButtonProps?.size ?? "medium"}
             fullWidth={cancelButtonProps?.fullWidth ?? stretch}
             startIcon={cancelButtonProps?.icon ?? cancelIcon}
+            endIcon={cancelButtonProps?.endIcon}
             disabled={isSubmitting || cancelButtonProps?.disabled}
             onClick={requestCancel}
           >
@@ -1050,26 +1169,30 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
         {isWizard && stepIndex > 0 && (
           <CnButton
             type="button"
-            variant="outlined"
-            color="neutral"
-            startIcon="arrow_back"
-            fullWidth={stretch}
-            disabled={isSubmitting}
+            variant={backButtonProps?.variant ?? "outlined"}
+            color={backButtonProps?.color ?? "neutral"}
+            size={backButtonProps?.size ?? "medium"}
+            startIcon={backButtonProps?.icon ?? "arrow_back"}
+            endIcon={backButtonProps?.endIcon}
+            fullWidth={backButtonProps?.fullWidth ?? stretch}
+            disabled={isSubmitting || backButtonProps?.disabled}
             onClick={() => goToStep(stepIndex - 1)}
           >
-            {labels.back}
+            {backButtonProps?.label ?? labels.back}
           </CnButton>
         )}
         {isWizard && !isLastStep ? (
           <CnButton
             type="submit"
-            variant="contained"
-            color="primary"
-            endIcon="arrow_forward"
-            fullWidth={stretch}
-            disabled={actionsDisabled}
+            variant={nextButtonProps?.variant ?? "contained"}
+            color={nextButtonProps?.color ?? "primary"}
+            size={nextButtonProps?.size ?? "medium"}
+            startIcon={nextButtonProps?.icon}
+            endIcon={nextButtonProps?.endIcon ?? "arrow_forward"}
+            fullWidth={nextButtonProps?.fullWidth ?? stretch}
+            disabled={actionsDisabled || nextButtonProps?.disabled}
           >
-            {labels.next}
+            {nextButtonProps?.label ?? labels.next}
           </CnButton>
         ) : (
           showSubmitButton &&
@@ -1083,6 +1206,7 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
               loading={isSubmitting}
               disabled={actionsDisabled || submitButtonProps?.disabled}
               startIcon={submitButtonProps?.icon ?? submitIcon}
+              endIcon={submitButtonProps?.endIcon}
             >
               {isSubmitting
                 ? labels.submitting
@@ -1138,9 +1262,10 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     );
   };
 
-  const header = (title || description) && (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-      {title && (
+  const headerTitle = mode === "modal" && dialogTitle !== undefined ? dialogTitle : title;
+  const headerText = (headerTitle || description) && (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "4px", minWidth: 0 }}>
+      {headerTitle && (
         <Typography
           component="h2"
           id={`${formId}-title`}
@@ -1152,7 +1277,7 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
             lineHeight: 1.3,
           }}
         >
-          {title}
+          {headerTitle}
         </Typography>
       )}
       {description && (
@@ -1167,6 +1292,29 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
           {description}
         </Typography>
       )}
+    </Box>
+  );
+  const header = headerText && (
+    <Box sx={{ display: "flex", alignItems: "flex-start", gap: "12px", minWidth: 0 }}>
+      {icon && (
+        <Box
+          aria-hidden
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 36,
+            height: 36,
+            flexShrink: 0,
+            borderRadius: "var(--cn-radius-md, 8px)",
+            backgroundColor: "var(--cn-color-brand-50, #eef3fb)",
+            color: "var(--cn-color-brand-600, #254d87)",
+          }}
+        >
+          <CnIcon name={icon} size="md" />
+        </Box>
+      )}
+      {headerText}
     </Box>
   );
 
@@ -1210,7 +1358,7 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     onSubmit: handleSubmit,
     noValidate: true,
     "aria-busy": isSubmitting || isLoading || undefined,
-    "aria-labelledby": title ? `${formId}-title` : undefined,
+    "aria-labelledby": headerTitle ? `${formId}-title` : undefined,
     "data-cn-form": variant,
     className,
   };
@@ -1227,7 +1375,7 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
           maxWidth={dialogMaxWidth}
           fullWidth
           fullScreen={dialogFullScreen ?? isMobile}
-          aria-labelledby={title ? `${formId}-title` : undefined}
+          aria-labelledby={headerTitle ? `${formId}-title` : undefined}
           slotProps={{
             paper: {
               sx: {

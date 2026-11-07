@@ -99,6 +99,23 @@ const cleanSpaces = (value: string): string => value.replace(/\s/g, "");
 const isAlphanumericWithAccents = (str: string): boolean => /^[\p{L}\p{N}\s]+$/u.test(str);
 const isAlphabeticWithAccents = (str: string): boolean => /^[\p{L}\s]+$/u.test(str);
 
+/**
+ * Valor de otro campo: dentro de una sección repetible se busca primero en el
+ * elemento actual; con el prefijo `$.` siempre en la raíz.
+ */
+const getSiblingValue = (
+  formValues: Record<string, unknown>,
+  path: string,
+  ctx?: CnFormSectionContext,
+): unknown => {
+  if (path.startsWith("$.")) return getNestedFieldValue(formValues, path.slice(2));
+  if (ctx?.item) {
+    const local = getNestedFieldValue(ctx.item, path);
+    if (local !== undefined) return local;
+  }
+  return getNestedFieldValue(formValues, path);
+};
+
 const getNestedFieldValue = (obj: Record<string, unknown>, path: string): unknown => {
   if (!path) return undefined;
   if (!path.includes(".")) return obj[path];
@@ -155,10 +172,11 @@ const baseValidators: Record<string, ValidatorFn> = {
 
   exactLength: (value, rule, formValues) => {
     if (rule.type !== "exactLength") return null;
-    if (value && typeof value === "string" && value.length !== rule.value) {
+    const expected = rule.value ?? rule.length;
+    if (expected === undefined) return null;
+    if (value && typeof value === "string" && value.length !== expected) {
       return (
-        resolveMessage(rule.message, formValues) ??
-        `Debe tener exactamente ${rule.value} caracteres`
+        resolveMessage(rule.message, formValues) ?? `Debe tener exactamente ${expected} caracteres`
       );
     }
     return null;
@@ -184,10 +202,10 @@ const baseValidators: Record<string, ValidatorFn> = {
     if (rule.type !== "between") return null;
     if (value === "" || value === null || value === undefined) return null;
     const num = Number(value);
-    if (num < rule.min) {
+    if (rule.min !== undefined && num < rule.min) {
       return resolveMessage(rule.message, formValues) ?? `Debe ser mayor o igual a ${rule.min}`;
     }
-    if (num > rule.max) {
+    if (rule.max !== undefined && num > rule.max) {
       return resolveMessage(rule.message, formValues) ?? `Debe ser menor o igual a ${rule.max}`;
     }
     return null;
@@ -235,18 +253,20 @@ const baseValidators: Record<string, ValidatorFn> = {
     return null;
   },
 
-  equalTo: (value, rule, formValues) => {
+  equalTo: (value, rule, formValues, ctx) => {
     if (rule.type !== "equalTo") return null;
-    const other = getNestedFieldValue(formValues, rule.field);
+    if (isEmptyValue(value)) return null;
+    const other = getSiblingValue(formValues, rule.field, ctx);
     if (value !== other) {
       return resolveMessage(rule.message, formValues) ?? "Los valores no coinciden";
     }
     return null;
   },
 
-  notEqualTo: (value, rule, formValues) => {
+  notEqualTo: (value, rule, formValues, ctx) => {
     if (rule.type !== "notEqualTo") return null;
-    const other = getNestedFieldValue(formValues, rule.field);
+    if (isEmptyValue(value)) return null;
+    const other = getSiblingValue(formValues, rule.field, ctx);
     if (value === other) {
       return resolveMessage(rule.message, formValues) ?? `No puede ser igual a ${rule.field}`;
     }
@@ -767,10 +787,14 @@ const baseValidators: Record<string, ValidatorFn> = {
       value.some(
         (f) =>
           (f as { size?: number }).size !== undefined &&
-          (f as { size: number }).size > rule.value * 1024 * 1024,
+          (f as { size: number }).size >
+            rule.value * (rule.unit === "KB" ? 1024 : rule.unit === "GB" ? 1024 ** 3 : 1024 ** 2),
       )
     ) {
-      return resolveMessage(rule.message, formValues) ?? `Archivo excede ${rule.value}MB`;
+      return (
+        resolveMessage(rule.message, formValues) ??
+        `Archivo excede ${rule.value} ${rule.unit ?? "MB"}`
+      );
     }
     return null;
   },
@@ -807,6 +831,7 @@ export const validateFieldValue = (
 ): string => {
   if (!rules || rules.length === 0) return "";
   for (const rule of rules) {
+    if (rule.when && !rule.when(formValues, ctx, value)) continue;
     const validator = customValidators[rule.type] ?? baseValidators[rule.type];
     if (!validator) continue;
     const error = validator(value, rule, formValues, ctx);

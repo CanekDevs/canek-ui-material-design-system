@@ -12,6 +12,7 @@ import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
 import type { CnDateDisplayFormat, CnWeekday } from "../../utils/date-utils";
 import {
   applyDateMask,
+  formatIsoDisplay,
   formatIsoForInput,
   getInputPattern,
   isValidIsoValue,
@@ -30,7 +31,7 @@ import { CnCalendar, isDateDisabled } from "../CnCalendar";
 import type { CnValidationRule } from "../CnForm/CnForm.types";
 import { CnTimePanel } from "./CnTimePanel";
 
-export type CnDateFieldType = "date" | "time" | "datetime" | "month";
+export type CnDateFieldType = "date" | "time" | "datetime" | "month" | "year";
 
 export type CnDateFieldProps = CnFieldBaseProps<string> &
   Omit<CnCalendarDisableOptions, "min" | "max"> & {
@@ -40,6 +41,7 @@ export type CnDateFieldProps = CnFieldBaseProps<string> &
      * - `time` → `HH:mm`
      * - `datetime` → `YYYY-MM-DDTHH:mm`
      * - `month` → `YYYY-MM`
+     * - `year` → `YYYY`
      *
      * Si el usuario escribe una fecha incompleta o inválida se emite el texto tal
      * cual, para que la validación pueda marcarlo.
@@ -50,6 +52,15 @@ export type CnDateFieldProps = CnFieldBaseProps<string> &
     max?: string | Date;
     /** Formato visible al escribir. Por defecto `DD/MM/YYYY`. */
     format?: CnDateDisplayFormat;
+    /**
+     * Formato de presentación cuando el campo no tiene el foco (al enfocarlo se
+     * edita con la máscara). Tokens: `YYYY`, `MMMM`, `MMM`, `MM`, `DD`, `D`,
+     * `dddd`, `HH`, `hh`, `mm`, `a`; texto literal entre corchetes.
+     * Ej.: `"MMMM [de] YYYY"` → "mayo de 2024".
+     */
+    displayFormat?: string;
+    /** Mes visible al abrir sin valor (`YYYY-MM-DD` o `YYYY-MM`). */
+    defaultCalendarMonth?: string;
     locale?: string;
     weekStartsOn?: CnWeekday;
     /** Reloj de 12 horas. */
@@ -58,6 +69,10 @@ export type CnDateFieldProps = CnFieldBaseProps<string> &
     /** @deprecated Usa `minutesStep`. Paso en segundos (compatibilidad). */
     step?: number;
     shouldDisableTime?: (time: string) => boolean;
+    /** time / datetime: hora mínima de cada día (`HH:mm`), p. ej. horario laboral. */
+    minTime?: string;
+    /** time / datetime: hora máxima de cada día (`HH:mm`). */
+    maxTime?: string;
     /** Vistas del calendario (p. ej. `["year", "month", "day"]`). */
     views?: CnCalendarView[];
     openTo?: CnCalendarView;
@@ -85,6 +100,7 @@ const toIsoBound = (
   if (type === "time") return hm;
   if (type === "datetime") return `${ymd}T${hm}`;
   if (type === "month") return ymd.slice(0, 7);
+  if (type === "year") return ymd.slice(0, 4);
   return ymd;
 };
 
@@ -102,6 +118,9 @@ export type CnDateRangeOptions = {
   disableFuture?: boolean;
   format?: CnDateDisplayFormat;
   ampm?: boolean;
+  /** Ventana horaria diaria (`HH:mm`) para time / datetime. */
+  minTime?: string;
+  maxTime?: string;
 };
 
 /** Límites efectivos combinando `min`/`max` con `disablePast`/`disableFuture`. */
@@ -158,6 +177,26 @@ export const buildDateRangeRules = (options: CnDateRangeOptions): CnValidationRu
       type: "custom",
       message: `Debe ser igual o anterior a ${describe(maxValue)}`,
       validate: (v) => !v || !valid(v) || String(v) <= maxValue,
+    });
+  }
+  if ((type === "time" || type === "datetime") && (options.minTime || options.maxTime)) {
+    const timeOf = (v: unknown) => (type === "time" ? String(v) : String(v).slice(11, 16));
+    const show = (t: string) => formatIsoForInput(t, "time", format, ampm);
+    list.push({
+      type: "custom",
+      message:
+        options.minTime && options.maxTime
+          ? `La hora debe estar entre ${show(options.minTime)} y ${show(options.maxTime)}`
+          : options.minTime
+            ? `La hora debe ser igual o posterior a ${show(options.minTime)}`
+            : `La hora debe ser igual o anterior a ${show(options.maxTime as string)}`,
+      validate: (v) => {
+        if (!v || !valid(v)) return true;
+        const t = timeOf(v);
+        return (
+          (!options.minTime || t >= options.minTime) && (!options.maxTime || t <= options.maxTime)
+        );
+      },
     });
   }
   return list;
@@ -226,13 +265,19 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
     disabledDays,
     disabledDates,
     shouldDisableDate,
+    shouldDisableMonth,
+    shouldDisableYear,
     format = "DD/MM/YYYY",
+    displayFormat,
+    defaultCalendarMonth,
     locale = "es-MX",
     weekStartsOn = 1,
     ampm = false,
     minutesStep,
     step,
     shouldDisableTime,
+    minTime: dailyMinTime,
+    maxTime: dailyMaxTime,
     views,
     openTo,
     highlightedDates,
@@ -255,6 +300,7 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
   );
   const [draft, setDraft, markEmitted] = useDraftValue<string>(current, toDraft);
   const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const effectiveStep = minutesStep ?? (step ? Math.max(1, Math.round(step / 60)) : 5);
 
@@ -264,8 +310,19 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
   );
 
   const rangeRules = useMemo(
-    () => buildDateRangeRules({ type, min, max, disablePast, disableFuture, format, ampm }),
-    [ampm, disableFuture, disablePast, format, max, min, type],
+    () =>
+      buildDateRangeRules({
+        type,
+        min,
+        max,
+        disablePast,
+        disableFuture,
+        format,
+        ampm,
+        minTime: dailyMinTime,
+        maxTime: dailyMaxTime,
+      }),
+    [ampm, dailyMaxTime, dailyMinTime, disableFuture, disablePast, format, max, min, type],
   );
 
   const disableOptions: CnCalendarDisableOptions = useMemo(
@@ -274,20 +331,36 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
         minValue && type !== "time"
           ? type === "month"
             ? `${minValue}-01`
-            : minValue.slice(0, 10)
+            : type === "year"
+              ? `${minValue}-01-01`
+              : minValue.slice(0, 10)
           : undefined,
       max:
         maxValue && type !== "time"
           ? type === "month"
             ? `${maxValue}-31`
-            : maxValue.slice(0, 10)
+            : type === "year"
+              ? `${maxValue}-12-31`
+              : maxValue.slice(0, 10)
           : undefined,
       disableWeekends,
       disabledDays,
       disabledDates,
       shouldDisableDate,
+      shouldDisableMonth,
+      shouldDisableYear,
     }),
-    [disableWeekends, disabledDates, disabledDays, maxValue, minValue, shouldDisableDate, type],
+    [
+      disableWeekends,
+      disabledDates,
+      disabledDays,
+      maxValue,
+      minValue,
+      shouldDisableDate,
+      shouldDisableMonth,
+      shouldDisableYear,
+      type,
+    ],
   );
 
   const control = useFieldControl(current, {
@@ -340,27 +413,51 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
   // ─── Valores derivados para el selector ──────────────────────────────
   const validCurrent = isValidIsoValue(current, type) ? current : "";
   const datePart =
-    type === "month" ? (validCurrent ? `${validCurrent}-01` : "") : validCurrent.slice(0, 10);
+    type === "month"
+      ? validCurrent
+        ? `${validCurrent}-01`
+        : ""
+      : type === "year"
+        ? validCurrent
+          ? `${validCurrent}-01-01`
+          : ""
+        : validCurrent.slice(0, 10);
   const timePart =
     type === "time" ? validCurrent : type === "datetime" ? validCurrent.slice(11, 16) : "";
 
   const timeBounds = useMemo(() => {
-    if (type === "time") return { minTime: minValue, maxTime: maxValue };
-    if (type !== "datetime" || !datePart) return {};
+    const later = (a?: string, b?: string) => (!a ? b : !b ? a : a > b ? a : b);
+    const earlier = (a?: string, b?: string) => (!a ? b : !b ? a : a < b ? a : b);
+    if (type === "time") {
+      return { minTime: later(minValue, dailyMinTime), maxTime: earlier(maxValue, dailyMaxTime) };
+    }
+    if (type !== "datetime") return {};
+    if (!datePart) return { minTime: dailyMinTime, maxTime: dailyMaxTime };
     return {
-      minTime: minValue && minValue.slice(0, 10) === datePart ? minValue.slice(11, 16) : undefined,
-      maxTime: maxValue && maxValue.slice(0, 10) === datePart ? maxValue.slice(11, 16) : undefined,
+      minTime: later(
+        minValue && minValue.slice(0, 10) === datePart ? minValue.slice(11, 16) : undefined,
+        dailyMinTime,
+      ),
+      maxTime: earlier(
+        maxValue && maxValue.slice(0, 10) === datePart ? maxValue.slice(11, 16) : undefined,
+        dailyMaxTime,
+      ),
     };
-  }, [datePart, maxValue, minValue, type]);
+  }, [dailyMaxTime, dailyMinTime, datePart, maxValue, minValue, type]);
 
   const handleCalendarChange = (iso: string) => {
+    if (type === "year") {
+      pick(iso.slice(0, 4));
+      if (closeOnSelect) closePicker();
+      return;
+    }
     if (type === "month") {
       pick(iso.slice(0, 7));
       if (closeOnSelect) closePicker();
       return;
     }
     if (type === "datetime") {
-      let time = timePart || "09:00";
+      let time = timePart || (dailyMinTime && dailyMinTime > "09:00" ? dailyMinTime : "09:00");
       if (minValue?.slice(0, 10) === iso && `${iso}T${time}` < minValue)
         time = minValue.slice(11, 16);
       if (maxValue?.slice(0, 10) === iso && `${iso}T${time}` > maxValue)
@@ -381,7 +478,11 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
   const todayDisabled =
     type !== "time" &&
     isDateDisabled(
-      type === "month" ? new Date(now.getFullYear(), now.getMonth(), 1) : now,
+      type === "month"
+        ? new Date(now.getFullYear(), now.getMonth(), 1)
+        : type === "year"
+          ? new Date(now.getFullYear(), 0, 1)
+          : now,
       disableOptions,
     );
   const handleToday = () => {
@@ -394,7 +495,18 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
   const showClear = clearable && Boolean(draft) && !blocked;
   const PickerIcon = type === "time" ? AccessTimeIcon : CalendarMonthOutlinedIcon;
   const pickerLabel =
-    type === "time" ? "Elegir hora" : type === "month" ? "Elegir mes" : "Elegir fecha";
+    type === "time"
+      ? "Elegir hora"
+      : type === "month"
+        ? "Elegir mes"
+        : type === "year"
+          ? "Elegir año"
+          : "Elegir fecha";
+  // Con `displayFormat` el campo muestra el texto formateado mientras no se edita.
+  const presented =
+    displayFormat && !focused && !open && isValidIsoValue(current, type)
+      ? formatIsoDisplay(current, type, displayFormat, locale)
+      : draft;
   const parsedTime = parseIsoTime(timePart);
 
   return (
@@ -409,7 +521,8 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
         name={name}
         label={label}
         placeholder={placeholder ?? patternToPlaceholder(pattern)}
-        value={draft}
+        value={presented}
+        onFocus={() => setFocused(true)}
         onChange={(event) => {
           const masked = nextMasked(draft, event.target.value, pattern);
           setDraft(masked);
@@ -417,6 +530,7 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
           emit(masked ? (parseMaskedInput(masked, type, format, ampm) ?? masked) : "");
         }}
         onBlur={() => {
+          setFocused(false);
           // Abrir el selector no cuenta como abandonar el campo.
           if (open) return;
           control.markBlurred();
@@ -500,8 +614,22 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
             <CnCalendar
               value={datePart || null}
               onChange={handleCalendarChange}
-              views={views ?? (type === "month" ? ["month", "year"] : ["day", "month", "year"])}
-              openTo={openTo ?? (type === "month" ? "month" : "day")}
+              views={
+                views ??
+                (type === "year"
+                  ? ["year"]
+                  : type === "month"
+                    ? ["month", "year"]
+                    : ["day", "month", "year"])
+              }
+              openTo={openTo ?? (type === "year" ? "year" : type === "month" ? "month" : "day")}
+              defaultMonth={
+                defaultCalendarMonth
+                  ? defaultCalendarMonth.length === 7
+                    ? `${defaultCalendarMonth}-01`
+                    : defaultCalendarMonth
+                  : undefined
+              }
               locale={locale}
               weekStartsOn={weekStartsOn}
               highlightedDates={highlightedDates}
@@ -562,7 +690,9 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
                   ? "Ahora"
                   : type === "month"
                     ? "Este mes"
-                    : "Hoy"}
+                    : type === "year"
+                      ? "Este año"
+                      : "Hoy"}
               </CnButton>
             )}
             {!required && current && (
