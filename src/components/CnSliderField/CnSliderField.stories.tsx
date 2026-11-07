@@ -1,5 +1,7 @@
+import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnSliderField } from "./CnSliderField";
+import { CnSliderFieldSkeleton } from "./CnSliderFieldSkeleton";
 
 const meta: Meta<typeof CnSliderField> = {
   title: "Forms/CnSliderField",
@@ -38,4 +40,26 @@ export const WithMarks: Story = {
       { value: 4, label: "Crítica" },
     ],
   },
+};
+
+/** Estado de carga: el skeleton sigue las variantes del campo (`skeleton` o `CnSliderFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: (args) => (
+    <Stack spacing={4}>
+      <CnSliderField {...args} helperText="Aplica a toda la orden" skeleton />
+      <CnSliderFieldSkeleton range />
+      <CnSliderFieldSkeleton size="sm" showValue={false} />
+      <CnSliderFieldSkeleton
+        min={1}
+        max={4}
+        marks={[
+          { value: 1, label: "Baja" },
+          { value: 2, label: "Media" },
+          { value: 3, label: "Alta" },
+          { value: 4, label: "Crítica" },
+        ]}
+      />
+      <CnSliderFieldSkeleton marks min={0} max={50} step={5} valueLabelDisplay="on" />
+    </Stack>
+  ),
 };

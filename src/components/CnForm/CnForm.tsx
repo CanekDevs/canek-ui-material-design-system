@@ -107,10 +107,6 @@ const isGroupVisible = (group: CnLayoutGroup, values: CnFormValues): boolean => 
   return !visibleWhen || visibleWhen(values);
 };
 
-const FormSkeleton = ({ rows = 4, columns = 1 }: { rows?: number; columns?: number }) => (
-  <CnFormSkeleton rows={rows} columns={columns} />
-);
-
 export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(props, ref) {
   const {
     fields,
@@ -150,6 +146,7 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     isSubmitting: isSubmittingProp = false,
     isLoading: isLoadingProp = false,
     loadingStates,
+    skeleton = false,
     disabled = false,
     readOnly = false,
     validateOn = "blur",
@@ -770,9 +767,11 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     const keys = section.repeatable ? getItemKeys(section.id, items.length) : [];
     const sectionColumns = section.columns ?? columns;
     const loading = loadingStates?.sections?.[section.id] ? (
-      <FormSkeleton
-        rows={Math.ceil(section.fields.length / sectionColumns)}
+      <CnFormSkeleton
+        fields={section.fields}
         columns={sectionColumns}
+        size={size}
+        formValues={values}
       />
     ) : undefined;
     return (
@@ -837,17 +836,52 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     </Box>
   );
 
-  const groupFieldCount = (group?: { fields?: readonly unknown[] }) =>
-    Math.max(group?.fields?.length ?? 4, 2);
+  /** Skeleton dinámico del contenido de un grupo (sus campos y secciones). */
+  const groupSkeleton = (group?: {
+    fields?: readonly CnFormFieldOrCustom[];
+    sections?: readonly CnFormSection[];
+  }) =>
+    group?.fields?.length || group?.sections?.length ? (
+      <CnFormSkeleton
+        variant="simple"
+        fields={group.fields}
+        sections={group.sections}
+        columns={columns}
+        size={size}
+        formValues={values}
+      />
+    ) : (
+      <CnFormSkeleton rows={2} columns={columns} />
+    );
 
   const renderBody = (): ReactNode => {
-    if (isLoading) {
-      return (
-        <FormSkeleton
-          rows={Math.ceil(groupFieldCount(groups[0]) / Math.max(columns, 1))}
-          columns={columns}
-        />
-      );
+    if (isLoading || skeleton) {
+      if (variant === "tabbed" || variant === "wizard") {
+        return (
+          <CnFormSkeleton
+            variant={variant}
+            tabs={variant === "tabbed" ? visibleTabs : undefined}
+            steps={variant === "wizard" ? visibleSteps : undefined}
+            activeIndex={
+              variant === "tabbed"
+                ? Math.max(
+                    0,
+                    visibleTabs.findIndex((tab) => tab.id === currentTab?.id),
+                  )
+                : Math.max(
+                    0,
+                    visibleSteps.findIndex((step) => step.id === currentStep?.id),
+                  )
+            }
+            columns={columns}
+            size={size}
+            tabsOrientation={tabsOrientation}
+            stepperOrientation={stepperOrientation}
+            formValues={values}
+          />
+        );
+      }
+      return groupSkeleton(groups[0]);
     }
 
     if (variant === "tabbed") {
@@ -895,14 +929,9 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
                 {currentTab.description}
               </Typography>
             )}
-            {loadingStates?.tabs?.[currentTab.id] ? (
-              <FormSkeleton
-                rows={Math.ceil(groupFieldCount(currentTab) / Math.max(columns, 1))}
-                columns={columns}
-              />
-            ) : (
-              renderGroup(currentTab)
-            )}
+            {loadingStates?.tabs?.[currentTab.id]
+              ? groupSkeleton(currentTab)
+              : renderGroup(currentTab)}
           </Box>
         </Box>
       );
@@ -1033,14 +1062,9 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
                 )}
               </Box>
             )}
-            {loadingStates?.steps?.[currentStep.id] ? (
-              <FormSkeleton
-                rows={Math.ceil(groupFieldCount(currentStep) / Math.max(columns, 1))}
-                columns={columns}
-              />
-            ) : (
-              renderGroup(currentStep)
-            )}
+            {loadingStates?.steps?.[currentStep.id]
+              ? groupSkeleton(currentStep)
+              : renderGroup(currentStep)}
           </Box>
         </Box>
       );
@@ -1362,6 +1386,49 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
     "data-cn-form": variant,
     className,
   };
+
+  // Skeleton del formulario completo (en modal solo reemplaza el contenido).
+  if (skeleton && mode === "inline") {
+    return (
+      <CnFormSkeleton
+        variant={variant}
+        fields={fields}
+        sections={sections}
+        tabs={visibleTabs}
+        steps={visibleSteps}
+        activeIndex={
+          variant === "tabbed"
+            ? Math.max(
+                0,
+                visibleTabs.findIndex((tab) => tab.id === currentTab?.id),
+              )
+            : variant === "wizard"
+              ? Math.max(
+                  0,
+                  visibleSteps.findIndex((step) => step.id === currentStep?.id),
+                )
+              : 0
+        }
+        columns={columns}
+        size={size}
+        tabsOrientation={tabsOrientation}
+        stepperOrientation={isMobile ? "horizontal" : stepperOrientation}
+        title={Boolean(title)}
+        description={Boolean(description)}
+        icon={Boolean(icon && (title || description))}
+        showActions={!hideActions}
+        actionsAlign={actionsAlign}
+        showCancel={resolvedShowCancel}
+        extraActions={
+          extraActions?.filter((action) => !action.visibleWhen || action.visibleWhen(values))
+            .length ?? 0
+        }
+        formValues={values}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   if (mode === "modal") {
     return (

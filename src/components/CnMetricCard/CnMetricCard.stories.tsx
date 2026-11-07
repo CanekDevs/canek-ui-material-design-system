@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnMetricCard, CnSparkline } from "./CnMetricCard";
+import { CnMetricCardSkeleton } from "./CnMetricCardSkeleton";
 
 const meta: Meta<typeof CnMetricCard> = {
   title: "Data Display/CnMetricCard",
@@ -105,6 +106,28 @@ export const Sparkline: Story = {
       <CnSparkline data={[3, 5, 4, 8, 6, 9, 12]} type="area" />
       <CnSparkline data={[3, 5, 4, 8, 6, 9, 12]} type="line" />
       <CnSparkline data={[3, 5, 4, 8, 6, 9, 12]} type="bar" />
+    </Box>
+  ),
+};
+
+/** Estado de carga: el skeleton sigue las variantes del indicador (`loading`/`skeleton` o `CnMetricCardSkeleton`). */
+export const Skeleton: Story = {
+  decorators: [(Story) => <Box sx={{ maxWidth: 1100 }}>{Story()}</Box>],
+  render: () => (
+    <Box sx={grid}>
+      <CnMetricCard
+        title="Ventas"
+        value={0}
+        icon="payments"
+        trend={{ value: 4 }}
+        sparkline={[1, 2, 3]}
+        skeleton
+      />
+      <CnMetricCardSkeleton sparkline sparklineType="line" />
+      <CnMetricCardSkeleton variant="elevated" sparkline sparklineType="bar" />
+      <CnMetricCardSkeleton variant="filled" trend={false} progress />
+      <CnMetricCardSkeleton size="sm" icon={false} description />
+      <CnMetricCardSkeleton size="lg" sparkline footer description={2} />
     </Box>
   ),
 };

@@ -7,3 +7,5 @@ export type {
   CnToastProviderProps,
   CnToastSeverity,
 } from "./CnToast";
+export { CnToastSkeleton } from "./CnToastSkeleton";
+export type { CnToastSkeletonProps } from "./CnToastSkeleton";

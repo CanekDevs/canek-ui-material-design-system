@@ -21,6 +21,7 @@ import {
   sanitizeNumericInput,
 } from "../../utils/number-utils";
 import { usePressRepeat } from "../../utils/use-press-repeat";
+import { CnNumberFieldSkeleton } from "./CnNumberFieldSkeleton";
 
 /**
  * Estilo de los controles:
@@ -72,6 +73,8 @@ export type CnNumberFieldProps = CnFieldBaseProps<number | null> & {
   autoFocus?: boolean;
   /** Selecciona el contenido al enfocar. */
   autoSelect?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 const stackedButtonSx = {
@@ -152,6 +155,7 @@ export const CnNumberField = forwardRef<HTMLDivElement, CnNumberFieldProps>(func
     endAdornment,
     autoFocus,
     autoSelect = false,
+    skeleton = false,
   },
   ref,
 ) {
@@ -391,6 +395,23 @@ export const CnNumberField = forwardRef<HTMLDivElement, CnNumberFieldProps>(func
   ) : undefined;
 
   const resolvedAlign = textAlign ?? (controls === "split" ? "center" : "left");
+
+  if (skeleton) {
+    return (
+      <CnNumberFieldSkeleton
+        size={size}
+        label={Boolean(label)}
+        helperText={Boolean(helperText)}
+        controls={controls}
+        prefix={Boolean(prefix || startAdornment)}
+        suffix={Boolean(suffix || endAdornment)}
+        clearable={clearable}
+        textAlign={resolvedAlign}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <TextField

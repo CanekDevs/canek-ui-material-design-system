@@ -1,4 +1,9 @@
 :root {
+  /* Skeletons (estados de carga) */
+  --cn-skeleton-base: #e4e7eb;
+  --cn-skeleton-soft: #eef0f3;
+  --cn-skeleton-highlight: #f6f7f9;
+  --cn-skeleton-shimmer: rgba(255, 255, 255, 0.55);
   /* ============ COLOR PRIMITIVES ============ */
   --cn-color-brand-50: #eef3fb;
   --cn-color-brand-100: #d4e0f4;
@@ -247,6 +252,11 @@
 }
 
 [data-cn-theme="dark"] {
+  /* Skeletons (estados de carga) */
+  --cn-skeleton-base: #262b34;
+  --cn-skeleton-soft: #1f232b;
+  --cn-skeleton-highlight: #333a45;
+  --cn-skeleton-shimmer: rgba(255, 255, 255, 0.06);
   --cn-color-bg: #0f1116;
   --cn-color-surface: #181b22;
   --cn-color-surface-elevated: #1f232b;

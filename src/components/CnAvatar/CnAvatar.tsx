@@ -6,6 +6,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { KeyboardEvent, ReactNode } from "react";
 import { forwardRef, useEffect, useState } from "react";
 import { CnIcon } from "../CnIcon";
+import { CnAvatarSkeleton } from "./CnAvatarSkeleton";
 
 export type CnAvatarSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 export type CnAvatarVariant = "circular" | "rounded" | "square";
@@ -53,6 +54,8 @@ export type CnAvatarProps = Omit<
   target?: "_blank" | "_self";
 
   ariaLabel?: string;
+  /** Muestra el skeleton del avatar (mismo tamaño, forma, estado e insignia). */
+  skeleton?: boolean;
   sx?: SxProps<Theme>;
   className?: string;
 };
@@ -163,6 +166,7 @@ export const CnAvatar = forwardRef<HTMLDivElement, CnAvatarProps>(function CnAva
     target = "_self",
 
     ariaLabel,
+    skeleton = false,
     sx,
     className,
     ...rest
@@ -179,6 +183,21 @@ export const CnAvatar = forwardRef<HTMLDivElement, CnAvatarProps>(function CnAva
   useEffect(() => {
     setImgState("primary");
   }, [src, fallbackSrc]);
+
+  if (skeleton) {
+    return (
+      <CnAvatarSkeleton
+        size={size}
+        variant={variant}
+        status={Boolean(status)}
+        badge={Boolean(badge) && !badge?.invisible}
+        badgeAnchor={badge?.anchorOrigin}
+        bordered={bordered}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   const handleImageError = () => {
     if (imgState === "primary" && fallbackSrc && fallbackSrc !== src) {

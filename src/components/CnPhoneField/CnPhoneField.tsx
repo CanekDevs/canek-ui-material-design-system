@@ -17,6 +17,7 @@ import {
 } from "../../utils/phone-countries";
 import { CnFlagIcon } from "../CnFlagIcon";
 import type { CnPhoneCountryCode } from "../CnForm/CnForm.types";
+import { CnPhoneFieldSkeleton } from "./CnPhoneFieldSkeleton";
 
 export type CnPhoneValueFormat = "e164" | "national";
 
@@ -33,6 +34,8 @@ export type CnPhoneFieldProps = CnFieldBaseProps<string> & {
   /** Valida que el número tenga la longitud del país (además de `rules`). */
   validateLength?: boolean;
   autoFocus?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 export const CnPhoneField = forwardRef<HTMLDivElement, CnPhoneFieldProps>(function CnPhoneField(
@@ -68,6 +71,7 @@ export const CnPhoneField = forwardRef<HTMLDivElement, CnPhoneFieldProps>(functi
     valueFormat = "e164",
     validateLength = true,
     autoFocus,
+    skeleton = false,
   },
   ref,
 ) {
@@ -134,6 +138,19 @@ export const CnPhoneField = forwardRef<HTMLDivElement, CnPhoneFieldProps>(functi
     },
     [onChange, valueFormat],
   );
+
+  if (skeleton) {
+    return (
+      <CnPhoneFieldSkeleton
+        size={size}
+        label={Boolean(label)}
+        helperText={Boolean(helperText)}
+        showCountrySelect={showCountrySelect && countries.length > 1}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   const handleCountry = (next: CnPhoneCountryCode) => {
     setCountryCode(next);

@@ -25,6 +25,7 @@ import {
   toIsoDate,
 } from "../../utils/date-utils";
 import { mergeSx } from "../../utils/field-styles";
+import { CnCalendarSkeleton } from "./CnCalendarSkeleton";
 
 export type CnCalendarView = "day" | "month" | "year";
 export type CnCalendarRange = [string | null, string | null];
@@ -67,6 +68,8 @@ type BaseProps = CnCalendarDisableOptions & {
   disabled?: boolean;
   readOnly?: boolean;
   onMonthChange?: (month: string) => void;
+  /** Muestra el skeleton del calendario (misma vista, meses y semanas). */
+  skeleton?: boolean;
   sx?: SxProps<Theme>;
   className?: string;
   "aria-label"?: string;
@@ -188,6 +191,7 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
       disabled = false,
       readOnly = false,
       onMonthChange,
+      skeleton = false,
       sx,
       className,
       "aria-label": ariaLabel,
@@ -663,6 +667,20 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
         </Box>
       </Box>
     );
+
+    if (skeleton) {
+      return (
+        <CnCalendarSkeleton
+          view={hasDayView || view !== "day" ? view : (views[0] ?? "day")}
+          views={views}
+          mode={mode}
+          months={months}
+          showWeekNumbers={showWeekNumbers}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <Box

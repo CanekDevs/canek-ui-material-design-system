@@ -35,6 +35,7 @@ import { groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
 import { formatBytes } from "../../utils/number-utils";
 import { moveArrayItem, useSortableList } from "../../utils/use-sortable-list";
 import { CnButton } from "../CnButton";
+import { CnFileFieldSkeleton } from "./CnFileFieldSkeleton";
 import { downloadFile, FileLightbox, isViewableFile } from "./FileLightbox";
 import type {
   CnExistingFile,
@@ -124,6 +125,8 @@ export type CnFileFieldProps = CnFieldBaseProps<CnFileValue[]> & {
   renderFileActions?: (file: CnFileValue, index: number) => ReactNode;
   dropzoneText?: string;
   buttonLabel?: string;
+  /** Muestra el skeleton del campo (misma variante) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 // ─── Utilidades de presentación ─────────────────────────────────────────
@@ -319,6 +322,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
     renderFileActions,
     dropzoneText,
     buttonLabel = "Seleccionar archivo",
+    skeleton = false,
   },
   ref,
 ) {
@@ -1306,6 +1310,27 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
 
   const showDropzone = variant === "dropzone" && canAddMore && !readOnly;
   const showButton = variant === "button" && canAddMore && !readOnly;
+
+  if (skeleton) {
+    return (
+      <CnFileFieldSkeleton
+        variant={variant}
+        label={Boolean(label)}
+        helperText={Boolean(helperText)}
+        files={files.length > 0 ? files.length : undefined}
+        gridColumns={gridColumns}
+        thumbnailSize={thumbnailSize}
+        reorderable={reorderable && multiple}
+        showPrimary={primaryEnabled}
+        constraints={Boolean(constraints)}
+        allowPaste={allowPaste && !dropzoneText}
+        canAdd={canAddMore}
+        readOnly={readOnly}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <FormControl

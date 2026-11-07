@@ -6,6 +6,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { KeyboardEvent, ReactNode } from "react";
 import { forwardRef } from "react";
 import { CnIcon } from "../CnIcon";
+import { CnCardSkeleton } from "./CnCardSkeleton";
 
 export type CnCardVariant = "elevated" | "outlined" | "filled" | "ghost";
 export type CnCardSize = "sm" | "md" | "lg";
@@ -58,6 +59,8 @@ export type CnCardProps = {
   component?: React.ElementType;
 
   loading?: boolean;
+  /** Muestra el skeleton completo de la tarjeta (mismas variantes) en lugar de la tarjeta. */
+  skeleton?: boolean;
   empty?: boolean;
   emptyTitle?: ReactNode;
   emptyDescription?: ReactNode;
@@ -373,6 +376,7 @@ export const CnCard = forwardRef<HTMLDivElement, CnCardProps>(function CnCard(
     component,
 
     loading = false,
+    skeleton = false,
     empty = false,
     emptyTitle,
     emptyDescription,
@@ -675,6 +679,32 @@ export const CnCard = forwardRef<HTMLDivElement, CnCardProps>(function CnCard(
   );
 
   const Component = component ?? (href ? "a" : "div");
+
+  if (skeleton) {
+    return (
+      <CnCardSkeleton
+        variant={variant}
+        size={size}
+        padding={padding}
+        shadow={shadow}
+        radius={radius}
+        layout={layout}
+        accent={Boolean(accentColor)}
+        accentPosition={accentPosition}
+        icon={Boolean(icon)}
+        title={Boolean(title)}
+        subtitle={Boolean(subtitle)}
+        headerActions={Boolean(headerActions)}
+        media={Boolean(media)}
+        lines={description ? 3 : children ? 2 : 0}
+        content={Boolean(children)}
+        footer={Boolean(footer)}
+        dividers={Boolean(dividers)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <Card

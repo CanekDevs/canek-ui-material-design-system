@@ -65,6 +65,15 @@ import { getNestedValue } from "../CnForm/CnForm.helpers";
 import { CnIcon } from "../CnIcon";
 import { CnSkeleton } from "../CnSkeleton";
 import { formatCellText, renderTypedCell } from "./cells";
+import { CnDataTableSkeleton } from "./CnDataTableSkeleton";
+import {
+  DEFAULT_COLUMN_WIDTH,
+  DENSITY_PADDING,
+  FALLBACK_COLUMN_WIDTH,
+  LEAD_EXPAND,
+  LEAD_NUMBER,
+  LEAD_SELECT,
+} from "./column-widths";
 import type {
   CnAggregate,
   CnColumn,
@@ -134,9 +143,9 @@ const AGGREGATE_LABELS: Record<CnAggregate, string> = {
 };
 
 const DENSITY = {
-  compact: { y: 6, label: "Compacta", next: "comfortable" as const },
-  comfortable: { y: 10, label: "Cómoda", next: "spacious" as const },
-  spacious: { y: 16, label: "Amplia", next: "compact" as const },
+  compact: { y: DENSITY_PADDING.compact, label: "Compacta", next: "comfortable" as const },
+  comfortable: { y: DENSITY_PADDING.comfortable, label: "Cómoda", next: "spacious" as const },
+  spacious: { y: DENSITY_PADDING.spacious, label: "Amplia", next: "compact" as const },
 };
 
 const TONES = {
@@ -146,51 +155,12 @@ const TONES = {
   info: "rgba(34, 100, 159, 0.06)",
 };
 
-const DEFAULT_WIDTH: Partial<Record<string, number>> = {
-  id: 150,
-  code: 180,
-  rfc: 220,
-  curp: 280,
-  number: 140,
-  currency: 200,
-  percent: 140,
-  progress: 170,
-  date: 200,
-  datetime: 230,
-  time: 140,
-  duration: 140,
-  boolean: 170,
-  status: 170,
-  tags: 230,
-  avatar: 240,
-  email: 280,
-  phone: 210,
-  link: 190,
-  location: 240,
-  image: 100,
-  rating: 140,
-  file: 230,
-  color: 150,
-  country: 200,
-  json: 160,
-  daterange: 260,
-  bytes: 130,
-  sparkline: 170,
-  list: 220,
-  coordinates: 220,
-  masked: 190,
-};
-
 /**
  * Fondo de celdas fijadas: el tinte de la fila sobre blanco opaco, para que
  * el contenido que pasa por debajo al desplazar nunca se transparente.
  */
 const PINNED_BG =
   "linear-gradient(var(--cn-row-bg, transparent), var(--cn-row-bg, transparent)), var(--cn-color-surface, #ffffff) !important";
-
-const LEAD_SELECT = 48;
-const LEAD_NUMBER = 52;
-const LEAD_EXPAND = 44;
 
 type Scope = "all" | "page" | "selected";
 
@@ -291,6 +261,7 @@ export const CnDataTable = <T extends CnRow>({
   title,
   description,
   loading = false,
+  skeleton = false,
   error,
   toolbarActions,
   searchable = true,
@@ -391,6 +362,12 @@ export const CnDataTable = <T extends CnRow>({
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
+  // Tras la primera carga, recargar sin filas ya no reemplaza toda la tabla
+  // (así no se pierde el foco de la búsqueda en modo servidor).
+  const settledRef = useRef(!loading);
+  useEffect(() => {
+    if (!loading) settledRef.current = true;
+  }, [loading]);
 
   useEffect(() => {
     writeStore(persistKey, {
@@ -468,7 +445,7 @@ export const CnDataTable = <T extends CnRow>({
         size:
           typeof column.width === "number"
             ? column.width
-            : (DEFAULT_WIDTH[column.type ?? "text"] ?? 190),
+            : (DEFAULT_COLUMN_WIDTH[column.type ?? "text"] ?? FALLBACK_COLUMN_WIDTH),
         minSize: column.minWidth ?? 90,
         maxSize: 900,
         enableResizing: columnResize && column.resizable !== false,
@@ -2366,6 +2343,42 @@ export const CnDataTable = <T extends CnRow>({
         backgroundColor: "var(--cn-color-background, #f4f6f9)",
       }
     : {};
+
+  if (skeleton || (loading && data.length === 0 && !settledRef.current)) {
+    return (
+      <CnDataTableSkeleton
+        columns={visibleColumns}
+        rows={Math.min(paginationState.pageSize, 8)}
+        density={density}
+        title={Boolean(title)}
+        description={Boolean(description)}
+        hideToolbar={hideToolbar}
+        searchable={searchable}
+        exportFormats={exportEnabled}
+        copyable={copyable}
+        printable={printable}
+        filterToggle={columns.some((c) => c.filterable !== false)}
+        columnFilters={showFilters}
+        columnToggle={columnToggle}
+        densityToggle={densityToggle}
+        fullscreenToggle={fullscreenToggle}
+        selectionToggle={selectionToggle}
+        toolbarActions={Boolean(toolbarActions)}
+        selectable={showSelection}
+        rowNumbers={rowNumbers}
+        rowActions={hasActions}
+        rowActionsPosition={rowActionsPosition}
+        expandable={Boolean(renderDetail)}
+        columnActions={columnActions}
+        pagination={pagination}
+        striped={striped}
+        layout={cardsMode ? "cards" : "table"}
+        maxHeight={maxHeight}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <Box

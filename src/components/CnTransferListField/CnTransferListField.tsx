@@ -19,6 +19,7 @@ import { groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
 import { OptionContent } from "../../utils/option-media";
 import { normalizeSearchText } from "../CnAutocompleteField";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
+import { CnTransferListFieldSkeleton } from "./CnTransferListFieldSkeleton";
 
 export type CnTransferListValue = Array<string | number>;
 
@@ -35,6 +36,8 @@ export type CnTransferListFieldProps = CnFieldBaseProps<CnTransferListValue> & {
   max?: number;
   renderOption?: (option: CnFieldOption) => ReactNode;
   emptyText?: string;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 const keyOf = (value: string | number) => `${typeof value}:${value}`;
@@ -267,6 +270,7 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
       max,
       renderOption,
       emptyText = "Sin elementos",
+      skeleton = false,
     },
     ref,
   ) {
@@ -368,6 +372,22 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
         onClick: () => moveLeft(enabledKeys(right)),
       },
     ];
+
+    if (skeleton) {
+      return (
+        <CnTransferListFieldSkeleton
+          label={Boolean(label)}
+          helperText={Boolean(helperText)}
+          searchable={searchable}
+          listHeight={listHeight}
+          availableItems={options.length ? left.length : 5}
+          selectedItems={options.length ? right.length : 2}
+          withAvatar={options.some((o) => Boolean(o.initials || o.avatar || o.icon))}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <FormControl

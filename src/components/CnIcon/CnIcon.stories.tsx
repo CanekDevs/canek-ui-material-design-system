@@ -3,6 +3,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnIcon } from "./CnIcon";
+import { CnIconSkeleton } from "./CnIconSkeleton";
 import { ICON_REGISTRY } from "./icons";
 
 const meta: Meta<typeof CnIcon> = {
@@ -111,4 +112,17 @@ export const Gallery: Story = {
       </Box>
     );
   },
+};
+
+/** Estado de carga: el skeleton sigue el tamaño del ícono (`skeleton` o `CnIconSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack direction="row" spacing={2} alignItems="center">
+      <CnIcon name="add" size="lg" skeleton />
+      {(["xs", "sm", "md", "lg", "xl", "2xl"] as const).map((size) => (
+        <CnIconSkeleton key={size} size={size} />
+      ))}
+      <CnIconSkeleton size={32} circle />
+    </Stack>
+  ),
 };

@@ -10,6 +10,7 @@ import { groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
 import type { CnValidationRule } from "../CnForm/CnForm.types";
 import type { CnNumberFieldControls } from "../CnNumberField";
 import { CnNumberField } from "../CnNumberField";
+import { CnNumberRangeFieldSkeleton } from "./CnNumberRangeFieldSkeleton";
 
 export type CnNumberRangeValue = [number | null, number | null];
 
@@ -24,6 +25,8 @@ export type CnNumberRangeFieldProps = CnFieldBaseProps<CnNumberRangeValue> & {
   endLabel?: string;
   controls?: CnNumberFieldControls;
   thousandSeparator?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 export const NUMBER_RANGE_RULES: CnValidationRule[] = [
@@ -75,6 +78,7 @@ export const CnNumberRangeField = forwardRef<HTMLDivElement, CnNumberRangeFieldP
       endLabel = "Máximo",
       controls = "none",
       thousandSeparator,
+      skeleton = false,
     },
     ref,
   ) {
@@ -117,6 +121,22 @@ export const CnNumberRangeField = forwardRef<HTMLDivElement, CnNumberRangeFieldP
       control.markChanged();
       setCurrent(updated);
     };
+
+    if (skeleton) {
+      return (
+        <CnNumberRangeFieldSkeleton
+          size={size}
+          label={Boolean(label)}
+          helperText={Boolean(helperText)}
+          fieldLabels={Boolean(startLabel || endLabel)}
+          controls={controls}
+          prefix={Boolean(prefix)}
+          suffix={Boolean(suffix)}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     const common = {
       min,

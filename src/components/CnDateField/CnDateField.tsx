@@ -29,6 +29,7 @@ import { CnButton } from "../CnButton";
 import type { CnCalendarDisableOptions, CnCalendarView } from "../CnCalendar";
 import { CnCalendar, isDateDisabled } from "../CnCalendar";
 import type { CnValidationRule } from "../CnForm/CnForm.types";
+import { CnDateFieldSkeleton } from "./CnDateFieldSkeleton";
 import { CnTimePanel } from "./CnTimePanel";
 
 export type CnDateFieldType = "date" | "time" | "datetime" | "month" | "year";
@@ -85,6 +86,8 @@ export type CnDateFieldProps = CnFieldBaseProps<string> &
     /** Cierra el selector al elegir una fecha (date / month). */
     closeOnSelect?: boolean;
     autoFocus?: boolean;
+    /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+    skeleton?: boolean;
   };
 
 const pad = pad2;
@@ -287,6 +290,7 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
     showTodayButton = true,
     closeOnSelect = true,
     autoFocus,
+    skeleton = false,
   },
   ref,
 ) {
@@ -508,6 +512,21 @@ export const CnDateField = forwardRef<HTMLDivElement, CnDateFieldProps>(function
       ? formatIsoDisplay(current, type, displayFormat, locale)
       : draft;
   const parsedTime = parseIsoTime(timePart);
+
+  if (skeleton) {
+    return (
+      <CnDateFieldSkeleton
+        size={size}
+        label={Boolean(label)}
+        helperText={Boolean(helperText)}
+        type={type}
+        ampm={ampm}
+        clearable={clearable}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <>

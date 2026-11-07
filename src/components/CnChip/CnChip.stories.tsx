@@ -3,6 +3,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnChip } from "./CnChip";
+import { CnChipSkeleton } from "./CnChipSkeleton";
 
 const meta: Meta<typeof CnChip> = {
   title: "Components/CnChip",
@@ -246,6 +247,30 @@ export const StatusInTable: Story = {
         <Typography variant="body2">Pedido #1027</Typography>
         <CnChip label="Cancelado" color="error" icon="cancel" size="small" />
       </Box>
+    </Stack>
+  ),
+};
+
+/** Estado de carga: el skeleton sigue variante, tamaño, forma y ranuras (`skeleton` o `CnChipSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <CnChip label="Activo" skeleton />
+        <CnChip label="Pendiente" variant="outlined" icon="schedule" skeleton />
+        <CnChip label="12" skeleton />
+      </Stack>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <CnChipSkeleton size="small" variant="filled" />
+        <CnChipSkeleton size="medium" variant="outlined" icon deletable label="Filtro aplicado" />
+        <CnChipSkeleton size="large" variant="light" avatar withChevron />
+        <CnChipSkeleton variant="ghost" icon label="Fantasma" />
+      </Stack>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <CnChipSkeleton variant="outlined" shape="rounded" subtitle size="large" />
+        <CnChipSkeleton variant="outlined" icon label={false} />
+        <CnChipSkeleton variant="outlined" compact label="Compacto" />
+      </Stack>
     </Stack>
   ),
 };

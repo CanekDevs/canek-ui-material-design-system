@@ -4,3 +4,5 @@ export type {
   CnChoiceCardsOption,
   CnChoiceCardsValue,
 } from "./CnChoiceCardsField";
+export { CnChoiceCardsFieldSkeleton } from "./CnChoiceCardsFieldSkeleton";
+export type { CnChoiceCardsFieldSkeletonProps } from "./CnChoiceCardsFieldSkeleton";

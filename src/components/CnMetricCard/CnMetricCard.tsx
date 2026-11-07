@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import { forwardRef, useId, useMemo } from "react";
 import { mergeSx } from "../../utils/field-styles";
 import { CnIcon } from "../CnIcon";
-import { CnSkeleton } from "../CnSkeleton";
+import { CnMetricCardSkeleton } from "./CnMetricCardSkeleton";
 
 export type CnMetricColor =
   "primary" | "success" | "warning" | "error" | "info" | "accent" | "neutral";
@@ -46,7 +46,10 @@ export type CnMetricCardProps = {
   footer?: ReactNode;
   variant?: "outlined" | "elevated" | "filled";
   size?: "sm" | "md" | "lg";
+  /** Muestra el skeleton de la tarjeta (mismas variantes). */
   loading?: boolean;
+  /** Alias de `loading`. */
+  skeleton?: boolean;
   onClick?: () => void;
   sx?: SxProps<Theme>;
   className?: string;
@@ -200,6 +203,7 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
     variant = "outlined",
     size = "md",
     loading = false,
+    skeleton = false,
     onClick,
     sx,
     className,
@@ -279,55 +283,49 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
         )}
       </Box>
 
-      {loading ? (
-        <CnSkeleton variant="text" width="60%" height={VALUE_SIZE[size]} />
-      ) : (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          gap: "12px",
+        }}
+      >
         <Box
+          aria-live="polite"
           sx={{
             display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            gap: "12px",
+            alignItems: "baseline",
+            gap: "4px",
+            fontSize: VALUE_SIZE[size],
+            fontWeight: 800,
+            lineHeight: 1.1,
+            fontVariantNumeric: "tabular-nums",
+            color: variant === "filled" ? "#fff" : "var(--cn-color-text, #222831)",
+            minWidth: 0,
+            overflowWrap: "anywhere",
           }}
         >
-          <Box
-            aria-live="polite"
-            sx={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: "4px",
-              fontSize: VALUE_SIZE[size],
-              fontWeight: 800,
-              lineHeight: 1.1,
-              fontVariantNumeric: "tabular-nums",
-              color: variant === "filled" ? "#fff" : "var(--cn-color-text, #222831)",
-              minWidth: 0,
-              overflowWrap: "anywhere",
-            }}
-          >
-            {prefix && (
-              <Box component="span" sx={{ fontSize: "0.6em", fontWeight: 600 }}>
-                {prefix}
-              </Box>
-            )}
-            {shown}
-            {suffix && (
-              <Box component="span" sx={{ fontSize: "0.55em", fontWeight: 600, opacity: 0.8 }}>
-                {suffix}
-              </Box>
-            )}
-          </Box>
-          {sparkline && sparkline.length > 1 && (
-            <Box
-              sx={{ width: 110, flexShrink: 0, color: variant === "filled" ? "#fff" : tone.main }}
-            >
-              <CnSparkline data={sparkline} type={sparklineType} />
+          {prefix && (
+            <Box component="span" sx={{ fontSize: "0.6em", fontWeight: 600 }}>
+              {prefix}
+            </Box>
+          )}
+          {shown}
+          {suffix && (
+            <Box component="span" sx={{ fontSize: "0.55em", fontWeight: 600, opacity: 0.8 }}>
+              {suffix}
             </Box>
           )}
         </Box>
-      )}
+        {sparkline && sparkline.length > 1 && (
+          <Box sx={{ width: 110, flexShrink: 0, color: variant === "filled" ? "#fff" : tone.main }}>
+            <CnSparkline data={sparkline} type={sparklineType} />
+          </Box>
+        )}
+      </Box>
 
-      {trend && !loading && (
+      {trend && (
         <Box sx={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
           <Box
             component="span"
@@ -367,7 +365,7 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
         </Box>
       )}
 
-      {progress && !loading && (
+      {progress && (
         <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <Box
             role="progressbar"
@@ -471,6 +469,24 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
     }),
   };
 
+  if (loading || skeleton) {
+    return (
+      <CnMetricCardSkeleton
+        variant={variant}
+        size={size}
+        icon={Boolean(icon)}
+        trend={Boolean(trend)}
+        sparkline={Boolean(sparkline && sparkline.length > 1)}
+        sparklineType={sparklineType}
+        progress={Boolean(progress)}
+        description={Boolean(description)}
+        footer={Boolean(footer)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
+
   if (onClick) {
     return (
       <ButtonBase
@@ -490,7 +506,6 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
       component="section"
       className={className}
       data-cn-metric-card={color}
-      aria-busy={loading || undefined}
       sx={mergeSx(surfaceSx, sx)}
     >
       {body}

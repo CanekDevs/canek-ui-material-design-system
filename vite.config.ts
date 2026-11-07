@@ -46,6 +46,8 @@ export default defineConfig({
       entry: {
         index: resolve(process.cwd(), "src/index.ts"),
         "rich-text": resolve(process.cwd(), "src/rich-text.tsx"),
+        // `charts` depende de @mui/x-charts (peer opcional).
+        charts: resolve(process.cwd(), "src/charts.ts"),
       },
       formats: ["es", "cjs"],
       fileName: (format, entryName) => `${entryName}.${format === "es" ? "js" : "cjs"}`,

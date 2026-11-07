@@ -22,6 +22,7 @@ import {
 } from "../../utils/input-utils";
 import type { CnFormSectionContext, CnValidationRule } from "../CnForm/CnForm.types";
 import { CnIcon } from "../CnIcon";
+import { CnTextFieldSkeleton } from "./CnTextFieldSkeleton";
 
 export type CnTextFieldType =
   "text" | "email" | "tel" | "url" | "number" | "search" | "password" | "textarea";
@@ -98,6 +99,8 @@ export type CnTextFieldProps = {
   showPasswordStrength?: boolean;
 
   loading?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 
   autoFocus?: boolean;
   autoComplete?: string;
@@ -170,6 +173,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
     passwordHiddenIcon,
     showPasswordStrength = false,
     loading = false,
+    skeleton = false,
     autoFocus,
     autoComplete,
     autoSelect = false,
@@ -372,6 +376,30 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
   const showCounterRow = showCounter && effectiveMaxLength !== undefined;
   const strength =
     isPassword && showPasswordStrength && localValue ? getPasswordStrength(localValue) : null;
+
+  if (skeleton) {
+    return (
+      <CnTextFieldSkeleton
+        size={size}
+        variant={variant}
+        type={type}
+        label={Boolean(label)}
+        helperText={Boolean(externalHelperText)}
+        multiline={multiline}
+        rows={rows}
+        minRows={minRows}
+        startIcon={Boolean(startIcon || startAdornment)}
+        endIcon={Boolean(endIcon || endAdornment)}
+        clearable={clearable}
+        passwordToggle={passwordToggle}
+        showPasswordStrength={showPasswordStrength}
+        showCounter={showCounter}
+        maxLength={maxLengthProp}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <Box

@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import type { CnCalendarRange } from "./CnCalendar";
 import { CnCalendar } from "./CnCalendar";
+import { CnCalendarSkeleton } from "./CnCalendarSkeleton";
 
 const meta: Meta<typeof CnCalendar> = {
   title: "Forms/CnCalendar",
@@ -59,4 +60,17 @@ export const YearPicker: Story = {
     max: "2030-12-31",
     shouldDisableYear: (year: number) => year === 2020,
   },
+};
+
+/** Estado de carga: el skeleton sigue la vista, los meses y las semanas (`skeleton` o `CnCalendarSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap alignItems="flex-start">
+      <CnCalendar value="2026-11-10" skeleton />
+      <CnCalendarSkeleton showWeekNumbers weeks={5} />
+      <CnCalendarSkeleton mode="range" months={2} />
+      <CnCalendarSkeleton view="month" views={["month", "year"]} />
+      <CnCalendarSkeleton view="year" views={["year"]} />
+    </Stack>
+  ),
 };

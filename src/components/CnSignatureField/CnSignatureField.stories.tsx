@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnSignatureField } from "./CnSignatureField";
+import { CnSignatureFieldSkeleton } from "./CnSignatureFieldSkeleton";
 
 const meta: Meta<typeof CnSignatureField> = {
   title: "Forms/CnSignatureField",
@@ -27,3 +28,18 @@ const PreviewStory = () => {
 
 export const Default: Story = { render: () => <PreviewStory /> };
 export const DrawOnly: Story = { args: { allowTyped: false, height: 140 } };
+
+/** Estado de carga: el skeleton sigue las variantes del campo (`skeleton` o `CnSignatureFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Box sx={{ maxWidth: 520, display: "grid", gap: 4 }}>
+      <CnSignatureField
+        label="Firma del colaborador"
+        helperText="Firma dentro del recuadro"
+        skeleton
+      />
+      <CnSignatureFieldSkeleton allowTyped={false} height={140} />
+      <CnSignatureFieldSkeleton readOnly label={false} height={120} />
+    </Box>
+  ),
+};

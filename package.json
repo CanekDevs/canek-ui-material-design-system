@@ -39,6 +39,11 @@
       "import": "./dist/rich-text.js",
       "require": "./dist/rich-text.cjs"
     },
+    "./charts": {
+      "types": "./dist/charts.d.ts",
+      "import": "./dist/charts.js",
+      "require": "./dist/charts.cjs"
+    },
     "./styles.css": "./dist/tokens.css"
   },
   "files": [
@@ -66,6 +71,7 @@
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^7.0.0",
     "@mui/material": "^7.0.0",
+    "@mui/x-charts": "^9.0.0",
     "@tiptap/extension-highlight": "^3.0.0",
     "@tiptap/extension-image": "^3.0.0",
     "@tiptap/extension-table": "^3.0.0",
@@ -78,6 +84,9 @@
     "react-dom": "^18.3.0"
   },
   "peerDependenciesMeta": {
+    "@mui/x-charts": {
+      "optional": true
+    },
     "@tiptap/extension-highlight": {
       "optional": true
     },
@@ -108,6 +117,7 @@
     "@emotion/styled": "^11.13.5",
     "@mui/icons-material": "^7.3.11",
     "@mui/material": "^7.0.2",
+    "@mui/x-charts": "^9.17.0",
     "@storybook/addon-a11y": "^8.4.7",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",

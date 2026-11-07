@@ -3,6 +3,7 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnButton } from "../CnButton";
 import { CnEmptyState } from "./CnEmptyState";
+import { CnEmptyStateSkeleton } from "./CnEmptyStateSkeleton";
 
 const meta: Meta<typeof CnEmptyState> = {
   title: "Components/CnEmptyState",
@@ -260,5 +261,26 @@ export const NotFound: Story = {
       description="El recurso que buscas no existe o fue eliminado."
       action={<CnButton variant="contained">Volver al inicio</CnButton>}
     />
+  ),
+};
+
+/** Estado de carga: variante, tamaño, ícono o ilustración y acciones (`skeleton` o `CnEmptyStateSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 640 }}>
+      <CnEmptyState
+        title="Sin resultados"
+        description="Prueba con otros filtros o crea un registro nuevo."
+        action={<CnButton label="Crear" />}
+        skeleton
+      />
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2 }}>
+        <CnEmptyStateSkeleton size="sm" variant="card" />
+        <CnEmptyStateSkeleton size="md" variant="card" action />
+        <CnEmptyStateSkeleton size="lg" variant="card" />
+      </Box>
+      <CnEmptyStateSkeleton variant="compact" />
+      <CnEmptyStateSkeleton illustration action={2} variant="card" />
+    </Stack>
   ),
 };

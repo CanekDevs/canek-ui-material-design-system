@@ -6,8 +6,11 @@ export type {
   CnAvatarProps,
   CnAvatarSize,
   CnAvatarStatus,
-  CnAvatarVariant
+  CnAvatarVariant,
 } from "./CnAvatar";
 
 export { CnAvatarGroup } from "./CnAvatarGroup";
 export type { CnAvatarGroupProps, CnAvatarGroupSpacing } from "./CnAvatarGroup";
+
+export { CnAvatarGroupSkeleton, CnAvatarSkeleton } from "./CnAvatarSkeleton";
+export type { CnAvatarGroupSkeletonProps, CnAvatarSkeletonProps } from "./CnAvatarSkeleton";

@@ -21,6 +21,7 @@ import { CnButton } from "../CnButton";
 import type { CnButtonColor } from "../CnButton";
 import { getServerErrorMessage } from "../CnForm/CnForm.helpers";
 import { CnIcon } from "../CnIcon";
+import { CnConfirmDialogSkeleton } from "./CnConfirmDialogSkeleton";
 
 export type CnConfirmVariant =
   "delete" | "danger" | "warning" | "info" | "success" | "update" | "neutral";
@@ -58,6 +59,11 @@ export type CnConfirmDialogProps = {
   /** Mantiene el diálogo abierto tras confirmar (el consumidor lo cierra). */
   keepOpenOnConfirm?: boolean;
   maxWidth?: "xs" | "sm" | "md";
+  /**
+   * Muestra el skeleton del cuerpo dentro del diálogo abierto (mientras cargan
+   * los datos que se van a confirmar).
+   */
+  skeleton?: boolean;
 };
 
 type Preset = {
@@ -180,6 +186,7 @@ export const CnConfirmDialog = ({
   hideCancel = false,
   keepOpenOnConfirm = false,
   maxWidth = "xs",
+  skeleton = false,
 }: CnConfirmDialogProps) => {
   const preset = CN_CONFIRM_PRESETS[variant];
   const color = confirmColor ?? preset.color;
@@ -230,97 +237,113 @@ export const CnConfirmDialog = ({
       data-cn-confirm-dialog={variant}
       slotProps={{ paper: { sx: { borderRadius: "var(--cn-radius-lg, 12px)" } } }}
     >
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: "14px", pt: "24px" }}>
-        <Box sx={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-          {headerIcon && (
-            <Box
-              aria-hidden
-              sx={{
-                width: 40,
-                height: 40,
-                flexShrink: 0,
-                borderRadius: "50%",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: tone.fg,
-                backgroundColor: tone.bg,
-              }}
-            >
-              <CnIcon name={headerIcon} size="md" />
+      {skeleton ? (
+        <CnConfirmDialogSkeleton
+          variant={variant}
+          icon={Boolean(headerIcon)}
+          title
+          details={Boolean(details)}
+          requireText={Boolean(requireText)}
+          confirmIcon={Boolean(confirmIcon ?? preset.confirmIcon)}
+          hideCancel={hideCancel}
+        />
+      ) : (
+        <>
+          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: "14px", pt: "24px" }}>
+            <Box sx={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+              {headerIcon && (
+                <Box
+                  aria-hidden
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    flexShrink: 0,
+                    borderRadius: "50%",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: tone.fg,
+                    backgroundColor: tone.bg,
+                  }}
+                >
+                  <CnIcon name={headerIcon} size="md" />
+                </Box>
+              )}
+              <Box
+                sx={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}
+              >
+                <Typography
+                  id={`${baseId}-title`}
+                  component="h2"
+                  sx={{
+                    m: 0,
+                    fontSize: "var(--cn-font-size-lg, 16px)",
+                    fontWeight: 700,
+                    color: "var(--cn-color-text, #222831)",
+                    lineHeight: 1.35,
+                  }}
+                >
+                  {title ?? preset.title}
+                </Typography>
+                <Typography
+                  id={`${baseId}-message`}
+                  component="div"
+                  sx={{
+                    fontSize: "var(--cn-font-size-base, 13px)",
+                    color: "var(--cn-color-text-muted, #6e7682)",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {message ?? preset.message}
+                </Typography>
+              </Box>
             </Box>
-          )}
-          <Box sx={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-            <Typography
-              id={`${baseId}-title`}
-              component="h2"
-              sx={{
-                m: 0,
-                fontSize: "var(--cn-font-size-lg, 16px)",
-                fontWeight: 700,
-                color: "var(--cn-color-text, #222831)",
-                lineHeight: 1.35,
-              }}
+            {details && <Box>{details}</Box>}
+            {requireText && (
+              <TextField
+                size="small"
+                fullWidth
+                autoFocus
+                label={`Escribe "${requireText}" para confirmar`}
+                value={typed}
+                disabled={loading}
+                onChange={(event) => setTyped(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleConfirm();
+                  }
+                }}
+                slotProps={{ htmlInput: { autoComplete: "off", spellCheck: false } }}
+                sx={getOutlinedFieldSx("md")}
+              />
+            )}
+            {errorMessage && (
+              <CnAlert severity="error" variant="outlined">
+                {errorMessage}
+              </CnAlert>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ px: "24px", pb: "20px", pt: 0, gap: "8px" }}>
+            {!hideCancel && (
+              <CnButton variant="outlined" color="neutral" onClick={onClose} disabled={loading}>
+                {cancelLabel}
+              </CnButton>
+            )}
+            <CnButton
+              variant="contained"
+              color={color}
+              startIcon={confirmIcon ?? preset.confirmIcon}
+              loading={loading}
+              disabled={!textOk}
+              autoFocus={!requireText}
+              onClick={() => void handleConfirm()}
             >
-              {title ?? preset.title}
-            </Typography>
-            <Typography
-              id={`${baseId}-message`}
-              component="div"
-              sx={{
-                fontSize: "var(--cn-font-size-base, 13px)",
-                color: "var(--cn-color-text-muted, #6e7682)",
-                lineHeight: 1.55,
-              }}
-            >
-              {message ?? preset.message}
-            </Typography>
-          </Box>
-        </Box>
-        {details && <Box>{details}</Box>}
-        {requireText && (
-          <TextField
-            size="small"
-            fullWidth
-            autoFocus
-            label={`Escribe "${requireText}" para confirmar`}
-            value={typed}
-            disabled={loading}
-            onChange={(event) => setTyped(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                void handleConfirm();
-              }
-            }}
-            slotProps={{ htmlInput: { autoComplete: "off", spellCheck: false } }}
-            sx={getOutlinedFieldSx("md")}
-          />
-        )}
-        {errorMessage && (
-          <CnAlert severity="error" variant="outlined">
-            {errorMessage}
-          </CnAlert>
-        )}
-      </DialogContent>
-      <DialogActions sx={{ px: "24px", pb: "20px", pt: 0, gap: "8px" }}>
-        {!hideCancel && (
-          <CnButton variant="outlined" color="neutral" onClick={onClose} disabled={loading}>
-            {cancelLabel}
-          </CnButton>
-        )}
-        <CnButton
-          variant="contained"
-          color={color}
-          startIcon={confirmIcon ?? preset.confirmIcon}
-          loading={loading}
-          disabled={!textOk}
-          autoFocus={!requireText}
-          onClick={() => void handleConfirm()}
-        >
-          {confirmLabel ?? preset.confirmLabel}
-        </CnButton>
-      </DialogActions>
+              {confirmLabel ?? preset.confirmLabel}
+            </CnButton>
+          </DialogActions>
+        </>
+      )}
     </Dialog>
   );
 };
