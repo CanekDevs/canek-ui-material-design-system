@@ -1,6 +1,7 @@
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnSegmentedField } from "./CnSegmentedField";
+import { CnSegmentedFieldSkeleton } from "./CnSegmentedFieldSkeleton";
 
 const meta: Meta<typeof CnSegmentedField> = {
   title: "Forms/CnSegmentedField",
@@ -51,6 +52,19 @@ export const Variants: Story = {
           { value: "high", label: "Alta", icon: "priority_high" },
         ]}
       />
+    </Stack>
+  ),
+};
+
+/** Estado de carga: el skeleton sigue las variantes del campo (`skeleton` o `CnSegmentedFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: (args) => (
+    <Stack spacing={3} sx={{ maxWidth: 480 }}>
+      <CnSegmentedField {...args} skeleton />
+      <CnSegmentedFieldSkeleton options={3} iconOnly />
+      <CnSegmentedFieldSkeleton options={7} size="sm" />
+      <CnSegmentedFieldSkeleton options={3} icons fullWidth size="lg" />
+      <CnSegmentedFieldSkeleton options={3} orientation="vertical" helperText />
     </Stack>
   ),
 };

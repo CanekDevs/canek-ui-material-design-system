@@ -37,9 +37,9 @@ export type CnChartSkeletonBaseProps = {
 
 type PaintProps = { fill: string; opacity?: number };
 
-const SHAPE_BASE = "var(--cn-skeleton-base, var(--cn-color-neutral-200, #dde0e4))";
-const SHAPE_SOFT = "var(--cn-skeleton-soft, var(--cn-color-neutral-150, #e9ecef))";
-const SHIMMER = "var(--cn-skeleton-highlight, var(--cn-color-neutral-50, #fafbfc))";
+const SHAPE_BASE = "var(--cn-skeleton-base, #e4e7eb)";
+const SHAPE_SOFT = "var(--cn-skeleton-soft, #eef0f3)";
+const SHIMMER = "var(--cn-skeleton-highlight, #f6f7f9)";
 
 /** SVG con gradiente de brillo compartido por todas las formas. */
 const SkeletonSvg = ({

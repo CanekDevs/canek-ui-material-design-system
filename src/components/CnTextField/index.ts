@@ -7,3 +7,5 @@ export type {
   CnTextFieldType,
   CnTextFieldVariant,
 } from "./CnTextField";
+export { CnTextFieldSkeleton } from "./CnTextFieldSkeleton";
+export type { CnTextFieldSkeletonProps } from "./CnTextFieldSkeleton";

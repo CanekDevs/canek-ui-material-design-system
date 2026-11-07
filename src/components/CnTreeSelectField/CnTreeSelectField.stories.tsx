@@ -2,6 +2,7 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnTreeSelectField } from "./CnTreeSelectField";
 import type { CnTreeOption } from "./CnTreeSelectField";
+import { CnTreeSelectFieldSkeleton } from "./CnTreeSelectFieldSkeleton";
 
 const AREAS: CnTreeOption[] = [
   {
@@ -48,6 +49,19 @@ export const Multiple: Story = {
       <CnTreeSelectField label="Áreas (todos)" options={AREAS} multiple />
       <CnTreeSelectField label="Áreas (solo hojas)" options={AREAS} multiple valueMode="leaves" />
       <CnTreeSelectField label="Áreas (padres)" options={AREAS} multiple valueMode="parents" />
+    </Stack>
+  ),
+};
+
+/** Estado de carga: valor, ruta o chips (`skeleton` o `CnTreeSelectFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 360 }}>
+      <CnTreeSelectField label="Área" options={AREAS} helperText="Elige un área" skeleton />
+      <CnTreeSelectFieldSkeleton size="sm" />
+      <CnTreeSelectFieldSkeleton size="lg" showPath />
+      <CnTreeSelectFieldSkeleton multiple selectedCount={3} />
+      <CnTreeSelectFieldSkeleton multiple selectedCount={7} variant="filled" />
     </Stack>
   ),
 };

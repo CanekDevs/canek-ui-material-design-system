@@ -99,7 +99,13 @@ export type CnDataTableProps<T extends CnRow = CnRow> = {
   getRowId?: (row: T, index: number) => string;
   title?: ReactNode;
   description?: ReactNode;
+  /**
+   * Cargando. Sin datos todavía (primera carga) muestra el skeleton completo de
+   * la tabla; con filas existentes muestra una barra de progreso sobre ellas.
+   */
   loading?: boolean;
+  /** Muestra siempre el skeleton de la tabla (mismas columnas y opciones). */
+  skeleton?: boolean;
   error?: ReactNode;
 
   /** Acciones a la derecha de la barra (botón "Nuevo"…). */

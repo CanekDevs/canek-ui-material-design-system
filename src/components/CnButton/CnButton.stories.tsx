@@ -4,6 +4,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnButton } from "./CnButton";
+import { CnButtonSkeleton } from "./CnButtonSkeleton";
 
 const meta: Meta<typeof CnButton> = {
   title: "Components/CnButton",
@@ -178,4 +179,29 @@ export const FullWidth: Story = {
   parameters: {
     layout: "padded",
   },
+};
+
+/** Estado de carga: el skeleton sigue variante, tamaño, forma e íconos (`skeleton` o `CnButtonSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={2} alignItems="flex-start">
+      <Stack direction="row" spacing={2} alignItems="center">
+        <CnButton label="Guardar" skeleton />
+        <CnButton label="Cancelar" variant="outlined" skeleton />
+        <CnButton label="Más" variant="text" endIcon="chevron_right" skeleton />
+      </Stack>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <CnButtonSkeleton size="small" label="Corto" />
+        <CnButtonSkeleton size="medium" variant="outlined" startIcon label="Agregar elemento" />
+        <CnButtonSkeleton size="large" shape="pill" variant="outlined" startIcon endIcon />
+      </Stack>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <CnButtonSkeleton iconOnly size="small" />
+        <CnButtonSkeleton iconOnly shape="pill" />
+        <CnButtonSkeleton iconOnly shape="square" variant="outlined" size="large" />
+        <CnButtonSkeleton iconOnly variant="text" />
+      </Stack>
+      <CnButtonSkeleton fullWidth variant="outlined" startIcon />
+    </Stack>
+  ),
 };

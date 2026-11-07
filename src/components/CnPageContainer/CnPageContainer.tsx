@@ -9,7 +9,8 @@ import type { ElementType, MouseEvent, ReactNode } from "react";
 import { forwardRef } from "react";
 import { mergeSx } from "../../utils/field-styles";
 import { CnIcon } from "../CnIcon";
-import { CnSkeleton } from "../CnSkeleton";
+import type { CnPageContainerSkeletonContent } from "./CnPageContainerSkeleton";
+import { CnPageContainerSkeleton } from "./CnPageContainerSkeleton";
 
 export type CnBreadcrumb = {
   label: ReactNode;
@@ -51,8 +52,12 @@ export type CnPageContainerProps = {
   stickyHeader?: boolean;
   /** Ancho máximo del contenido (`"lg"` = 1200px, número en px o `false`). */
   maxWidth?: "sm" | "md" | "lg" | "xl" | number | false;
-  /** Muestra skeletons en lugar del título y el contenido. */
+  /** Muestra el skeleton de la página (breadcrumbs, título, acciones y contenido). */
   loading?: boolean;
+  /** Alias de `loading`. */
+  skeleton?: boolean;
+  /** Forma del contenido en el skeleton (bloques, tarjetas, tabla o nada). */
+  skeletonContent?: CnPageContainerSkeletonContent;
   /**
    * Componente de enlace del router (p. ej. `Link` de react-router con `to`
    * mapeado a `href`, o `next/link`). Por defecto `<a>`.
@@ -106,6 +111,8 @@ export const CnPageContainer = forwardRef<HTMLDivElement, CnPageContainerProps>(
       stickyHeader = false,
       maxWidth = false,
       loading = false,
+      skeleton = false,
+      skeletonContent = "blocks",
       linkComponent: LinkComponent = DefaultLink,
       onNavigate,
       sx,
@@ -174,46 +181,56 @@ export const CnPageContainer = forwardRef<HTMLDivElement, CnPageContainerProps>(
           </Box>
         )}
         <Box sx={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
-          {loading ? (
-            <>
-              <CnSkeleton variant="text" width={220} height={28} />
-              {subtitle !== undefined && <CnSkeleton variant="text" width={160} />}
-            </>
-          ) : (
-            <>
-              {title && (
-                <Typography
-                  component="h1"
-                  sx={{
-                    m: 0,
-                    fontSize: "var(--cn-font-size-2xl, 22px)",
-                    fontWeight: 800,
-                    lineHeight: 1.25,
-                    color: "var(--cn-color-text, #222831)",
-                    overflowWrap: "anywhere",
-                  }}
-                >
-                  {title}
-                </Typography>
-              )}
-              {subtitle && (
-                <Typography
-                  component="div"
-                  sx={{
-                    fontSize: "var(--cn-font-size-sm, 12px)",
-                    color: "var(--cn-color-text-muted, #6e7682)",
-                  }}
-                >
-                  {subtitle}
-                </Typography>
-              )}
-            </>
+          {title && (
+            <Typography
+              component="h1"
+              sx={{
+                m: 0,
+                fontSize: "var(--cn-font-size-2xl, 22px)",
+                fontWeight: 800,
+                lineHeight: 1.25,
+                color: "var(--cn-color-text, #222831)",
+                overflowWrap: "anywhere",
+              }}
+            >
+              {title}
+            </Typography>
+          )}
+          {subtitle && (
+            <Typography
+              component="div"
+              sx={{
+                fontSize: "var(--cn-font-size-sm, 12px)",
+                color: "var(--cn-color-text-muted, #6e7682)",
+              }}
+            >
+              {subtitle}
+            </Typography>
           )}
         </Box>
       </Box>
     );
 
     const hasHeader = Boolean(title || subtitle || headerLeft || actions || backTarget || icon);
+
+    if (loading || skeleton) {
+      return (
+        <CnPageContainerSkeleton
+          breadcrumbs={breadcrumbs?.length ?? 0}
+          back={Boolean(backTarget)}
+          icon={Boolean(icon)}
+          title={Boolean(title || headerLeft)}
+          subtitle={Boolean(subtitle)}
+          actions={actions ? 2 : 0}
+          tabs={headerExtra ? 3 : 0}
+          content={skeletonContent}
+          paper={paper}
+          maxWidth={maxWidth}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <Box
@@ -367,14 +384,7 @@ export const CnPageContainer = forwardRef<HTMLDivElement, CnPageContainerProps>(
             contentSx,
           )}
         >
-          {loading ? (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <CnSkeleton variant="rounded" height={44} />
-              <CnSkeleton variant="rounded" height={180} />
-            </Box>
-          ) : (
-            children
-          )}
+          {children}
         </Box>
       </Box>
     );

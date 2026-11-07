@@ -8,6 +8,7 @@ import { forwardRef, useState } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
+import { CnRatingFieldSkeleton } from "./CnRatingFieldSkeleton";
 
 export type CnRatingFieldProps = CnFieldBaseProps<number | null> & {
   max?: number;
@@ -15,6 +16,8 @@ export type CnRatingFieldProps = CnFieldBaseProps<number | null> & {
   precision?: number;
   /** Texto descriptivo por valor (p. ej. `{ 1: "Malo", 5: "Excelente" }`). */
   labels?: Record<number, string>;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 export const CnRatingField = forwardRef<HTMLDivElement, CnRatingFieldProps>(function CnRatingField(
@@ -45,6 +48,7 @@ export const CnRatingField = forwardRef<HTMLDivElement, CnRatingFieldProps>(func
     max = 5,
     precision = 1,
     labels,
+    skeleton = false,
   },
   ref,
 ) {
@@ -71,6 +75,20 @@ export const CnRatingField = forwardRef<HTMLDivElement, CnRatingFieldProps>(func
 
   const shown = hover !== -1 ? hover : current;
   const caption = shown !== null && labels ? labels[shown] : undefined;
+
+  if (skeleton) {
+    return (
+      <CnRatingFieldSkeleton
+        size={size}
+        max={max}
+        labels={Boolean(labels)}
+        label={Boolean(label)}
+        helperText={Boolean(control.helperText)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <FormControl

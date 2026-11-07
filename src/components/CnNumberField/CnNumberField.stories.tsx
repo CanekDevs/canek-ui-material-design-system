@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CnCurrencyField } from "../CnCurrencyField";
 import { CnPhoneField } from "../CnPhoneField";
 import { CnNumberField, CnQuantityField } from "./CnNumberField";
+import { CnNumberFieldSkeleton } from "./CnNumberFieldSkeleton";
 
 const meta: Meta<typeof CnNumberField> = {
   title: "Forms/CnNumberField",
@@ -114,3 +115,17 @@ const NumericFamilyStory = () => {
 };
 
 export const NumericFamily: Story = { render: () => <NumericFamilyStory /> };
+
+/** Estado de carga: el skeleton sigue los controles y tamaños (`skeleton` o `CnNumberFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 320 }}>
+      <CnNumberField label="Cantidad" helperText="Entre 1 y 10" skeleton />
+      <CnNumberFieldSkeleton size="sm" controls="stacked" />
+      <CnNumberFieldSkeleton controls="inline" suffix clearable />
+      <CnNumberFieldSkeleton size="lg" controls="split" label={false} />
+      <CnNumberFieldSkeleton controls="none" prefix suffix helperText />
+      <CnNumberFieldSkeleton variant="filled" />
+    </Stack>
+  ),
+};

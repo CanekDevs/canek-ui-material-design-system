@@ -1,6 +1,7 @@
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { CSSProperties } from "react";
 import { forwardRef } from "react";
+import { CnIconSkeleton } from "./CnIconSkeleton";
 import { ICON_ALIASES, ICON_REGISTRY } from "./icons";
 
 export type CnIconSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
@@ -27,6 +28,8 @@ export type CnIconProps = {
   title?: string;
   label?: string;
   onClick?: () => void;
+  /** Muestra el skeleton del ícono (mismo tamaño) en lugar del glifo. */
+  skeleton?: boolean;
   sx?: SxProps<Theme>;
   style?: CSSProperties;
   className?: string;
@@ -75,12 +78,17 @@ export const CnIcon = forwardRef<SVGSVGElement, CnIconProps>(function CnIcon(
     title,
     label,
     onClick,
+    skeleton = false,
     sx,
     style,
     className,
   },
   ref,
 ) {
+  if (skeleton) {
+    return <CnIconSkeleton size={size} sx={sx} className={className} />;
+  }
+
   const resolvedName = resolveName(name);
   const IconComponent = ICON_REGISTRY[resolvedName];
   const sizePx = resolveSize(size);

@@ -7,5 +7,8 @@ export type {
   CnTabsProps,
   CnTabsSize,
   CnTabsSubtitlePosition,
-  CnTabsVariant
+  CnTabsVariant,
 } from "./CnTabs";
+
+export { CnTabsSkeleton } from "./CnTabsSkeleton";
+export type { CnTabsSkeletonProps } from "./CnTabsSkeleton";

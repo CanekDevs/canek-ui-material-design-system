@@ -50,68 +50,17 @@ import { groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
 import { CnButton } from "../CnButton";
 import { getSafeUrl } from "../CnFileField/file-utils";
 import { CnTextField } from "../CnTextField";
+import { CnRichTextFieldSkeleton } from "./CnRichTextFieldSkeleton";
+import type { CnRichTextToolbar } from "./rich-text-toolbars";
+import { RICH_TEXT_TOOLBARS } from "./rich-text-toolbars";
 
-export type CnRichTextTool =
-  | "undo"
-  | "heading"
-  | "bold"
-  | "italic"
-  | "underline"
-  | "strike"
-  | "code"
-  | "highlight"
-  | "bulletList"
-  | "orderedList"
-  | "blockquote"
-  | "horizontalRule"
-  | "align"
-  | "link"
-  | "image"
-  | "table"
-  | "clear";
-
-export const RICH_TEXT_TOOLBARS: Record<"basic" | "standard" | "full", CnRichTextTool[]> = {
-  basic: ["bold", "italic", "underline", "bulletList", "orderedList", "link"],
-  standard: [
-    "undo",
-    "heading",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "highlight",
-    "bulletList",
-    "orderedList",
-    "blockquote",
-    "align",
-    "link",
-    "clear",
-  ],
-  full: [
-    "undo",
-    "heading",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "code",
-    "highlight",
-    "bulletList",
-    "orderedList",
-    "blockquote",
-    "horizontalRule",
-    "align",
-    "link",
-    "image",
-    "table",
-    "clear",
-  ],
-};
+export { RICH_TEXT_TOOLBARS } from "./rich-text-toolbars";
+export type { CnRichTextTool, CnRichTextToolbar } from "./rich-text-toolbars";
 
 export type CnRichTextFieldProps = CnFieldBaseProps<string> & {
   placeholder?: string;
   /** Herramientas visibles: un preset o una lista propia. */
-  toolbar?: keyof typeof RICH_TEXT_TOOLBARS | CnRichTextTool[];
+  toolbar?: CnRichTextToolbar;
   minHeight?: number | string;
   maxHeight?: number | string;
   /** Límite de caracteres (se bloquea la escritura al alcanzarlo). */
@@ -126,6 +75,8 @@ export type CnRichTextFieldProps = CnFieldBaseProps<string> & {
   /** Tamaño máximo de imagen incrustada, en MB. */
   maxImageSize?: number;
   autoFocus?: boolean;
+  /** Muestra el skeleton del editor (mismas variantes) en lugar del editor. */
+  skeleton?: boolean;
 };
 
 const SAFE_LINK = /^(https?:\/\/|mailto:|tel:)/i;
@@ -302,6 +253,7 @@ export const CnRichTextField = forwardRef<HTMLDivElement, CnRichTextFieldProps>(
       onUploadImage,
       maxImageSize = 1,
       autoFocus = false,
+      skeleton = false,
     },
     ref,
   ) {
@@ -496,6 +448,22 @@ export const CnRichTextField = forwardRef<HTMLDivElement, CnRichTextFieldProps>(
     const characters = editor?.storage.characterCount?.characters?.() ?? 0;
     const words = editor?.storage.characterCount?.words?.() ?? 0;
     const inTable = Boolean(editor?.isActive("table"));
+
+    if (skeleton) {
+      return (
+        <CnRichTextFieldSkeleton
+          label={Boolean(label)}
+          helperText={Boolean(helperText)}
+          toolbar={toolbar}
+          readOnly={readOnly}
+          minHeight={minHeight}
+          showCount={showCount}
+          maxLength={maxLength}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <FormControl

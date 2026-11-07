@@ -17,6 +17,7 @@ import {
   mergeSx,
   MUI_FIELD_SIZE,
 } from "../../utils/field-styles";
+import { CnKeyValueFieldSkeleton } from "./CnKeyValueFieldSkeleton";
 
 export type CnKeyValuePair = { key: string; value: string };
 
@@ -34,6 +35,8 @@ export type CnKeyValueFieldProps = CnFieldBaseProps<CnKeyValueValue> & {
   maxRows?: number;
   /** Claves sugeridas (lista de autocompletado del navegador). */
   keySuggestions?: string[];
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 const toPairs = (value: CnKeyValueValue | undefined | null): CnKeyValuePair[] => {
@@ -110,6 +113,7 @@ export const CnKeyValueField = forwardRef<HTMLFieldSetElement, CnKeyValueFieldPr
       addLabel = "Agregar",
       maxRows,
       keySuggestions,
+      skeleton = false,
     },
     ref,
   ) {
@@ -180,6 +184,21 @@ export const CnKeyValueField = forwardRef<HTMLFieldSetElement, CnKeyValueFieldPr
 
     const listId = keySuggestions?.length ? `${control.id}-keys` : undefined;
     const canAdd = !locked && (maxRows === undefined || pairs.length < maxRows);
+
+    if (skeleton) {
+      return (
+        <CnKeyValueFieldSkeleton
+          size={size}
+          rows={pairs.length || undefined}
+          maxRows={maxRows}
+          readOnly={locked}
+          label={Boolean(label)}
+          helperText={Boolean(control.helperText)}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <FormControl

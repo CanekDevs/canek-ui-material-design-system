@@ -11,6 +11,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { forwardRef, useCallback, useState } from "react";
 import { CnIcon } from "../CnIcon";
+import { CnAlertSkeleton } from "./CnAlertSkeleton";
 
 export type CnAlertMode = "inline" | "popup" | "toast";
 export type CnAlertSeverity = "success" | "info" | "warning" | "error";
@@ -39,6 +40,8 @@ export type CnAlertProps = {
   autoHideDuration?: number | null;
   position?: SnackbarOrigin;
   disableClickawayClose?: boolean;
+  /** Muestra el skeleton de la alerta (mismas variantes y piezas) en línea. */
+  skeleton?: boolean;
   sx?: SxProps<Theme>;
   className?: string;
   alertProps?: Omit<
@@ -234,6 +237,7 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
     autoHideDuration = 4000,
     position = { vertical: "top", horizontal: "right" },
     disableClickawayClose = true,
+    skeleton = false,
     sx,
     className,
     alertProps,
@@ -266,6 +270,24 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
     },
     [isControlled, isPopup, onClose],
   );
+
+  if (skeleton) {
+    if (isPopup ? !resolvedOpen : !visible) return null;
+    return (
+      <CnAlertSkeleton
+        variant={variant}
+        severity={resolvedSeverity}
+        mode={mode}
+        title={title ?? false}
+        message={message || Boolean(children)}
+        icon={icon !== false && iconMode !== "none"}
+        action={Boolean(action)}
+        closable={closable && Boolean(onClose)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   const resolvedIcon: ReactNode = (() => {
     if (icon === false || iconMode === "none") return false;

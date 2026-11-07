@@ -7,5 +7,7 @@ export type {
   CnAlertProps,
   CnAlertRole,
   CnAlertSeverity,
-  CnAlertVariant
+  CnAlertVariant,
 } from "./CnAlert";
+export { CnAlertSkeleton } from "./CnAlertSkeleton";
+export type { CnAlertSkeletonProps } from "./CnAlertSkeleton";

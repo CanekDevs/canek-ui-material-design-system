@@ -13,6 +13,7 @@ import {
 } from "../../utils/mask-utils";
 import type { CnValidationRule } from "../CnForm/CnForm.types";
 import { CnTextField } from "../CnTextField";
+import { CnMaskedFieldSkeleton } from "./CnMaskedFieldSkeleton";
 
 export type CnMaskedFieldProps = CnFieldBaseProps<string> & {
   /** Máscara (`#` dígito, `A` letra, `*` alfanumérico) o un preset. */
@@ -28,6 +29,8 @@ export type CnMaskedFieldProps = CnFieldBaseProps<string> & {
   startIcon?: string;
   autoFocus?: boolean;
   autoComplete?: string;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 const BRAND_LABEL: Record<string, string> = {
@@ -84,6 +87,7 @@ export const CnMaskedField = forwardRef<HTMLDivElement, CnMaskedFieldProps>(func
     onChange,
     rules,
     startIcon,
+    skeleton = false,
     ...rest
   },
   ref,
@@ -98,6 +102,22 @@ export const CnMaskedField = forwardRef<HTMLDivElement, CnMaskedFieldProps>(func
   );
   const raw = unmask(String(current ?? ""), mask);
   const brand = preset === "creditCard" && showCardBrand ? detectCardBrand(raw) : "unknown";
+
+  if (skeleton) {
+    return (
+      <CnMaskedFieldSkeleton
+        size={rest.size}
+        label={Boolean(rest.label)}
+        helperText={Boolean(rest.helperText)}
+        mask={mask}
+        startIcon={Boolean(startIcon) || preset === "creditCard"}
+        preset={preset}
+        showCardBrand={showCardBrand}
+        sx={rest.sx}
+        className={rest.className}
+      />
+    );
+  }
 
   return (
     <CnTextField

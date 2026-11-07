@@ -17,6 +17,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 - [Retroalimentación y layout](#retroalimentación-y-layout)
 - [Tabla de datos](#tabla-de-datos)
 - [Gráficas](#gráficas)
+- [Estados de carga](#estados-de-carga)
 - [Temas](#temas)
 - [Tokens de diseño](#tokens-de-diseño)
 - [Estructura del proyecto](#estructura-del-proyecto)
@@ -717,6 +718,35 @@ apilado, segmentos, celdas…), con marco de tarjeta, encabezado y leyenda opcio
 `wave`, `pulse` o `none`.
 
 `CnChartCard` también sirve sola para envolver cualquier contenido con la misma barra y estados.
+
+## Estados de carga
+
+Cada componente tiene su propio skeleton, con la misma forma, medidas y variantes que el componente
+real. Se usa de dos maneras:
+
+```tsx
+// 1. Prop `skeleton` en el componente: usa sus propias props visuales.
+<CnSelectField label="Estado" size="lg" multiple skeleton={isLoading} />
+<CnDataTable columns={columns} data={rows} loading={!rows} />   {/* skeleton desde sus columnas */}
+<CnForm fields={fields} skeleton={isLoading} />                  {/* un placeholder por tipo de campo */}
+
+// 2. Skeleton suelto: `<Nombre>Skeleton` con las mismas props de variante.
+<CnButtonSkeleton variant="outlined" size="sm" startIcon label="Guardar" />
+<CnMetricCardSkeleton size="lg" icon trend sparkline sparklineType="area" />
+<CnTabsSkeleton tabs={4} variant="pill" icons panel />
+```
+
+Hay skeleton para todos los componentes (botón, chip, insignia, avatar y grupo, ícono, bandera,
+alerta, estado vacío, tarjeta, pestañas, métrica, página, diálogo, toast, calendario, tabla,
+formulario, todos los campos y todas las gráficas). Cada uno es un solo `role="status"` accesible,
+acepta `animation` (`wave`, `pulse`, `none`) y respeta `prefers-reduced-motion`.
+
+Sus colores salen de los tokens `--cn-skeleton-base`, `--cn-skeleton-soft`,
+`--cn-skeleton-highlight` y `--cn-skeleton-shimmer`, que cambian con `[data-cn-theme="dark"]`.
+
+Para skeletons propios, usa el kit: `CnSkeletonGroup` (la raíz accesible), `CnFieldSkeleton` (un
+campo con borde, etiqueta flotante, adornos y filas) y las piezas `SkBlock`, `SkText`, `SkLines` y
+`SkLabeled`.
 
 ## Temas
 

@@ -10,3 +10,5 @@ export type {
   CnPasswordRequirement,
   CnPasswordRequirementsConfig,
 } from "./CnPasswordField";
+export { CnPasswordFieldSkeleton } from "./CnPasswordFieldSkeleton";
+export type { CnPasswordFieldSkeletonProps } from "./CnPasswordFieldSkeleton";

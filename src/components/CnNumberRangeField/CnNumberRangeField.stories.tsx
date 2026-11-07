@@ -4,6 +4,7 @@ import { CnCountryField } from "../CnCountryField";
 import { BUILT_IN_FLAG_CODES, CnFlagIcon } from "../CnFlagIcon";
 import { CnFormSkeleton } from "../CnFormSkeleton";
 import { CnNumberRangeField } from "./CnNumberRangeField";
+import { CnNumberRangeFieldSkeleton } from "./CnNumberRangeFieldSkeleton";
 
 const meta: Meta<typeof CnNumberRangeField> = {
   title: "Forms/CnNumberRangeField",
@@ -37,4 +38,16 @@ export const CountryAndFlags: Story = {
 
 export const FormSkeleton: Story = {
   render: () => <CnFormSkeleton rows={3} columns={2} showHeader showActions withTextarea />,
+};
+
+/** Estado de carga: dos campos con separador (`skeleton` o `CnNumberRangeFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 420 }}>
+      <CnNumberRangeField label="Precio" prefix="$" helperText="Rango de búsqueda" skeleton />
+      <CnNumberRangeFieldSkeleton size="sm" />
+      <CnNumberRangeFieldSkeleton size="lg" controls="stacked" suffix="m²" />
+      <CnNumberRangeFieldSkeleton label={false} controls="inline" helperText />
+    </Stack>
+  ),
 };

@@ -8,10 +8,13 @@ import { forwardRef } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { choiceLabelSx, helperTextSx, switchControlSx } from "../../utils/field-styles";
+import { CnSwitchFieldSkeleton } from "./CnSwitchFieldSkeleton";
 
 export type CnSwitchFieldProps = CnFieldBaseProps<boolean> & {
   description?: ReactNode;
   labelPlacement?: "start" | "end" | "top" | "bottom";
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 export const CnSwitchField = forwardRef<HTMLDivElement, CnSwitchFieldProps>(function CnSwitchField(
@@ -41,6 +44,7 @@ export const CnSwitchField = forwardRef<HTMLDivElement, CnSwitchFieldProps>(func
     className,
     description,
     labelPlacement = "end",
+    skeleton = false,
   },
   ref,
 ) {
@@ -58,6 +62,20 @@ export const CnSwitchField = forwardRef<HTMLDivElement, CnSwitchFieldProps>(func
     helperText,
     reserveHelperSpace,
   });
+
+  if (skeleton) {
+    return (
+      <CnSwitchFieldSkeleton
+        size={size}
+        labelPlacement={labelPlacement}
+        label={Boolean(label)}
+        description={Boolean(description)}
+        helperText={Boolean(control.helperText)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <FormControl

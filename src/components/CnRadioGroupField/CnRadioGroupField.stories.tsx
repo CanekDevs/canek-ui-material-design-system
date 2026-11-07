@@ -1,5 +1,7 @@
+import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnRadioGroupField } from "./CnRadioGroupField";
+import { CnRadioGroupFieldSkeleton } from "./CnRadioGroupFieldSkeleton";
 
 const meta: Meta<typeof CnRadioGroupField> = {
   title: "Forms/CnRadioGroupField",
@@ -33,3 +35,16 @@ export const Cards: Story = {
 };
 
 export const Column: Story = { args: { direction: "column" } };
+
+/** Estado de carga: el skeleton sigue las variantes del campo (`skeleton` o `CnRadioGroupFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: (args) => (
+    <Stack spacing={3} sx={{ maxWidth: 520 }}>
+      <CnRadioGroupField {...args} helperText="Puedes cambiarlo después" skeleton />
+      <CnRadioGroupFieldSkeleton options={4} />
+      <CnRadioGroupFieldSkeleton options={3} direction="column" optionDescriptions size="sm" />
+      <CnRadioGroupFieldSkeleton options={3} appearance="card" optionDescriptions />
+      <CnRadioGroupFieldSkeleton options={2} appearance="card" direction="column" />
+    </Stack>
+  ),
+};

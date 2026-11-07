@@ -11,6 +11,7 @@ import { CnButton } from "../CnButton";
 import { getSafeUrl } from "../CnFileField/file-utils";
 import { CnSegmentedField } from "../CnSegmentedField";
 import { CnTextField } from "../CnTextField";
+import { CnSignatureFieldSkeleton } from "./CnSignatureFieldSkeleton";
 
 export type CnSignatureFieldProps = CnFieldBaseProps<string> & {
   /** Alto del área de firma en px. */
@@ -21,6 +22,8 @@ export type CnSignatureFieldProps = CnFieldBaseProps<string> & {
   allowTyped?: boolean;
   /** Fuente para la firma escrita. */
   typedFont?: string;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 type Point = { x: number; y: number };
@@ -59,6 +62,7 @@ export const CnSignatureField = forwardRef<HTMLDivElement, CnSignatureFieldProps
       penWidth = 2.2,
       allowTyped = true,
       typedFont = "italic 36px 'Segoe Script', 'Brush Script MT', 'Lucida Handwriting', cursive",
+      skeleton = false,
     },
     ref,
   ) {
@@ -188,6 +192,20 @@ export const CnSignatureField = forwardRef<HTMLDivElement, CnSignatureFieldProps
 
     const existing =
       readOnly || (current && strokeCount === 0 && !typed) ? getSafeUrl(current) : undefined;
+
+    if (skeleton) {
+      return (
+        <CnSignatureFieldSkeleton
+          label={Boolean(label)}
+          helperText={Boolean(helperText)}
+          height={height}
+          allowTyped={allowTyped}
+          readOnly={blocked}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <FormControl

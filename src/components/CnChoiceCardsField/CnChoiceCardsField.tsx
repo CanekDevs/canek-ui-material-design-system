@@ -10,6 +10,7 @@ import { useControllableValue, useFieldControl } from "../../utils/field-control
 import { groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
 import { hasOptionMedia, OptionMedia } from "../../utils/option-media";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
+import { CnChoiceCardsFieldSkeleton } from "./CnChoiceCardsFieldSkeleton";
 
 export type CnChoiceCardsValue = string | number | "" | null | Array<string | number>;
 
@@ -28,6 +29,8 @@ export type CnChoiceCardsFieldProps = CnFieldBaseProps<CnChoiceCardsValue> & {
   allowDeselect?: boolean;
   /** Contenido propio de cada tarjeta. */
   renderOption?: (option: CnChoiceCardsOption, selected: boolean) => ReactNode;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 const keyOf = (value: string | number) => `${typeof value}:${value}`;
@@ -67,6 +70,7 @@ export const CnChoiceCardsField = forwardRef<HTMLFieldSetElement, CnChoiceCardsF
       columns = 2,
       allowDeselect = false,
       renderOption,
+      skeleton = false,
     },
     ref,
   ) {
@@ -138,6 +142,20 @@ export const CnChoiceCardsField = forwardRef<HTMLFieldSetElement, CnChoiceCardsF
     };
 
     const labelId = `${control.id}-label`;
+
+    if (skeleton) {
+      return (
+        <CnChoiceCardsFieldSkeleton
+          options={options}
+          columns={columns}
+          multiple={multiple}
+          label={Boolean(label)}
+          helperText={Boolean(control.helperText)}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <FormControl

@@ -17,6 +17,7 @@ import {
   mergeSx,
 } from "../../utils/field-styles";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
+import { CnRadioGroupFieldSkeleton } from "./CnRadioGroupFieldSkeleton";
 
 export type CnRadioValue = string | number | "" | null;
 
@@ -25,6 +26,8 @@ export type CnRadioGroupFieldProps = CnFieldBaseProps<CnRadioValue> & {
   direction?: "row" | "column";
   /** Opciones como tarjetas seleccionables en lugar de radios simples. */
   appearance?: "default" | "card";
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 const keyOf = (value: string | number): string => `${typeof value}:${value}`;
@@ -58,6 +61,7 @@ export const CnRadioGroupField = forwardRef<HTMLDivElement, CnRadioGroupFieldPro
       options,
       direction = "row",
       appearance = "default",
+      skeleton = false,
     },
     ref,
   ) {
@@ -84,6 +88,21 @@ export const CnRadioGroupField = forwardRef<HTMLDivElement, CnRadioGroupFieldPro
     const selectedKey =
       current === "" || current === null || current === undefined ? "" : keyOf(current);
     const isCard = appearance === "card";
+
+    if (skeleton) {
+      return (
+        <CnRadioGroupFieldSkeleton
+          size={size}
+          direction={direction}
+          appearance={appearance}
+          label={Boolean(label)}
+          helperText={Boolean(control.helperText)}
+          options={options}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <FormControl

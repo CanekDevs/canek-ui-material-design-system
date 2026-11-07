@@ -9,6 +9,8 @@ import { CnSliderField } from "../CnSliderField";
 import { CnDateField } from "./CnDateField";
 import type { CnDateRangeValue } from "./CnDateRangeField";
 import { CnDateRangeField } from "./CnDateRangeField";
+import { CnDateFieldSkeleton } from "./CnDateFieldSkeleton";
+import { CnDateRangeFieldSkeleton } from "./CnDateRangeFieldSkeleton";
 
 const meta: Meta<typeof CnDateField> = {
   title: "Forms/CnDateField",
@@ -189,6 +191,21 @@ export const BusinessHours: Story = {
         displayFormat="dddd D [de] MMMM, HH:mm"
       />
       <CnDateField type="time" label="Hora de entrada" minTime="07:00" maxTime="10:00" ampm />
+    </Stack>
+  ),
+};
+
+/** Estado de carga: el largo del valor sigue el tipo (`skeleton`, `CnDateFieldSkeleton`, `CnDateRangeFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 420 }}>
+      <CnDateField label="Fecha" helperText="DD/MM/AAAA" skeleton />
+      <CnDateFieldSkeleton size="sm" type="time" />
+      <CnDateFieldSkeleton type="datetime" clearable />
+      <CnDateFieldSkeleton size="lg" type="month" />
+      <CnDateFieldSkeleton type="year" variant="filled" />
+      <CnDateRangeField label="Periodo" skeleton />
+      <CnDateRangeFieldSkeleton size="sm" label={false} helperText />
     </Stack>
   ),
 };

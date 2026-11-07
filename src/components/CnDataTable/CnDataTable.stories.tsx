@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CnButton } from "../CnButton";
 import { CN_STATUS_PRESETS } from "./status-presets";
 import { CnDataTable } from "./CnDataTable";
+import { CnDataTableSkeleton } from "./CnDataTableSkeleton";
 import type { CnColumn, CnTableQuery } from "./CnDataTable.types";
 
 const meta: Meta = {
@@ -702,5 +703,54 @@ export const MoreCellTypes: Story = {
       selectable
       striped
     />
+  ),
+};
+
+// ─── Estado de carga ──────────────────────────────────────────────────────
+
+/**
+ * Skeleton propio: `loading` sin datos (primera carga) o `skeleton` dibujan la
+ * tabla con sus columnas tipadas, barra, densidad y paginación;
+ * `CnDataTableSkeleton` se puede usar suelto.
+ */
+export const Skeleton: Story = {
+  render: () => (
+    <Box sx={{ display: "grid", gap: 4 }}>
+      <CnDataTable
+        title="Personas"
+        description="Primera carga (loading sin datos)"
+        data={[]}
+        columns={MASTER_COLUMNS.slice(0, 6)}
+        loading
+        selectable
+        rowNumbers
+      />
+      <CnDataTableSkeleton
+        title
+        columns={5}
+        rows={4}
+        density="compact"
+        columnFilters
+        rowActions
+        exportFormats={false}
+      />
+      <CnDataTableSkeleton
+        columns={CONTRACT_COLUMNS}
+        rows={3}
+        density="spacious"
+        striped
+        hideToolbar
+        pagination={false}
+      />
+      <Box sx={{ maxWidth: 380 }}>
+        <CnDataTableSkeleton
+          layout="cards"
+          columns={MASTER_COLUMNS.slice(0, 5)}
+          rows={2}
+          selectable
+          rowActions
+        />
+      </Box>
+    </Box>
   ),
 };
