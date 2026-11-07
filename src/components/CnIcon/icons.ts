@@ -1,5 +1,15 @@
 import type { SvgIconComponent } from "@mui/icons-material";
 
+import AudioFile from "@mui/icons-material/AudioFile";
+import Directions from "@mui/icons-material/Directions";
+import List from "@mui/icons-material/List";
+import Movie from "@mui/icons-material/Movie";
+import Payments from "@mui/icons-material/Payments";
+import SdStorage from "@mui/icons-material/SdStorage";
+import Slideshow from "@mui/icons-material/Slideshow";
+import Sms from "@mui/icons-material/Sms";
+import TableChart from "@mui/icons-material/TableChart";
+
 import Snooze from "@mui/icons-material/Snooze";
 
 import Archive from "@mui/icons-material/Archive";
@@ -397,6 +407,15 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 
 export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
+  audio_file: AudioFile,
+  directions: Directions,
+  list: List,
+  movie: Movie,
+  payments: Payments,
+  sd_storage: SdStorage,
+  slideshow: Slideshow,
+  sms: Sms,
+  table_chart: TableChart,
   snooze: Snooze,
   archive: Archive,
   assignment: Assignment,

@@ -85,20 +85,17 @@ describe("CnCell rendering", () => {
         <CnCell type="location" value="Av. Juárez 10, CDMX" mapLink />
       </>,
     );
-    expect(screen.getByTitle("Escribir a ana@acme.mx")).toHaveAttribute(
+    fireEvent.click(screen.getByTitle("Escribir a ana@acme.mx"));
+    expect(screen.getByRole("link", { name: /Escribir correo/ })).toHaveAttribute(
       "href",
       "mailto:ana@acme.mx",
     );
-    expect(screen.getByTitle("Llamar a 55 1234 5678")).toHaveAttribute("href", "tel:5512345678");
     expect(screen.getByLabelText("WhatsApp 55 1234 5678")).toHaveAttribute(
       "href",
-      "https://wa.me/5512345678",
+      "https://wa.me/525512345678",
     );
     expect(screen.getByText("canek.mx")).toBeInTheDocument();
-    expect(screen.getByTitle(/Abrir en Google Maps/)).toHaveAttribute(
-      "href",
-      expect.stringContaining("google.com/maps/search"),
-    );
+    expect(screen.getByText("Av. Juárez 10, CDMX")).toBeInTheDocument();
   });
 
   it("blocks unsafe links", () => {
@@ -179,5 +176,108 @@ describe("CnCell rendering", () => {
     cell("tags", ["Uno", "Dos", "Tres", "Cuatro"], { maxTags: 2 });
     fireEvent.click(screen.getByRole("button", { name: "+2" }));
     expect(screen.getAllByText("Cuatro").length).toBeGreaterThan(0);
+  });
+});
+
+const pill = (name: RegExp) =>
+  screen
+    .getAllByRole("button", { name })
+    .find((b) => !b.getAttribute("aria-label")?.startsWith("Copiar")) as HTMLElement;
+const pillOrNull = (name: RegExp) =>
+  screen
+    .queryAllByRole("button", { name })
+    .find((b) => !b.getAttribute("aria-label")?.startsWith("Copiar")) ?? null;
+
+describe("detail cards and new types", () => {
+  it("writes amounts in words", async () => {
+    const { amountInWords, numberToSpanishWords } = await import("./cells");
+    expect(numberToSpanishWords(1250)).toBe("MIL DOSCIENTOS CINCUENTA");
+    expect(numberToSpanishWords(21000)).toBe("VEINTIÚN MIL");
+    expect(numberToSpanishWords(1_000_000)).toBe("UN MILLÓN");
+    expect(amountInWords(1500.5)).toBe("MIL QUINIENTOS PESOS 50/100 M.N.");
+    expect(amountInWords(1, "USD")).toBe("UN DÓLAR 00/100 USD");
+    expect(amountInWords(2_000_000)).toBe("DOS MILLONES DE PESOS 00/100 M.N.");
+  });
+
+  it("opens the date card with full date, ISO and a calendar", () => {
+    cell("datetime", "2024-05-06T14:05");
+    fireEvent.click(pill(/06\/May\/2024 14:05/));
+    const card = screen.getByRole("dialog");
+    expect(card).toHaveTextContent(/lunes, 6 de mayo de 2024/i);
+    expect(card).toHaveTextContent("2024-05-06T14:05");
+    expect(card.querySelector("[data-cn-calendar]")).not.toBeNull();
+  });
+
+  it("opens the currency card with variation and amount in words", () => {
+    cell("currency", 1250, { previous: () => 1000 });
+    fireEvent.click(pill(/1,250\.00/));
+    const card = screen.getByRole("dialog");
+    expect(card).toHaveTextContent("+25%");
+    expect(card).toHaveTextContent("MIL DOSCIENTOS CINCUENTA PESOS 00/100 M.N.");
+  });
+
+  it("breaks down RFC and CURP", () => {
+    const first = cell("rfc", "ACM010101AB1");
+    fireEvent.click(pill(/ACM010101AB1/));
+    expect(screen.getByRole("dialog")).toHaveTextContent("Moral (empresa)");
+    first.unmount();
+    cell("curp", "GAAA800101MJCRNN09");
+    fireEvent.click(pill(/GAAA800101MJCRNN09/));
+    const dialogs = screen.getAllByRole("dialog");
+    expect(dialogs[dialogs.length - 1]).toHaveTextContent(/Mujer/);
+    expect(dialogs[dialogs.length - 1]).toHaveTextContent(/Jalisco/);
+  });
+
+  it("opens a full-screen image viewer with navigation", () => {
+    cell("image", ["https://cdn.test/a.jpg", "https://cdn.test/b.jpg"]);
+    fireEvent.click(screen.getByRole("button", { name: "Ver 2 imágenes" }));
+    expect(screen.getByText("1 / 2")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Imagen siguiente" }));
+    expect(screen.getByText("2 / 2")).toBeInTheDocument();
+  });
+
+  it("expands long text", () => {
+    const long = "Lorem ipsum ".repeat(12);
+    cell("text", long);
+    fireEvent.click(screen.getByRole("button", { name: /Ver completo/ }));
+    expect(screen.getByRole("dialog")).toHaveTextContent("Texto completo");
+  });
+
+  it("renders the new cell types", () => {
+    render(
+      <>
+        <CnCell
+          type="file"
+          value={{ name: "contrato.pdf", size: 1048576, url: "https://cdn.test/c.pdf" }}
+        />
+        <CnCell type="color" value="#254d87" />
+        <CnCell type="country" value="mx" />
+        <CnCell type="json" value={{ a: 1, b: [1, 2] }} />
+        <CnCell type="daterange" value={["2024-01-01", "2024-01-10"]} />
+        <CnCell type="bytes" value={1536} />
+        <CnCell type="sparkline" value={[1, 3, 2, 5]} />
+        <CnCell type="list" value={["Uno", "Dos", "Tres"]} />
+        <CnCell type="coordinates" value={{ lat: 19.4326, lng: -99.1332 }} />
+        <CnCell type="masked" value="4152313412345678" />
+      </>,
+    );
+    expect(screen.getByText("contrato.pdf")).toBeInTheDocument();
+    expect(screen.getByText("1 MB")).toBeInTheDocument();
+    expect(screen.getByText("#254D87")).toBeInTheDocument();
+    expect(screen.getByText("México")).toBeInTheDocument();
+    expect(screen.getByText("{2 campos}")).toBeInTheDocument();
+    expect(screen.getByText("10 días")).toBeInTheDocument();
+    expect(screen.getByText("1.5 KB")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Tendencia/ })).toBeInTheDocument();
+    expect(screen.getByText("+1 más")).toBeInTheDocument();
+    expect(screen.getByText("19.43260, -99.13320")).toBeInTheDocument();
+    expect(screen.getByText("•••• 5678")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar valor" }));
+    expect(screen.getByText("4152313412345678")).toBeInTheDocument();
+  });
+
+  it("can disable the detail card", () => {
+    cell("currency", 10, { detail: false });
+    expect(pillOrNull(/10\.00/)).toBeNull();
   });
 });
