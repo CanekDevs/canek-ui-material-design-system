@@ -1,10 +1,18 @@
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import type { GridSize } from "@mui/material";
-import type { ReactNode } from "react";
-import { isValidElement, memo } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
+import { isValidElement, memo, useMemo, useRef } from "react";
+import { useAsyncOptions } from "../../utils/use-async-options";
 import type { CnFieldSize } from "../../utils/field-styles";
+import { CnChoiceCardsField } from "../CnChoiceCardsField";
+import type { CnChoiceCardsValue } from "../CnChoiceCardsField";
 import { CnColorField } from "../CnColorField";
+import { CnKeyValueField } from "../CnKeyValueField";
+import type { CnKeyValueValue } from "../CnKeyValueField";
+import { CnTransferListField } from "../CnTransferListField";
+import { CnTreeSelectField } from "../CnTreeSelectField";
+import type { CnTreeOption, CnTreeSelectValue } from "../CnTreeSelectField";
 import { CnCountryField } from "../CnCountryField";
 import { CnMaskedField } from "../CnMaskedField";
 import { CnNumberRangeField } from "../CnNumberRangeField";
@@ -22,7 +30,7 @@ import { CnCurrencyField } from "../CnCurrencyField";
 import { CnDateField, CnDateRangeField } from "../CnDateField";
 import type { CnDateRangeValue } from "../CnDateField";
 import { CnFileField } from "../CnFileField";
-import type { CnFileValue } from "../CnFileField";
+import type { CnExistingFile, CnFileValue } from "../CnFileField";
 import { CnNumberField } from "../CnNumberField";
 import { CnPhoneField } from "../CnPhoneField";
 import { CnRadioGroupField } from "../CnRadioGroupField";
@@ -35,13 +43,21 @@ import type { CnSliderValue } from "../CnSliderField";
 import { CnSwitchField } from "../CnSwitchField";
 import { CnTextField } from "../CnTextField";
 import type { CnTextFieldType } from "../CnTextField";
-import { evaluate, getDefaultGrid } from "./CnForm.engine";
+import {
+  evaluate,
+  getDefaultGrid,
+  isoToDate,
+  normalizeDateValue,
+  resolveDependencyPaths,
+} from "./CnForm.engine";
+import { isEmptyValue } from "./CnForm.validation";
 import { getNestedValue } from "./CnForm.helpers";
 import type {
   CnFormCustomRenderProps,
   CnFormDynamicValue,
   CnFormField,
   CnFormSectionContext,
+  CnFormSelectOption,
   CnFormValues,
   CnValidationRule,
 } from "./CnForm.types";
@@ -86,6 +102,23 @@ export type CnFormFieldControlProps = {
   onSetValue?: (path: string, value: unknown) => void;
 };
 
+const EMPTY_OPTIONS: readonly CnFormSelectOption[] = [];
+
+/**
+ * Normaliza el valor de un campo de archivos: acepta arreglos, un solo
+ * archivo y URLs sueltas (`"https://…/foto.jpg"` → archivo existente).
+ */
+const toFileValues = (value: unknown): CnFileValue[] => {
+  const list = Array.isArray(value) ? value : value ? [value] : [];
+  return list
+    .filter((item) => item !== null && item !== undefined && item !== "")
+    .map((item) => {
+      if (typeof item !== "string") return item as CnFileValue;
+      const name = decodeURIComponent(item.split(/[?#]/)[0].split("/").pop() || "archivo");
+      return { id: item, url: item, name };
+    });
+};
+
 const TEXT_TYPES: Record<string, CnTextFieldType> = {
   text: "text",
   email: "email",
@@ -115,6 +148,30 @@ const FieldContent = ({
   onBlur,
   onSetValue,
 }: Omit<CnFormFieldControlProps, "columns"> & { path: string }) => {
+  // ─── Dependencias y opciones remotas ───────────────────────────────
+  const depPaths = resolveDependencyPaths(field.dependsOn, ctx);
+  const depValues = depPaths.map((dep) => getNestedValue(formValues, dep));
+  const depsMissing = depValues.some((dep) => isEmptyValue(dep));
+  const formValuesRef = useRef(formValues);
+  formValuesRef.current = formValues;
+  const loader = field.loadOptions;
+  const boundLoader = useMemo(
+    () =>
+      loader
+        ? (args: { input: string; signal: AbortSignal }) =>
+            loader({ ...args, formValues: formValuesRef.current, sectionContext: ctx })
+        : undefined,
+    // `ctx` cambia de identidad en cada render; basta con su índice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [loader, ctx?.sectionId, ctx?.index],
+  );
+  const isSearchField = field.type === "autocomplete";
+  const remote = useAsyncOptions({
+    loadOptions: isSearchField ? undefined : boundLoader,
+    deps: depValues,
+    disabled: depsMissing,
+  });
+
   const label = evaluate(field.label, formValues, ctx);
   const placeholder = evaluate(field.placeholder, formValues, ctx);
   const helper = evaluate(
@@ -123,11 +180,31 @@ const FieldContent = ({
     ctx,
   );
   const required = Boolean(evaluate(field.required, formValues, ctx));
-  const isDisabled = disabled || Boolean(evaluate(field.disabled, formValues, ctx));
-  const isReadOnly = readOnly || Boolean(evaluate(field.readOnly, formValues, ctx));
-  const options = evaluate(field.options, formValues, ctx) ?? [];
+  const isDisabled = disabled || Boolean(evaluate(field.disabled, formValues, ctx)) || depsMissing;
+  const isReadOnly =
+    readOnly || Boolean(field.compute) || Boolean(evaluate(field.readOnly, formValues, ctx));
+  const staticOptions = evaluate(field.options, formValues, ctx) ?? EMPTY_OPTIONS;
+  const rawOptions = boundLoader && !isSearchField ? remote.options : staticOptions;
+  const getOptionLabel = field.getOptionLabel;
+  const options = useMemo(
+    () =>
+      getOptionLabel
+        ? rawOptions.map((option) => ({ ...option, label: getOptionLabel(option) }))
+        : rawOptions,
+    [getOptionLabel, rawOptions],
+  );
+  const optionsLoading = Boolean(field.loading) || remote.loading;
   const min = evaluate(field.min, formValues, ctx);
   const max = evaluate(field.max, formValues, ctx);
+  const fieldSize = field.size ?? size;
+  const stepValue = evaluate(field.step, formValues, ctx);
+  const decimalsValue = evaluate(field.decimals, formValues, ctx);
+  const precisionValue = evaluate(field.precision, formValues, ctx);
+  const rowsValue = evaluate(field.rows, formValues, ctx);
+  const minRowsValue = evaluate(field.minRows, formValues, ctx);
+  const maxRowsValue = evaluate(field.maxRows, formValues, ctx);
+  const startAdornmentNode = renderAdornment(field.startAdornment, value, formValues);
+  const endAdornmentNode = renderAdornment(field.endAdornment, value, formValues);
 
   // El formulario es la única fuente de verdad de los errores: los campos no
   // se validan solos y solo muestran lo que reciben.
@@ -143,7 +220,7 @@ const FieldContent = ({
     internalValidation: false,
     formValues,
     sectionContext: ctx,
-    size,
+    size: fieldSize,
     onBlur,
     sx: field.sx,
     className: field.className,
@@ -169,12 +246,32 @@ const FieldContent = ({
     );
   }
 
+  const isPhone = field.type === "phone" || (field.type === "tel" && field.showCountrySelect);
+  if (isPhone) {
+    return (
+      <CnPhoneField
+        {...common}
+        {...field.componentProps}
+        placeholder={placeholder}
+        value={String(value ?? "")}
+        onChange={onChange}
+        defaultCountry={field.defaultCountry}
+        countries={field.countries}
+        showCountrySelect={field.showCountrySelect ?? true}
+        valueFormat={field.phoneValueFormat}
+        autoFocus={field.autoFocus}
+        reserveHelperSpace
+      />
+    );
+  }
+
   const textType = TEXT_TYPES[field.type];
   if (textType) {
     const rules = evaluate(field.rules, formValues, ctx) as CnValidationRule[] | undefined;
     return (
       <CnTextField
         {...common}
+        {...field.componentProps}
         onBlur={() => onBlur?.()}
         type={field.multiline && textType === "text" ? "textarea" : textType}
         placeholder={placeholder}
@@ -189,9 +286,9 @@ const FieldContent = ({
         clearable={field.clearable}
         autoComplete={field.autoComplete}
         autoFocus={field.autoFocus}
-        rows={field.rows}
-        minRows={field.minRows}
-        maxRows={field.maxRows}
+        rows={rowsValue}
+        minRows={minRowsValue}
+        maxRows={maxRowsValue}
         startIcon={field.startIcon}
         endIcon={field.endIcon}
         startAdornment={renderAdornment(field.startAdornment, value, formValues)}
@@ -213,14 +310,16 @@ const FieldContent = ({
           onChange={onChange}
           min={min}
           max={max}
-          step={field.step}
-          decimals={field.decimals}
+          step={stepValue}
+          decimals={decimalsValue}
           controls={field.controls ?? (field.showSteppers ? "inline" : undefined)}
           largeStep={field.largeStep}
           snapToStep={field.snapToStep}
           allowWheel={field.allowWheel}
           clearable={field.clearable}
           thousandSeparator={field.thousandSeparator}
+          startAdornment={startAdornmentNode}
+          endAdornment={endAdornmentNode}
           {...field.componentProps}
           prefix={field.prefix}
           suffix={field.suffix}
@@ -243,12 +342,14 @@ const FieldContent = ({
           onChange={onChange}
           min={min ?? 0}
           max={max}
-          step={field.step}
-          decimals={field.decimals ?? 2}
+          step={stepValue}
+          decimals={decimalsValue ?? 2}
           locale={field.locale}
           currency={currencyFromForm || evaluate(field.currency, formValues, ctx) || "MXN"}
           currencies={field.currencies}
-          currencySelectorMode={field.currencyName ? "editable" : "hidden"}
+          currencySelectorMode={
+            field.currencySelectorMode ?? (field.currencyName ? "editable" : "hidden")
+          }
           controls={field.controls}
           allowWheel={field.allowWheel}
           {...field.componentProps}
@@ -258,28 +359,20 @@ const FieldContent = ({
         />
       );
     }
-    case "phone":
-      return (
-        <CnPhoneField
-          {...common}
-          placeholder={placeholder}
-          value={String(value ?? "")}
-          onChange={onChange}
-          defaultCountry={field.defaultCountry}
-          countries={field.countries}
-          autoFocus={field.autoFocus}
-          reserveHelperSpace
-        />
-      );
     case "select":
       return (
         <CnSelectField
           {...common}
+          {...field.componentProps}
           placeholder={placeholder}
           options={options}
           multiple={field.multiple}
           chips={field.chips}
           clearable={field.clearable}
+          emptyText={optionsLoading ? "Cargando…" : (remote.error ?? undefined)}
+          renderOption={field.renderOption}
+          renderValue={field.renderValue}
+          startAdornment={startAdornmentNode}
           value={(value ?? (field.multiple ? [] : "")) as CnSelectValue}
           onChange={onChange}
           autoFocus={field.autoFocus}
@@ -290,11 +383,23 @@ const FieldContent = ({
       return (
         <CnAutocompleteField
           {...common}
+          {...field.componentProps}
           placeholder={placeholder}
           options={options}
           multiple={field.multiple}
           freeSolo={field.freeSolo}
           loading={field.loading}
+          loadOptions={boundLoader}
+          loadOptionsDeps={depValues}
+          minSearchLength={field.minSearchLength}
+          searchDebounceMs={field.searchDebounceMs}
+          selectedOptions={field.selectedOptions}
+          renderOption={field.renderOption}
+          onCreateOption={
+            field.onCreateOption
+              ? (input) => field.onCreateOption?.(input, formValuesRef.current)
+              : undefined
+          }
           onInputChange={
             field.onInputChange ? (input) => field.onInputChange?.(input, formValues) : undefined
           }
@@ -311,6 +416,7 @@ const FieldContent = ({
       return (
         <CnCheckboxField
           {...common}
+          {...field.componentProps}
           options={field.options ? options : undefined}
           direction={field.direction}
           description={field.description}
@@ -323,6 +429,7 @@ const FieldContent = ({
       return (
         <CnSwitchField
           {...common}
+          {...field.componentProps}
           description={field.description}
           labelPlacement={field.labelPlacement}
           value={Boolean(value)}
@@ -333,6 +440,7 @@ const FieldContent = ({
       return (
         <CnRadioGroupField
           {...common}
+          {...field.componentProps}
           options={options}
           direction={field.direction}
           value={(value ?? "") as CnRadioValue}
@@ -343,12 +451,18 @@ const FieldContent = ({
     case "time":
     case "datetime":
     case "month":
+    case "year":
       return (
         <CnDateField
           {...common}
           type={field.type}
-          value={String(value ?? "")}
-          onChange={onChange}
+          value={normalizeDateValue(value, field.type)}
+          onChange={
+            field.valueType === "date"
+              ? (iso: string) =>
+                  onChange(iso ? (isoToDate(iso, field.type as "date") ?? iso) : null)
+              : onChange
+          }
           min={evaluate(field.minDate, formValues, ctx)}
           max={evaluate(field.maxDate, formValues, ctx)}
           disablePast={field.disablePast}
@@ -361,12 +475,31 @@ const FieldContent = ({
               ? (iso) => Boolean(field.shouldDisableDate?.(iso, formValues))
               : undefined
           }
+          shouldDisableMonth={
+            field.shouldDisableMonth
+              ? (month) => Boolean(field.shouldDisableMonth?.(month, formValues))
+              : undefined
+          }
+          shouldDisableYear={
+            field.shouldDisableYear
+              ? (year) => Boolean(field.shouldDisableYear?.(year, formValues))
+              : undefined
+          }
+          shouldDisableTime={
+            field.shouldDisableTime
+              ? (time) => Boolean(field.shouldDisableTime?.(time, formValues))
+              : undefined
+          }
           highlightedDates={evaluate(field.highlightedDates, formValues, ctx)}
           format={field.dateFormat}
-          ampm={field.ampm}
-          minutesStep={field.minutesStep}
-          step={field.step}
+          displayFormat={field.displayFormat}
+          ampm={evaluate(field.ampm, formValues, ctx)}
+          minutesStep={evaluate(field.minutesStep, formValues, ctx)}
+          minTime={evaluate(field.minTime, formValues, ctx)}
+          maxTime={evaluate(field.maxTime, formValues, ctx)}
           views={field.views}
+          openTo={field.openTo}
+          defaultCalendarMonth={evaluate(field.defaultCalendarMonth, formValues, ctx)}
           placeholder={placeholder}
           clearable={field.clearable}
           autoFocus={field.autoFocus}
@@ -378,8 +511,18 @@ const FieldContent = ({
       return (
         <CnDateRangeField
           {...common}
-          value={(Array.isArray(value) ? value : ["", ""]) as CnDateRangeValue}
-          onChange={onChange}
+          {...field.componentProps}
+          value={
+            (Array.isArray(value)
+              ? value.map((item) => normalizeDateValue(item, "date"))
+              : ["", ""]) as CnDateRangeValue
+          }
+          onChange={
+            field.valueType === "date"
+              ? (range: CnDateRangeValue) =>
+                  onChange(range.map((iso) => (iso ? (isoToDate(iso, "date") ?? iso) : null)))
+              : onChange
+          }
           min={evaluate(field.minDate, formValues, ctx)}
           max={evaluate(field.maxDate, formValues, ctx)}
           disablePast={field.disablePast}
@@ -399,10 +542,11 @@ const FieldContent = ({
       return (
         <CnSliderField
           {...common}
+          {...field.componentProps}
           range={field.type === "range"}
           min={min}
           max={max}
-          step={field.step}
+          step={stepValue}
           marks={field.marks}
           value={value as CnSliderValue}
           onChange={onChange}
@@ -412,8 +556,9 @@ const FieldContent = ({
       return (
         <CnRatingField
           {...common}
+          {...field.componentProps}
           max={max}
-          precision={field.precision}
+          precision={precisionValue}
           value={typeof value === "number" ? value : null}
           onChange={onChange}
         />
@@ -430,12 +575,27 @@ const FieldContent = ({
           reorderable={field.reorderable}
           enableLightbox={field.enableLightbox}
           maxTotalSize={field.maxTotalSize}
+          sizeUnit={field.fileSizeUnit}
+          gridColumns={field.gridColumns}
+          showPreviews={field.showPreviews}
           imageConstraints={field.imageConstraints}
           downloadable={field.downloadable}
           capture={field.capture}
           showPrimary={field.showPrimary}
           {...field.componentProps}
-          value={(Array.isArray(value) ? value : []) as CnFileValue[]}
+          onRemoveExisting={(file: CnExistingFile) => {
+            const external = field.componentProps?.onRemoveExisting as
+              ((removed: CnExistingFile) => void) | undefined;
+            external?.(file);
+            if (field.removedFilesName && file.id !== undefined) {
+              const prev = getNestedValue(formValuesRef.current, field.removedFilesName);
+              const list = Array.isArray(prev) ? prev : [];
+              if (!list.includes(file.id)) {
+                onSetValue?.(field.removedFilesName, [...list, file.id]);
+              }
+            }
+          }}
+          value={toFileValues(value)}
           onChange={onChange}
         />
       );
@@ -535,8 +695,8 @@ const FieldContent = ({
           onChange={onChange}
           min={min}
           max={max}
-          step={field.step}
-          decimals={field.decimals}
+          step={stepValue}
+          decimals={decimalsValue}
           prefix={field.prefix}
           suffix={field.suffix}
           controls={field.controls}
@@ -545,10 +705,129 @@ const FieldContent = ({
           {...field.componentProps}
         />
       );
+    case "choicecards":
+      return (
+        <CnChoiceCardsField
+          {...common}
+          {...field.componentProps}
+          options={options}
+          multiple={field.multiple}
+          columns={field.optionColumns}
+          value={(value ?? (field.multiple ? [] : "")) as CnChoiceCardsValue}
+          onChange={onChange}
+        />
+      );
+    case "transferlist":
+      return (
+        <CnTransferListField
+          {...common}
+          {...field.componentProps}
+          options={options}
+          max={max}
+          renderOption={field.renderOption}
+          value={Array.isArray(value) ? (value as Array<string | number>) : []}
+          onChange={onChange}
+        />
+      );
+    case "treeselect":
+      return (
+        <CnTreeSelectField
+          {...common}
+          {...field.componentProps}
+          placeholder={placeholder}
+          options={options as readonly CnTreeOption[]}
+          multiple={field.multiple}
+          cascade={field.cascade}
+          valueMode={field.treeValueMode}
+          leavesOnly={field.leavesOnly}
+          clearable={field.clearable}
+          renderOption={field.renderOption}
+          autoFocus={field.autoFocus}
+          value={(value ?? (field.multiple ? [] : null)) as CnTreeSelectValue}
+          onChange={onChange}
+          reserveHelperSpace
+        />
+      );
+    case "keyvalue":
+      return (
+        <CnKeyValueField
+          {...common}
+          {...field.componentProps}
+          valueFormat={field.valueFormat}
+          value={(value ?? (field.valueFormat === "object" ? {} : [])) as CnKeyValueValue}
+          onChange={onChange}
+        />
+      );
+    case "hidden":
+      return null;
+    case "display": {
+      const content = field.format
+        ? field.format(value, formValues)
+        : value === null || value === undefined || value === ""
+          ? "—"
+          : Array.isArray(value)
+            ? value.join(", ")
+            : String(value);
+      return (
+        <Box
+          id={common.id}
+          data-cn-display-field
+          sx={[
+            { display: "flex", flexDirection: "column", gap: "2px", minWidth: 0, py: "2px" },
+            ...(Array.isArray(field.sx) ? field.sx : field.sx ? [field.sx] : []),
+          ]}
+          className={field.className}
+        >
+          {label && (
+            <Box
+              component="span"
+              sx={{
+                fontSize: "var(--cn-font-size-xs, 11px)",
+                fontWeight: 600,
+                color: "var(--cn-color-text-muted, #6e7682)",
+                textTransform: "uppercase",
+                letterSpacing: "0.03em",
+              }}
+            >
+              {label}
+            </Box>
+          )}
+          <Box
+            component="output"
+            aria-live="polite"
+            sx={{
+              fontSize: "var(--cn-font-size-md, 14px)",
+              color: "var(--cn-color-text, #222831)",
+              fontWeight: 500,
+              minHeight: 22,
+              overflowWrap: "anywhere",
+            }}
+          >
+            {content}
+          </Box>
+          {(error || helper) && (
+            <Box
+              component="span"
+              sx={{
+                fontSize: "var(--cn-font-size-xs, 11px)",
+                color: error
+                  ? "var(--cn-color-error-600, #b52f2f)"
+                  : "var(--cn-color-text-muted, #6e7682)",
+              }}
+            >
+              {error || helper}
+            </Box>
+          )}
+        </Box>
+      );
+    }
     case "custom":
       if (!field.render && fieldRenderers.has("custom")) break;
       return field.render ? (
-        <>
+        <Box
+          sx={{ display: "contents" }}
+          onKeyDown={field.submitOnEnter ? undefined : blockImplicitSubmit}
+        >
           {field.render({
             name: path,
             value,
@@ -562,7 +841,7 @@ const FieldContent = ({
             formValues,
             sectionContext: ctx,
           })}
-        </>
+        </Box>
       ) : null;
     default:
       break;
@@ -627,14 +906,30 @@ export const CnFormFieldControl = memo(function CnFormFieldControl({
   );
 });
 
+/**
+ * Evita que Enter dentro de un control propio envíe el formulario (los
+ * textarea y botones conservan su comportamiento).
+ */
+export const blockImplicitSubmit = (event: KeyboardEvent<HTMLElement>) => {
+  if (event.key !== "Enter") return;
+  const target = event.target as HTMLElement;
+  if (target.tagName === "INPUT") event.preventDefault();
+};
+
 export const renderCustomElement = (
   component: ReactNode,
   grid: { xs?: GridSize; sm?: GridSize; md?: GridSize; lg?: GridSize; xl?: GridSize } = {},
   key?: string,
+  submitOnEnter = false,
 ): ReactNode => {
   const size = { xs: grid.xs ?? 12, sm: grid.sm, md: grid.md ?? 12, lg: grid.lg, xl: grid.xl };
   return (
-    <Grid key={key} size={size} sx={{ minWidth: 0 }}>
+    <Grid
+      key={key}
+      size={size}
+      sx={{ minWidth: 0 }}
+      onKeyDown={submitOnEnter ? undefined : blockImplicitSubmit}
+    >
       {isValidElement(component) ? <Box sx={{ width: "100%" }}>{component}</Box> : component}
     </Grid>
   );

@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CnResolvedField } from "./CnForm.engine";
-import { validateResolvedFields } from "./CnForm.engine";
+import {
+  applyComputedFields,
+  applyDependencyResets,
+  validateResolvedFields,
+} from "./CnForm.engine";
 import { getNestedValue, isDeepEqual, parseServerErrors, setNestedValue } from "./CnForm.helpers";
 import type { CnFormValidateOn, CnFormValues } from "./CnForm.types";
 
@@ -109,7 +113,10 @@ export const useCnFormState = ({
   );
 
   const commit = useCallback(
-    (next: CnFormValues, changedPaths: string[]) => {
+    (raw: CnFormValues, rawChanged: string[]) => {
+      const computed = applyComputedFields(raw, resolveFields);
+      const next = computed.values;
+      const changedPaths = [...rawChanged, ...computed.changed];
       valuesRef.current = next;
       if (isControlled) {
         lastEmittedRef.current = next;
@@ -120,7 +127,7 @@ export const useCnFormState = ({
       setAsyncErrors((prev) => withoutPaths(prev, changedPaths));
       onChange?.(topLevelPatch(next, changedPaths), next);
     },
-    [isControlled, onChange],
+    [isControlled, onChange, resolveFields],
   );
 
   const touch = useCallback((paths: string | string[]) => {
@@ -148,10 +155,30 @@ export const useCnFormState = ({
           changed.push(extraPath);
         }
       }
+      const cascade = applyDependencyResets(next, changed, resolveFields);
+      next = cascade.values;
+      changed.push(...cascade.reset);
       commit(next, changed);
       if (validateOn === "change") touch(path);
     },
     [commit, resolveFields, touch, validateOn],
+  );
+
+  /** Actualiza varias rutas en un solo cambio (sin ejecutar `onFieldChange`). */
+  const setValues = useCallback(
+    (patch: Record<string, unknown>) => {
+      let next = valuesRef.current;
+      const changed: string[] = [];
+      for (const [path, nextValue] of Object.entries(patch)) {
+        if (Object.is(getNestedValue(next, path), nextValue)) continue;
+        next = setNestedValue(next, path, nextValue);
+        changed.push(path);
+      }
+      if (changed.length === 0) return;
+      const cascade = applyDependencyResets(next, changed, resolveFields);
+      commit(cascade.values, [...changed, ...cascade.reset]);
+    },
+    [commit, resolveFields],
   );
 
   /** Reemplaza un subárbol completo (p. ej. el arreglo de una sección repetible). */
@@ -292,6 +319,7 @@ export const useCnFormState = ({
     dirtyRef,
     getError,
     setFieldValue,
+    setValues,
     setValueAt,
     touch,
     blur,

@@ -228,9 +228,52 @@ Las pestañas y los pasos aceptan `fields` **y** `sections`.
 - En secciones repetibles `ctx` incluye `{ sectionId, index, item }`.
 - `onFieldChange(value, values, path)` puede devolver otros valores a actualizar (`{ "address.city": "" }`).
 - `validateAsync(value, values, ctx)` para validaciones remotas (se ignoran respuestas viejas).
-- Reglas implícitas: `email`, `url`, teléfono por país, rango de fechas, `min`/`max` numéricos, `maxLength`, `maxFiles`.
+- Reglas implícitas: `email`, `url`, `tel`, teléfono por país, rango de fechas, `min`/`max` numéricos, `maxLength`, `maxFiles`.
+- **Reglas condicionales:** cualquier regla acepta `when(values, ctx, value)`, p. ej. `{ type: "required", when: (v) => v.notify }`.
+- `equalTo`/`notEqualTo` comparan primero contra el elemento de la sección repetible (`$.campo` fuerza la raíz) y no marcan error si el campo está vacío. `between` acepta solo `min` o solo `max`; `exactLength` acepta `length` como alias.
 - `validateOn`: `"blur"` (por defecto), `"change"` o `"submit"`. Tras el primer envío los errores se actualizan en vivo.
-- `type: "custom"` con `render({ value, onChange, error, ... })` para controles propios enlazados al formulario.
+- `type: "custom"` con `render({ value, onChange, error, ... })` para controles propios enlazados al formulario. Enter dentro de un control propio no envía el formulario (salvo `submitOnEnter`).
+
+### Opciones remotas y selects en cascada
+
+```tsx
+{ name: "state", type: "select", label: "Estado", options: STATES },
+{
+  name: "city",
+  type: "select",
+  label: "Ciudad",
+  dependsOn: ["state"],                  // se limpia y recarga al cambiar el estado
+  loadOptions: ({ formValues, signal }) => api.cities(formValues.state, { signal }),
+},
+{
+  name: "owner",
+  type: "autocomplete",
+  label: "Responsable",
+  loadOptions: ({ input, signal }) => api.users.search(input, { signal }), // debounce + cancelación
+  minSearchLength: 2,
+  selectedOptions: [{ value: 7, label: "María López" }], // etiqueta del valor al editar
+  onCreateOption: async (input) => api.users.create({ name: input }),     // "Crear …"
+},
+```
+
+- `loadOptions` funciona en `select`, `autocomplete`, `radio`, `checkbox` (grupo), `segmented`, `choicecards`, `transferlist` y `treeselect`; cachea por dependencias y cancela peticiones viejas (`signal`).
+- Con `dependsOn` el campo se deshabilita mientras falte un padre y se limpia en cascada (`resetOnDependencyChange: false` lo evita). En secciones repetibles las rutas son relativas al elemento; `$.ruta` apunta a la raíz.
+- `renderOption`, `renderValue` (select) y `getOptionLabel` personalizan cómo se ven las opciones.
+
+### Campos calculados, ocultos y de solo lectura
+
+```tsx
+{ name: "id", type: "hidden" },                             // se envía, no se pinta
+{
+  name: "amount",
+  type: "display",                                          // valor de solo lectura
+  compute: (_values, ctx) => ctx.item.qty * ctx.item.price, // dentro de una partida
+  format: (v) => money(v),
+},
+{ name: "total", type: "display", compute: (v) => sum(v.lines, "amount"), format: money },
+```
+
+`compute` funciona en cualquier tipo (el campo queda de solo lectura) y se recalcula en cadena (subtotal → IVA → total).
 
 ### Fechas
 
@@ -243,6 +286,10 @@ Las pestañas y los pasos aceptan `fields` **y** `sections`.
 - `highlightedDates` marca días con un punto; `showWeekNumbers` muestra la semana ISO.
 - El valor sigue siendo ISO local (`YYYY-MM-DD`, `HH:mm`, `YYYY-MM-DDTHH:mm`, `YYYY-MM`); un texto incompleto se emite tal cual para que la validación lo marque.
 - `CnDateRangeField` (`type: "daterange"` en `CnForm`) guarda `[desde, hasta]` y valida orden, completitud y `maxDays`.
+- `type: "year"` guarda `YYYY` con un selector de solo año (ejercicios fiscales, generaciones).
+- `displayFormat` muestra un formato libre mientras el campo no tiene el foco: `"MMMM [de] YYYY"` → "mayo de 2024", `"dddd D [de] MMMM"`, `"hh:mm a"` (`formatIsoDisplay` para usarlo fuera del campo).
+- `minTime` / `maxTime` definen una ventana horaria diaria (p. ej. 08:00–18:00) en `time` y `datetime`, con validación.
+- `openTo`, `defaultCalendarMonth`, `shouldDisableMonth`, `shouldDisableYear` y `shouldDisableTime` también desde `CnForm`.
 
 ### Números
 
@@ -264,8 +311,10 @@ Las pestañas y los pasos aceptan `fields` **y** `sections`.
 | `grid`     | Galería cuadrada, con "Principal" y arrastre en cuadrícula. |
 | `card`     | Tarjetas con vista previa grande y metadatos.              |
 | `avatar`   | Foto de perfil circular.                                   |
+| `masonry`  | Galería en columnas que respeta la proporción de cada foto. |
 
-- **Validación:** `accept`, `maxSize`, `maxFiles`, `maxTotalSize`, `imageConstraints` (mín./máx. de px y proporción) y duplicados.
+- **Validación:** `accept`, `maxSize`, `maxFiles`, `maxTotalSize` (en `sizeUnit`: `KB`, `MB` o `GB`), `imageConstraints` (mín./máx. de px y proporción) y duplicados.
+- `gridColumns` fija las columnas de `grid`, `card` y `masonry`. En `CnForm`: `fileSizeUnit`, `gridColumns`, `showPreviews`.
 - **Metadatos** sin dependencias: dimensiones, duración de audio/video y páginas de PDF.
 - **Subidas directas:** `onFilesAdded` para empezar a subir y `fileStatus` (`uploading` + `progress`, `success`, `error`) con `onRetry`.
 - **Visor** de imágenes (zoom), video, audio y PDF, con descarga y navegación por teclado.
@@ -285,6 +334,12 @@ Las pestañas y los pasos aceptan `fields` **y** `sections`.
 | `signature`      | `CnSignatureField`   | Valor PNG en data URL; alternativa escrita accesible.                  |
 | `numberrange`    | `CnNumberRangeField` | `[mín, máx]`, valida el orden.                                         |
 | `country`        | `CnCountryField`     | Código ISO; `priorityCountries`, `multiple`.                           |
+| `choicecards`    | `CnChoiceCardsField` | Tarjetas con ícono, descripción y `meta`; `multiple`, `optionColumns`. |
+| `transferlist`   | `CnTransferListField`| Lista doble con búsqueda (permisos, integrantes); `max`.               |
+| `treeselect`     | `CnTreeSelectField`  | Árbol con búsqueda; `multiple` + `cascade`, `treeValueMode`, `leavesOnly`. |
+| `keyvalue`       | `CnKeyValueField`    | Pares clave–valor; `valueFormat` `array`/`object`; detecta repetidas.  |
+| `hidden`         | —                    | Valor que viaja en el payload sin pintarse.                            |
+| `display`        | —                    | Valor de solo lectura con `format`; ideal con `compute`.               |
 
 Las opciones de `select`, `autocomplete` y `segmented` aceptan `icon`, `avatar`, `initials` (o
 `true` para calcularlas) y `flag`, útiles para selectores de personas o países.
@@ -367,16 +422,48 @@ registerFormFieldType("color", ({ value, onChange, label, error, helperText }) =
 const formRef = useRef<CnFormHandle>(null);
 <CnForm formRef={formRef} hideActions fields={fields} onSubmit={save} />;
 
-formRef.current?.submit();              // Promise<boolean>
-formRef.current?.validate();            // Promise<boolean>
+formRef.current?.submit(); // Promise<boolean>
+formRef.current?.validate(); // Promise<boolean>
 formRef.current?.setFieldValue("name", "Ana");
 formRef.current?.setErrors({ email: "Ya existe" });
 formRef.current?.reset();
 formRef.current?.getValues();
 formRef.current?.isDirty();
+formRef.current?.setValues({ "address.city": "GDL", total: 10 });
+formRef.current?.getFieldValue("address.city");
+formRef.current?.setFieldError("rfc", "RFC ya registrado");
+formRef.current?.clearErrors("rfc"); // sin argumentos borra todos
+formRef.current?.validate(["rfc", "email"]); // solo esas rutas
+formRef.current?.getErrors();
+formRef.current?.focusField("items.2.qty"); // cambia de pestaña/paso y expande la sección
+formRef.current?.markSaved();
 ```
 
-`externalSubmitRef` se mantiene por compatibilidad.
+Los `helpers` de `onSubmit` y `extraActions` incluyen `setValues`, `getFieldValue`, `setFieldError` y
+`clearErrors`. `externalSubmitRef` se mantiene por compatibilidad.
+
+### Más opciones del formulario
+
+| Prop                                              | Uso                                                                                                                                       |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `icon`, `dialogTitle`                             | Ícono del encabezado y título del modal distinto al inline.                                                                               |
+| `reinitialize`                                    | (por defecto `true`) Si `defaultValues` llega después de montar y no hay cambios, el formulario se reinicia con esos datos.               |
+| `resetOnOpen`                                     | (por defecto `true`) Un modal no controlado vuelve a sus valores iniciales cada vez que se abre.                                          |
+| `disableActions`                                  | Deshabilita los botones sin deshabilitar los campos. `loadingStates.global` o cualquier sección/pestaña cargando también los deshabilita. |
+| `nextButtonProps`, `backButtonProps`              | Personalizan los botones del wizard (`endIcon` disponible en todos los botones).                                                          |
+| `showServerErrorAlert`                            | `false` si la página ya muestra el error general del servidor.                                                                            |
+| `formDataOptions`                                 | `arrayFormat` (`indices` / `brackets` / `json`), `existingFiles` (`id` / `omit`), `booleanFormat`.                                        |
+| `onSuccess(payload, values)`                      | Recibe lo enviado.                                                                                                                        |
+| `extraActions[].visibleWhen`, `.loading`, `.size` | Acciones condicionales y con estado de carga.                                                                                             |
+
+Secciones: `appearance` (`card` / `elevated` / `filled` / `plain`), `padding`, `headerRight`, `addIcon`, `removeIcon`, `removeLabel`, `emptyText`, `initialItems`, `minItems: 0` (arranca
+vacía), `canRemove(values, { index, item })` por elemento y reordenamiento activo por defecto. Las
+pestañas `disabled` no se validan.
+
+Campos: `tel` con `showCountrySelect` (selector de país y validación por país, `phoneValueFormat`); `step`, `decimals`, `precision`, `rows`, `minRows`, `maxRows`, `ampm` y `minutesStep` aceptan funciones `(values, ctx)`; `size` por campo, adornos en `number`/`select`, `currencySelectorMode`, `valueType: "date"` en
+fechas (además aceptan `Date`, ISO con zona y `"YYYY-MM-DD HH:mm:ss"` como valor inicial),
+`removedFilesName` para acumular los ids de archivos existentes que el usuario quitó y URLs sueltas
+como archivos existentes. `componentProps` llega a todos los tipos.
 
 ### Seguridad
 
@@ -397,6 +484,17 @@ formRef.current?.isDirty();
 - En secciones repetibles y archivos, los botones subir/bajar se reemplazan por un asa para arrastrar (también funciona con flechas del teclado).
 - `CnNumberField` muestra por defecto flechas apiladas (`controls="stacked"`); usa `controls="none"` para el aspecto anterior. `showSteppers` queda obsoleto.
 - Los PDF en `CnFileField` ahora abren el visor en lugar de un enlace.
+- Secciones repetibles: reordenar está activo por defecto (`canReorder: false` para desactivarlo) y `minItems: 0` arranca sin elementos.
+- `onSuccess` recibe `(payload, values)`; las pestañas `disabled` ya no se validan.
+- Un `defaultValues` que cambia después de montar reinicia el formulario si no hay cambios (`reinitialize={false}` para el comportamiento anterior); los modales no controlados se limpian al reabrir (`resetOnOpen={false}`).
+
+#### Desde `TbForm` (S4BTabantaj)
+
+- La regla `custom` recibe `(value, formValues, ctx)` (en Tb era `(value, ctx, formValues)`).
+- `exactLength` usa `value` (o `length`); `required` con predicado se escribe `{ type: "required", when }`.
+- `fileAccept`/`fileMultiple`/`fileMaxFiles`/`fileMaxSize` → `accept`/`multiple`/`maxFiles`/`maxSize`; los ids de archivos quitados se obtienen con `removedFilesName`.
+- `disablePast` ya no es el valor por defecto en fechas; actívalo donde haga falta.
+- Para el FormData de Tb usa `formDataOptions={{ arrayFormat: "json", existingFiles: "omit" }}`.
 
 ---
 
