@@ -592,7 +592,7 @@ const columns: CnColumn<Contract>[] = [
 
 | Tipo | Qué muestra | Opciones destacadas |
 | --- | --- | --- |
-| `text` | Texto (2 líneas, tooltip) o píldora | `pill`, `icon`, `transform`, `bold`, `maxLength`, `subtitle`, `onClick` |
+| `text` | Texto (2 líneas, tooltip) o píldora | `pill`, `icon`, `transform`, `bold`, `maxLength`, `subtitle`, `expandAfter`, `onClick` |
 | `id`, `code` | Píldora monoespaciada con copiar | `prefix`, `suffix`, `tone`, `maxLength`, `transform` |
 | `rfc`, `curp` | Píldora con validación de formato | — |
 | `number`, `currency`, `percent` | Números, moneda y % con tendencia | `decimals`, `currency`, `suffix`, `previous`, `plain`, `bar`, `percentScale` |
@@ -601,7 +601,21 @@ const columns: CnColumn<Contract>[] = [
 | `status`, `boolean` | Píldora con ícono y color | `statusMap` (37 presets en `CN_STATUS_PRESETS`), `trueLabel` |
 | `avatar`, `contact` | Avatar con color estable; contactos apilados con ficha | `subtitle`, `image`, `badge`, `avatarShape`, `maxItems` |
 | `email`, `phone`, `link`, `location` | Enlaces `mailto:`, `tel:`, WhatsApp, Google Maps | `whatsapp`, `linkLabel`, `mapLink` |
-| `tags`, `image` | Etiquetas y galería con vista previa | `maxTags`, `maxItems` |
+| `tags`, `image` | Etiquetas y galería; clic abre el visor de imágenes | `maxTags`, `maxItems` |
+| `file` | Archivo con ícono por tipo, tamaño y descarga | `maxItems` |
+| `color`, `country` | Muestra de color (hex/rgb) y bandera + nombre | — |
+| `json`, `list` | Resumen de objeto/lista; el detalle muestra todo | `maxItems` |
+| `daterange` | "01/Ene – 15/Oct" con duración y estado | `relative` |
+| `bytes`, `sparkline` | "2.4 MB" y mini gráfica de tendencia | `decimals`, `tone` |
+| `coordinates` | Lat/long con mapa en el detalle | `mapPreview` (también `location`) |
+| `masked` | Valor oculto (tarjeta, CLABE) con mostrar/ocultar | `visibleChars` |
+
+**Detalle al hacer clic** (`detail: false` lo desactiva): fechas abren una tarjeta con fecha completa,
+hora, relativo, semana/trimestre, ISO y calendario; montos con variación y cantidad en letra
+(`amountInWords`); RFC/CURP con tipo de persona, fecha, sexo y estado; correo y teléfono con acciones
+(llamar, WhatsApp, SMS); direcciones y coordenadas con mapa; textos largos, archivos, JSON, rangos y
+listas con el contenido completo. Las imágenes abren `CnImageViewer` (pantalla completa, flechas,
+miniaturas, descarga). Ambos se exportan para usarse fuera de la tabla (`CnCellDetail`, `CnImageViewer`).
 
 Los vacíos muestran contexto ("Sin teléfono", "Sin correo") o el que elijas con `emptyContext`
 (`not_assigned`, `pending`, `not_applicable`… los 18 de Tabantaj) o `emptyText`. El mismo formato

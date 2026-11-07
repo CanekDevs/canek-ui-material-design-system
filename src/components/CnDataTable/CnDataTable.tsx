@@ -106,6 +106,7 @@ const KIND_BY_TYPE: Partial<Record<string, CnExportKind>> = {
   duration: "number",
   date: "date",
   datetime: "datetime",
+  bytes: "integer",
 };
 
 const COPY_FORMATS = [
@@ -168,7 +169,24 @@ const DEFAULT_WIDTH: Partial<Record<string, number>> = {
   location: 240,
   image: 100,
   rating: 140,
+  file: 230,
+  color: 150,
+  country: 200,
+  json: 160,
+  daterange: 260,
+  bytes: 130,
+  sparkline: 170,
+  list: 220,
+  coordinates: 220,
+  masked: 190,
 };
+
+/**
+ * Fondo de celdas fijadas: el tinte de la fila sobre blanco opaco, para que
+ * el contenido que pasa por debajo al desplazar nunca se transparente.
+ */
+const PINNED_BG =
+  "linear-gradient(var(--cn-row-bg, transparent), var(--cn-row-bg, transparent)), var(--cn-color-surface, #ffffff) !important";
 
 const LEAD_SELECT = 48;
 const LEAD_NUMBER = 52;
@@ -397,9 +415,29 @@ export const CnDataTable = <T extends CnRow>({
     visibility,
   ]);
 
+  // Pantalla completa: al salir regresa el foco al botón. El scroll de la
+  // página no se bloquea tocando <body> (chocaría con los modales de MUI);
+  // el contenedor fijo usa overscroll-behavior: contain.
+  const fullscreenButtonRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
     if (!fullscreen) return;
-    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setFullscreen(false);
+    const trigger = fullscreenButtonRef.current;
+    return () => trigger?.focus();
+  }, [fullscreen]);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      // Si hay un menú, diálogo o visor abierto, Escape solo cierra ese.
+      if (
+        document.querySelector(
+          '[role="menu"], [role="dialog"], [role="alertdialog"], [role="presentation"].MuiPopover-root',
+        )
+      )
+        return;
+      setFullscreen(false);
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [fullscreen]);
@@ -1065,6 +1103,7 @@ export const CnDataTable = <T extends CnRow>({
               <CnButton
                 size="small"
                 variant="outlined"
+                color="accent"
                 startIcon="browser_updated"
                 disabled={busy || totalCount === 0}
                 sx={outlinedToolbarButtonSx}
@@ -1078,6 +1117,7 @@ export const CnDataTable = <T extends CnRow>({
               <CnButton
                 size="small"
                 variant="outlined"
+                color="accent"
                 startIcon="copy_all"
                 disabled={totalCount === 0}
                 sx={outlinedToolbarButtonSx}
@@ -1091,6 +1131,7 @@ export const CnDataTable = <T extends CnRow>({
               <CnButton
                 size="small"
                 variant="outlined"
+                color="accent"
                 startIcon="print"
                 disabled={totalCount === 0}
                 sx={outlinedToolbarButtonSx}
@@ -1200,6 +1241,7 @@ export const CnDataTable = <T extends CnRow>({
         {fullscreenToggle && !isMobile && (
           <Tooltip title={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"} arrow>
             <IconButton
+              ref={fullscreenButtonRef}
               aria-label="Pantalla completa"
               aria-pressed={fullscreen}
               onClick={() => setFullscreen((prev) => !prev)}
@@ -1569,13 +1611,14 @@ export const CnDataTable = <T extends CnRow>({
   // ─── Cuerpo ───────────────────────────────────────────────────────────
   const bodyRowSx = (index: number, selected: boolean, tone?: string) => ({
     cursor: onRowClick ? "pointer" : undefined,
-    backgroundColor: selected
-      ? "rgba(37, 77, 135, 0.06)"
+    "--cn-row-bg": selected
+      ? "rgba(37, 77, 135, 0.07)"
       : tone
         ? (TONES[tone as keyof typeof TONES] ?? tone)
         : striped && index % 2 === 1
           ? "var(--cn-color-neutral-50, #fafbfc)"
-          : "var(--cn-color-surface, #ffffff)",
+          : "transparent",
+    backgroundColor: "var(--cn-row-bg)",
     transition: "background-color 120ms ease",
     "& > td": {
       boxSizing: "border-box" as const,
@@ -1589,9 +1632,7 @@ export const CnDataTable = <T extends CnRow>({
     "&:hover .cn-cell-copy": { opacity: 0.75 },
     ...(hoverable && {
       "&:hover": {
-        backgroundColor: selected
-          ? "rgba(37, 77, 135, 0.09)"
-          : "var(--cn-color-neutral-50, #f7f8fa)",
+        "--cn-row-bg": selected ? "rgba(37, 77, 135, 0.11)" : "rgba(37, 77, 135, 0.035)",
       },
     }),
     "&:focus-visible": {
@@ -1605,7 +1646,8 @@ export const CnDataTable = <T extends CnRow>({
       sx={{
         position: "relative",
         overflow: "auto",
-        maxHeight: fullscreen ? "calc(100vh - 190px)" : maxHeight,
+        maxHeight: fullscreen ? undefined : maxHeight,
+        ...(fullscreen && { flex: 1, minHeight: 0, overscrollBehavior: "contain" }),
         scrollbarWidth: "thin",
         scrollbarColor: "var(--cn-color-neutral-300, #c4c9cf) transparent",
       }}
@@ -1910,7 +1952,7 @@ export const CnDataTable = <T extends CnRow>({
                       onClick={(event: MouseEvent) => event.stopPropagation()}
                       sx={{
                         ...stickyCell(0, 2),
-                        backgroundColor: "inherit !important",
+                        background: PINNED_BG,
                         padding: "0 0 0 6px !important",
                       }}
                     >
@@ -1928,7 +1970,7 @@ export const CnDataTable = <T extends CnRow>({
                       onClick={(event: MouseEvent) => event.stopPropagation()}
                       sx={{
                         ...stickyCell(showSelection ? LEAD_SELECT : 0, 2),
-                        backgroundColor: "inherit !important",
+                        background: PINNED_BG,
                         padding: "0 0 0 4px !important",
                       }}
                     >
@@ -1953,7 +1995,7 @@ export const CnDataTable = <T extends CnRow>({
                       component="td"
                       sx={{
                         ...stickyCell(numberLeft, 2),
-                        backgroundColor: "inherit !important",
+                        background: PINNED_BG,
                         textAlign: "center",
                         fontFamily: "var(--cn-font-mono, ui-monospace, monospace)",
                         fontSize: "0.72rem !important",
@@ -1978,7 +2020,7 @@ export const CnDataTable = <T extends CnRow>({
                           overflow: "hidden",
                           ...(pinned && {
                             ...stickyCell(leftOffset(column.id), 2),
-                            backgroundColor: "inherit !important",
+                            background: PINNED_BG,
                           }),
                           ...(pinned &&
                             lastPinned === column.id && {
@@ -2271,9 +2313,13 @@ export const CnDataTable = <T extends CnRow>({
     ? {
         position: "fixed" as const,
         inset: 0,
-        zIndex: 1300,
-        p: "20px",
-        overflow: "auto",
+        // Debajo de menús, diálogos y tooltips (1300+), encima del resto de la app.
+        zIndex: 1250,
+        display: "flex",
+        flexDirection: "column" as const,
+        p: { xs: "12px", md: "20px" },
+        overflow: "hidden",
+        overscrollBehavior: "contain",
         backgroundColor: "var(--cn-color-background, #f4f6f9)",
       }
     : {};
@@ -2297,6 +2343,11 @@ export const CnDataTable = <T extends CnRow>({
           border: "1px solid var(--cn-color-border, #dde0e4)",
           backgroundColor: "var(--cn-color-surface, #ffffff)",
           overflow: "hidden",
+          ...(fullscreen && {
+            flex: 1,
+            minHeight: 0,
+            boxShadow: "0 12px 40px rgba(17, 20, 24, 0.12)",
+          }),
         }}
       >
         {toolbar}

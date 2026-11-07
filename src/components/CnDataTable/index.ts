@@ -13,15 +13,22 @@ export type {
 export { CN_STATUS_PRESETS } from "./status-presets";
 export {
   CnCell,
+  CnCellDetail,
   CnCellPill,
   CnCopyButton,
   CnEmptyCell,
+  CnImageViewer,
+  amountInWords,
   colorFromText,
+  formatBytesText,
+  numberToSpanishWords,
   formatCellText,
   formatRelative,
   renderTypedCell,
 } from "./cells";
 export type {
+  CnCellDetailAction,
+  CnCellDetailRow,
   CnCellOptions,
   CnCellProps,
   CnCellTone,

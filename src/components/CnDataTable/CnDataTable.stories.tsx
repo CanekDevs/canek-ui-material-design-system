@@ -606,3 +606,101 @@ export const LoadingAndEmpty: Story = {
     </Box>
   ),
 };
+
+type Asset = {
+  id: number;
+  name: string;
+  owner: string;
+  country: string;
+  color: string;
+  contract: { name: string; size: number; url: string } | null;
+  period: [string, string];
+  storage: number;
+  usage: number[];
+  modules: string[];
+  location: { lat: number; lng: number };
+  address: { street: string; city: string; state: string; postalCode: string; country: string };
+  account: string;
+  metadata: Record<string, unknown>;
+  notes: string;
+  amount: number;
+  previousAmount: number;
+};
+
+const ASSETS: Asset[] = [
+  ["Servidor norte", "Ana García", "MX", "#254d87", 92, [12, 18, 15, 22, 30, 27, 35]],
+  ["Bodega Bajío", "Luis Pérez", "US", "#228740", 48, [40, 38, 35, 33, 30, 31, 28]],
+  ["Oficina central", "María Ruiz", "CO", "#c0392b", 12, [5, 6, 6, 7, 9, 12, 12]],
+  ["Planta sur", "Jorge Díaz", "ES", "#8e44ad", 67, [20, 25, 22, 30, 28, 33, 40]],
+].map(([name, owner, country, color, storage, usage], i) => ({
+  id: i + 1,
+  name: name as string,
+  owner: owner as string,
+  country: country as string,
+  color: color as string,
+  contract:
+    i === 2
+      ? null
+      : {
+          name: `contrato-${i + 1}.pdf`,
+          size: 250000 * (i + 1),
+          url: "https://example.com/contrato.pdf",
+        },
+  period: [`2026-0${i + 1}-01`, `2026-1${i}-15`] as [string, string],
+  storage: (storage as number) * 1024 ** 3,
+  usage: usage as number[],
+  modules: ["Inventario", "Compras", "Ventas", "Nómina", "Reportes"].slice(0, i + 2),
+  location: { lat: 19.4326 + i * 0.8, lng: -99.1332 + i * 1.2 },
+  address: {
+    street: `Av. Reforma ${100 + i * 25}`,
+    city: "Ciudad de México",
+    state: "CDMX",
+    postalCode: `0660${i}`,
+    country: "México",
+  },
+  account: `01218000${String(1234567890 + i * 1111).padStart(10, "0")}`,
+  metadata: {
+    region: ["norte", "bajío", "centro", "sur"][i],
+    racks: i + 2,
+    tags: ["prod", "crítico"].slice(0, (i % 2) + 1),
+  },
+  notes:
+    "Activo revisado en la última auditoría. Se recomienda renovar el contrato de mantenimiento antes del cierre del trimestre y actualizar el inventario de refacciones.",
+  amount: 1250000 * (i + 1),
+  previousAmount: 1100000 * (i + 1) + (i % 2 ? 300000 : -50000),
+}));
+
+export const MoreCellTypes: Story = {
+  name: "Más tipos de celda (detalle al hacer clic)",
+  render: () => (
+    <CnDataTable<Asset>
+      title="Activos"
+      description="Haz clic en fechas, montos, RFC, direcciones, archivos, JSON o textos largos para ver el detalle completo"
+      data={ASSETS}
+      columns={[
+        { id: "name", header: "Activo", cellOptions: { icon: "dns", bold: true }, sticky: true },
+        { id: "owner", header: "Responsable", type: "avatar" },
+        {
+          id: "amount",
+          header: "Valor",
+          type: "currency",
+          cellOptions: { previous: (row) => (row as Asset).previousAmount },
+        },
+        { id: "period", header: "Vigencia", type: "daterange" },
+        { id: "contract", header: "Contrato", type: "file" },
+        { id: "country", header: "País", type: "country", filter: "select" },
+        { id: "color", header: "Color", type: "color" },
+        { id: "storage", header: "Almacenamiento", type: "bytes" },
+        { id: "usage", header: "Uso (7 días)", type: "sparkline", sortable: false },
+        { id: "modules", header: "Módulos", type: "list", sortable: false },
+        { id: "address", header: "Dirección", type: "location" },
+        { id: "location", header: "Coordenadas", type: "coordinates", sortable: false },
+        { id: "account", header: "CLABE", type: "masked" },
+        { id: "metadata", header: "Metadatos", type: "json", sortable: false },
+        { id: "notes", header: "Notas", width: 280 },
+      ]}
+      selectable
+      striped
+    />
+  ),
+};

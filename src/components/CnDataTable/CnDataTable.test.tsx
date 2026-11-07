@@ -359,7 +359,7 @@ describe("CnDataTable advanced", () => {
       />,
     );
     expect(screen.getAllByRole("button", { name: "Cobrar" })[1]).toBeDisabled();
-    expect(bodyRows()[1]).toHaveStyle({ backgroundColor: "#fff8e1" });
+    expect(getComputedStyle(bodyRows()[1]).getPropertyValue("--cn-row-bg").trim()).toBe("#fff8e1");
   });
 
   it("exports CSV with one row per detail item", async () => {
