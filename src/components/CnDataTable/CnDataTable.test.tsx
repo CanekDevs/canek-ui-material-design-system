@@ -236,6 +236,20 @@ describe("CnDataTable (Tabantaj parity)", () => {
     expect(screen.getByRole("menuitem", { name: /Página actual/ })).toBeInTheDocument();
   });
 
+  it("keeps the format menu open while the scope submenu is shown", async () => {
+    render(<CnDataTable data={ROWS} columns={COLUMNS} />);
+    fireEvent.click(screen.getByRole("button", { name: "Copiar" }));
+    const tabla = screen.getByRole("menuitem", { name: /Tabla/ });
+    fireEvent.click(tabla);
+    // El menú de formatos sigue abierto con la opción marcada, y el submenú a su lado.
+    expect(screen.getAllByRole("menu", { hidden: true })).toHaveLength(2);
+    expect(tabla).toHaveAttribute("aria-expanded", "true");
+    // Escape cierra solo el submenú.
+    fireEvent.keyDown(screen.getByRole("menuitem", { name: /Página actual/ }), { key: "Escape" });
+    await waitFor(() => expect(screen.getAllByRole("menu", { hidden: true })).toHaveLength(1));
+    expect(screen.getByRole("menuitem", { name: /Tabla/ })).toBeInTheDocument();
+  });
+
   it("renders contextual empty cells and clears filters from the empty state", () => {
     type Person = { id: number; name: string; phone?: string };
     render(
