@@ -54,3 +54,45 @@ const RemoteStory = () => {
 };
 
 export const RemoteSearch: Story = { render: () => <RemoteStory /> };
+
+const PEOPLE: CnFieldOption[] = [
+  "Ana López",
+  "Luis Pérez",
+  "María Hernández",
+  "Jorge Ramírez",
+  "Sofía Torres",
+  "Diego Morales",
+].map((label, index) => ({ value: index + 1, label, initials: true }));
+
+const waitMs = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+export const LoadOptionsAndCreate: Story = {
+  args: {
+    label: "Responsable",
+    helperText: "Busca en el servidor; si no existe, créalo",
+    loadOptions: async ({ input }) => {
+      await waitMs(400);
+      return PEOPLE.filter((person) => person.label.toLowerCase().includes(input.toLowerCase()));
+    },
+    onCreateOption: async (input) => {
+      await waitMs(300);
+      return { value: Date.now(), label: input, initials: true };
+    },
+    selectedOptions: [PEOPLE[2]],
+    defaultValue: 3,
+    options: undefined,
+  },
+};
+
+export const MinSearchLength: Story = {
+  args: {
+    label: "Cliente (mín. 2 letras)",
+    minSearchLength: 2,
+    multiple: true,
+    loadOptions: async ({ input }) => {
+      await waitMs(400);
+      return PEOPLE.filter((person) => person.label.toLowerCase().includes(input.toLowerCase()));
+    },
+    options: undefined,
+  },
+};

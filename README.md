@@ -15,6 +15,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 - [Componentes](#componentes)
 - [Formularios](#formularios)
 - [Retroalimentación y layout](#retroalimentación-y-layout)
+- [Tabla de datos](#tabla-de-datos)
 - [Temas](#temas)
 - [Tokens de diseño](#tokens-de-diseño)
 - [Estructura del proyecto](#estructura-del-proyecto)
@@ -551,6 +552,101 @@ Indicadores con `format`, `prefix`/`suffix`, `icon`, `trend` (`upIsGood: false` 
 malo, p. ej. costos), `progress` hacia una meta, `sparkline` (línea, área o barras; también
 disponible como `CnSparkline`), `footer`, variantes `outlined` / `elevated` / `filled`, `loading`
 y `onClick`.
+
+## Tabla de datos
+
+`CnDataTable` sigue el lenguaje visual de la tabla de Tabantaj (barra Descargar/Copiar/Imprimir,
+encabezados con orden, asa para mover, menú por columna y filtros subrayados; celdas en píldora con
+botón de copiar) y la supera en funciones. Usa `@tanstack/react-table` como motor (incluido).
+
+```tsx
+import { CN_STATUS_PRESETS, CnDataTable, type CnColumn } from "@canek-ui/material-design-system";
+
+const columns: CnColumn<Contract>[] = [
+  { id: "folio", header: "Folio", type: "code", sticky: true },
+  { id: "client.name", header: "Cliente", type: "avatar", cellOptions: { subtitle: (r) => r.client.email } },
+  { id: "status", header: "Estado", type: "status", filter: "select", cellOptions: { statusMap: CN_STATUS_PRESETS.approval } },
+  { id: "amount", header: "Monto", type: "currency", aggregate: "sum", description: "Incluye IVA" },
+  { id: "team", header: "Equipo", type: "contact" },
+  { id: "rfc", header: "RFC", type: "rfc", hidden: true },
+];
+
+<CnDataTable
+  title="Contratos"
+  data={contracts}
+  columns={columns}
+  selectable
+  rowNumbers
+  bulkActions={[{ id: "cancel", label: "Cancelar", color: "error", onClick: cancel, confirm: { variant: "danger" } }]}
+  rowActions={[
+    { id: "edit", label: "Editar", icon: "edit", onClick: edit },
+    { id: "delete", label: "Eliminar", icon: "delete", color: "error", confirm: { variant: "delete" }, onClick: remove },
+  ]}
+  renderDetail={(row) => <ContractSummary contract={row} />}
+  exportDetail={{ accessor: (row) => row.items, columns: itemColumns }}
+  persistKey="contracts"
+/>;
+```
+
+**Celdas** (`type` + `cellOptions`, o `<CnCell>` dentro de `cell`):
+
+| Tipo | Qué muestra | Opciones destacadas |
+| --- | --- | --- |
+| `text` | Texto (2 líneas, tooltip) o píldora | `pill`, `icon`, `transform`, `bold`, `maxLength`, `subtitle`, `expandAfter`, `onClick` |
+| `id`, `code` | Píldora monoespaciada con copiar | `prefix`, `suffix`, `tone`, `maxLength`, `transform` |
+| `rfc`, `curp` | Píldora con validación de formato | — |
+| `number`, `currency`, `percent` | Números, moneda y % con tendencia | `decimals`, `currency`, `suffix`, `previous`, `plain`, `bar`, `percentScale` |
+| `progress`, `rating`, `duration` | Barra, estrellas, "1 h 20 min" | `max`, `durationUnit` |
+| `date`, `datetime`, `time` | "15/Ene/2023" + "hace 3 años" | `relative`, `dateFormat` (`"D [de] MMMM YYYY"`) |
+| `status`, `boolean` | Píldora con ícono y color | `statusMap` (37 presets en `CN_STATUS_PRESETS`), `trueLabel` |
+| `avatar`, `contact` | Avatar con color estable; contactos apilados con ficha | `subtitle`, `image`, `badge`, `avatarShape`, `maxItems` |
+| `email`, `phone`, `link`, `location` | Enlaces `mailto:`, `tel:`, WhatsApp, Google Maps | `whatsapp`, `linkLabel`, `mapLink` |
+| `tags`, `image` | Etiquetas y galería; clic abre el visor de imágenes | `maxTags`, `maxItems` |
+| `file` | Archivo con ícono por tipo, tamaño y descarga | `maxItems` |
+| `color`, `country` | Muestra de color (hex/rgb) y bandera + nombre | — |
+| `json`, `list` | Resumen de objeto/lista; el detalle muestra todo | `maxItems` |
+| `daterange` | "01/Ene – 15/Oct" con duración y estado | `relative` |
+| `bytes`, `sparkline` | "2.4 MB" y mini gráfica de tendencia | `decimals`, `tone` |
+| `coordinates` | Lat/long con mapa en el detalle | `mapPreview` (también `location`) |
+| `masked` | Valor oculto (tarjeta, CLABE) con mostrar/ocultar | `visibleChars` |
+
+**Detalle al hacer clic** (`detail: false` lo desactiva): fechas abren una tarjeta con fecha completa,
+hora, relativo, semana/trimestre, ISO y calendario; montos con variación y cantidad en letra
+(`amountInWords`); RFC/CURP con tipo de persona, fecha, sexo y estado; correo y teléfono con acciones
+(llamar, WhatsApp, SMS); direcciones y coordenadas con mapa; textos largos, archivos, JSON, rangos y
+listas con el contenido completo. Las imágenes abren `CnImageViewer` (pantalla completa, flechas,
+miniaturas, descarga). Ambos se exportan para usarse fuera de la tabla (`CnCellDetail`, `CnImageViewer`).
+
+Los vacíos muestran contexto ("Sin teléfono", "Sin correo") o el que elijas con `emptyContext`
+(`not_assigned`, `pending`, `not_applicable`… los 18 de Tabantaj) o `emptyText`. El mismo formato
+se usa para buscar, ordenar y exportar.
+
+**Tabla**
+
+- Búsqueda sin acentos, filtros por columna (texto o `filter: "select"`), orden múltiple (Shift + clic).
+- Columnas: mover arrastrando el asa, redimensionar, fijar a la izquierda, ocultar, descripción (ⓘ) y
+  menú por columna (ordenar, filtrar, **agrupar**, fijar, restablecer ancho, ocultar).
+- **Agrupar** por una o varias columnas con conteo y totales por grupo (`defaultGrouping`).
+- Selección (con casilla para mostrarla, `selectOnRowClick`, por grupo), acciones masivas con confirmación.
+- Acciones por fila: menú u `inline`, con `visible`, `disabled`, `tooltip` y `confirm`.
+- Detalle expandible, números de fila, totales en el pie, tono por fila (`getRowTone`, también color CSS).
+- **Exportar**: XLSX real (números, moneda, % y fechas como valores, encabezado con estilo, filtro y fila
+  congelada), CSV (BOM + CRLF), TSV, JSON, HTML y PDF; de todo, la página o la selección; con
+  `exportDetail` una fila por partida. Copiar como tabla, Markdown o JSON. Imprimir. Protección contra
+  inyección de fórmulas.
+- Densidad (3 niveles), pantalla completa, encabezado fijo con `maxHeight`, tarjetas en móvil.
+- Persistencia (`persistKey`): columnas, orden, anchos, fijadas, agrupación, densidad y tamaño de página.
+- Modo servidor: `serverSide={{ rowCount, query, onQueryChange }}` + `fetchAllRows` para exportar todo.
+
+| Tabantaj (`TbDataTable`) | Canek (`CnDataTable`) |
+| --- | --- |
+| `rows`, `columns[].key`/`label`/`render`/`exportText` | `data`, `columns[].id`/`header`/`cell`/`exportValue` |
+| `isLoadingTable`, `caption` | `loading`, `title` |
+| `rowActions={{ actions, position: "last" }}` | `rowActions={[...]}`, `rowActionsPosition="end"` |
+| `features.enableRowSelection` / `enableColumnFilters` | `selectable` / `columnFilters` |
+| `mrtProps.manualPagination` + `rowCount` | `serverSide` |
+| `<TbTableStatusCell config={STATUS_CONFIGS.x}>` | `type: "status", cellOptions: { statusMap: CN_STATUS_PRESETS.x }` |
+| `<TbTableEmptyCell context="pending">` | `cellOptions: { emptyContext: "pending" }` |
 
 ## Temas
 
