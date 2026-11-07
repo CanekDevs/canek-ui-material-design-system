@@ -38,7 +38,10 @@ export type {
   CnPhoneCountryCode,
   CnPostalCodeFormat,
   CnValidationRule,
+  CnValidationRuleCommon,
+  CnValidationRuleDefinition,
 } from "./CnForm.types";
+export { isoToDate, normalizeDateValue } from "./CnForm.engine";
 export { CnFormFieldControl, registerFormFieldType } from "./CnFormField";
 export type { CnFormFieldControlProps, CnFormFieldRenderer } from "./CnFormField";
 export {

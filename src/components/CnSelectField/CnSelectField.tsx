@@ -26,6 +26,14 @@ export type CnSelectFieldProps = CnFieldBaseProps<CnSelectValue> & {
   clearable?: boolean;
   emptyText?: string;
   renderOption?: (option: CnFieldOption) => ReactNode;
+  /**
+   * Contenido del campo cerrado. Recibe el valor y la(s) opción(es)
+   * seleccionada(s); con `multiple`, arreglos.
+   */
+  renderValue?: (
+    value: CnSelectValue,
+    selected: CnFieldOption | CnFieldOption[] | undefined,
+  ) => ReactNode;
   startAdornment?: ReactNode;
   autoFocus?: boolean;
 };
@@ -64,6 +72,7 @@ export const CnSelectField = forwardRef<HTMLDivElement, CnSelectFieldProps>(func
     clearable = false,
     emptyText = "Sin opciones disponibles",
     renderOption,
+    renderValue: renderValueProp,
     startAdornment,
     autoFocus,
   },
@@ -125,6 +134,15 @@ export const CnSelectField = forwardRef<HTMLDivElement, CnSelectFieldProps>(func
   const labelFor = (key: string): string => byKey.get(key)?.label ?? "";
 
   const renderValue = (selected: unknown): ReactNode => {
+    if (renderValueProp) {
+      const hasSelection = Array.isArray(selected) ? selected.length > 0 : selected !== "";
+      if (hasSelection) {
+        const found = Array.isArray(selected)
+          ? (selected.map((key) => byKey.get(String(key))).filter(Boolean) as CnFieldOption[])
+          : byKey.get(String(selected));
+        return renderValueProp(current, found);
+      }
+    }
     if (Array.isArray(selected)) {
       if (selected.length === 0) {
         return (

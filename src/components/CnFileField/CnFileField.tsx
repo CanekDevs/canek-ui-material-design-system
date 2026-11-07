@@ -63,8 +63,19 @@ import {
  * - `grid`: galería de miniaturas cuadradas (fotos).
  * - `card`: tarjetas con vista previa grande y metadatos.
  * - `avatar`: una sola imagen circular (foto de perfil).
+ * - `masonry`: galería en columnas que respeta la proporción de cada imagen.
  */
-export type CnFileFieldVariant = "dropzone" | "button" | "compact" | "grid" | "card" | "avatar";
+export type CnFileFieldVariant =
+  "dropzone" | "button" | "compact" | "grid" | "card" | "avatar" | "masonry";
+
+/** Unidad de `maxSize` y `maxTotalSize`. */
+export type CnFileSizeUnit = "KB" | "MB" | "GB";
+
+const UNIT_BYTES: Record<CnFileSizeUnit, number> = {
+  KB: 1024,
+  MB: 1024 * 1024,
+  GB: 1024 * 1024 * 1024,
+};
 
 export type CnFileFieldProps = CnFieldBaseProps<CnFileValue[]> & {
   variant?: CnFileFieldVariant;
@@ -72,10 +83,14 @@ export type CnFileFieldProps = CnFieldBaseProps<CnFileValue[]> & {
   accept?: string;
   multiple?: boolean;
   maxFiles?: number;
-  /** Tamaño máximo por archivo, en MB. */
+  /** Tamaño máximo por archivo (en `sizeUnit`, MB por defecto). */
   maxSize?: number;
-  /** Tamaño máximo sumando todos los archivos, en MB. */
+  /** Tamaño máximo sumando todos los archivos (en `sizeUnit`). */
   maxTotalSize?: number;
+  /** Unidad de `maxSize` / `maxTotalSize`. Por defecto `MB`. */
+  sizeUnit?: CnFileSizeUnit;
+  /** Columnas fijas en `grid`, `card` y `masonry` (por defecto se ajustan al ancho). */
+  gridColumns?: number;
   /** Restricciones de dimensiones para imágenes (se verifican al agregarlas). */
   imageConstraints?: CnImageConstraints;
   /** Muestra miniaturas de imágenes y videos. */
@@ -134,8 +149,8 @@ const KindIcon = ({ file, size = 20 }: { file: CnFileValue; size?: number }) => 
 
 const visuallyHidden = {
   position: "absolute",
-  width: 1,
-  height: 1,
+  width: "1px",
+  height: "1px",
   overflow: "hidden",
   clip: "rect(0 0 0 0)",
   whiteSpace: "nowrap",
@@ -283,6 +298,8 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
     maxFiles,
     maxSize,
     maxTotalSize,
+    sizeUnit = "MB",
+    gridColumns,
     imageConstraints,
     showPreviews = true,
     showMetadata = true,
@@ -306,7 +323,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
   ref,
 ) {
   const isAvatar = variant === "avatar";
-  const isGallery = variant === "grid" || variant === "card";
+  const isGallery = variant === "grid" || variant === "card" || variant === "masonry";
   const isList = variant === "dropzone" || variant === "button";
   const multiple = isAvatar ? false : multipleProp;
   const effectiveAccept = accept ?? (isAvatar ? "image/*" : undefined);
@@ -375,11 +392,11 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
           });
           continue;
         }
-        if (maxSize !== undefined && file.size > maxSize * 1024 * 1024) {
+        if (maxSize !== undefined && file.size > maxSize * UNIT_BYTES[sizeUnit]) {
           rejected.push({
             name: file.name,
             reason: "size",
-            message: `${file.name}: supera el máximo de ${maxSize} MB (${formatBytes(file.size)})`,
+            message: `${file.name}: supera el máximo de ${maxSize} ${sizeUnit} (${formatBytes(file.size)})`,
           });
           continue;
         }
@@ -418,11 +435,11 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
     if (maxTotalSize !== undefined) {
       let running = multiple ? totalSize : 0;
       added = added.filter((file) => {
-        if (running + file.size > maxTotalSize * 1024 * 1024) {
+        if (running + file.size > maxTotalSize * UNIT_BYTES[sizeUnit]) {
           rejected.push({
             name: file.name,
             reason: "totalSize",
-            message: `${file.name}: se superaría el total permitido de ${maxTotalSize} MB`,
+            message: `${file.name}: se superaría el total permitido de ${maxTotalSize} ${sizeUnit}`,
           });
           return false;
         }
@@ -494,14 +511,15 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
           .map((t) => t.trim())
           .join(", "),
       );
-    if (maxSize !== undefined) parts.push(`máx. ${maxSize} MB por archivo`);
+    if (maxSize !== undefined) parts.push(`máx. ${maxSize} ${sizeUnit} por archivo`);
     if (imageConstraints?.minWidth || imageConstraints?.minHeight) {
       parts.push(
         `mín. ${imageConstraints.minWidth ?? "?"}×${imageConstraints.minHeight ?? "?"} px`,
       );
     }
     if (multiple && maxFiles !== undefined) parts.push(`${files.length} de ${maxFiles} archivos`);
-    if (maxTotalSize !== undefined) parts.push(`${formatBytes(totalSize)} de ${maxTotalSize} MB`);
+    if (maxTotalSize !== undefined)
+      parts.push(`${formatBytes(totalSize)} de ${maxTotalSize} ${sizeUnit}`);
     return parts.join(" · ");
   }, [
     effectiveAccept,
@@ -510,6 +528,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
     maxFiles,
     maxSize,
     maxTotalSize,
+    sizeUnit,
     multiple,
     totalSize,
   ]);
@@ -970,7 +989,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
     </Box>
   );
 
-  const renderGallery = (cards: boolean) => (
+  const renderGallery = (cards: boolean, masonry = false) => (
     <Box
       component="ul"
       aria-label="Archivos seleccionados"
@@ -978,14 +997,28 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
         listStyle: "none",
         m: 0,
         p: 0,
-        display: "grid",
-        gridTemplateColumns: `repeat(auto-fill, minmax(${cards ? 200 : thumbnailSize}px, 1fr))`,
-        gap: cards ? "12px" : "8px",
+        ...(masonry
+          ? {
+              display: "block",
+              columnGap: "8px",
+              ...(gridColumns
+                ? { columnCount: gridColumns }
+                : { columnWidth: `${Math.round(thumbnailSize * 1.6)}px` }),
+            }
+          : {
+              display: "grid",
+              gridTemplateColumns: gridColumns
+                ? `repeat(${gridColumns}, minmax(0, 1fr))`
+                : `repeat(auto-fill, minmax(${cards ? 200 : thumbnailSize}px, 1fr))`,
+              gap: cards ? "12px" : "8px",
+            }),
       }}
     >
       {files.map((file, index) => {
         const status = statusOf(file, index);
-        const hasPreview = Boolean(previews.get(fileKey(file)));
+        const previewUrl = previews.get(fileKey(file));
+        const hasPreview = Boolean(previewUrl);
+        const natural = masonry && previewUrl && getFileKind(file) === "image";
         return (
           <Box
             component="li"
@@ -1003,12 +1036,13 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
               borderColor: itemBorder(status),
               backgroundColor: "var(--cn-color-surface, #ffffff)",
               "&:hover .cn-file-overlay, &:focus-within .cn-file-overlay": { opacity: 1 },
+              ...(masonry && { width: "100%", breakInside: "avoid", mb: "8px" }),
             }}
           >
             <Box
               sx={{
                 position: "relative",
-                aspectRatio: cards ? "4 / 3" : "1 / 1",
+                aspectRatio: natural ? undefined : cards || masonry ? "4 / 3" : "1 / 1",
                 overflow: "hidden",
               }}
             >
@@ -1016,9 +1050,21 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
                 aria-label={canView(file) ? `Ver ${file.name}` : file.name}
                 disabled={!canView(file)}
                 onClick={() => setLightboxIndex(index)}
-                sx={{ position: "absolute", inset: 0 }}
+                sx={
+                  natural ? { display: "block", width: "100%" } : { position: "absolute", inset: 0 }
+                }
               >
-                {preview(file, "100%", "0")}
+                {natural ? (
+                  <Box
+                    component="img"
+                    src={previewUrl}
+                    alt=""
+                    loading="lazy"
+                    sx={{ display: "block", width: "100%", height: "auto" }}
+                  />
+                ) : (
+                  preview(file, "100%", "0")
+                )}
               </ButtonBase>
               {!cards && !hasPreview && (
                 <Box
@@ -1132,7 +1178,16 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
         );
       })}
       {canAddMore && !readOnly && (
-        <Box component="li" sx={cards ? { minHeight: 180 } : { aspectRatio: "1 / 1" }}>
+        <Box
+          component="li"
+          sx={
+            masonry
+              ? { aspectRatio: "4 / 3", breakInside: "avoid", width: "100%" }
+              : cards
+                ? { minHeight: 180 }
+                : { aspectRatio: "1 / 1" }
+          }
+        >
           {addTile({ width: "100%", height: "100%" }, cards ? "Agregar archivos" : "Agregar")}
         </Box>
       )}
@@ -1371,6 +1426,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
       {variant === "compact" && renderCompact()}
       {variant === "grid" && renderGallery(false)}
       {variant === "card" && renderGallery(true)}
+      {variant === "masonry" && renderGallery(false, true)}
       {!isAvatar && !showDropzone && !showButton && constraintsLine(true)}
 
       <Box aria-live="polite" sx={visuallyHidden}>

@@ -6,6 +6,7 @@ import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { useId } from "react";
 import { useSortableList } from "../../utils/use-sortable-list";
@@ -170,19 +171,51 @@ const SectionHeader = ({
   );
 };
 
-const cardSx = (level: "section" | "item", hasError: boolean) => ({
-  display: "flex",
-  flexDirection: "column",
-  padding: level === "section" ? "16px" : "12px",
-  borderRadius: level === "section" ? "var(--cn-radius-lg, 12px)" : "var(--cn-radius-md, 8px)",
-  border: "1px solid",
-  borderColor: hasError ? "var(--cn-color-error-500, #d63c3c)" : "var(--cn-color-border, #dde0e4)",
-  backgroundColor:
-    level === "section"
-      ? "var(--cn-color-surface, #ffffff)"
-      : "var(--cn-color-neutral-50, #fafbfc)",
-  transition: "border-color 140ms ease",
-});
+const PADDING = { none: "0px", sm: "10px", md: "16px", lg: "24px" } as const;
+
+const cardSx = (
+  level: "section" | "item",
+  hasError: boolean,
+  appearance: NonNullable<CnFormSection["appearance"]> = "card",
+  padding: NonNullable<CnFormSection["padding"]> = "md",
+): SxProps<Theme> => {
+  const errorBorder = "var(--cn-color-error-500, #d63c3c)";
+  if (level === "item") {
+    return {
+      display: "flex",
+      flexDirection: "column",
+      padding: "12px",
+      borderRadius: "var(--cn-radius-md, 8px)",
+      border: "1px solid",
+      borderColor: hasError ? errorBorder : "var(--cn-color-border, #dde0e4)",
+      backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+      transition: "border-color 140ms ease",
+    };
+  }
+  return {
+    display: "flex",
+    flexDirection: "column",
+    padding: appearance === "plain" ? 0 : PADDING[padding],
+    borderRadius: "var(--cn-radius-lg, 12px)",
+    border: appearance === "card" || hasError ? "1px solid" : "1px solid transparent",
+    borderColor: hasError
+      ? errorBorder
+      : appearance === "card"
+        ? "var(--cn-color-border, #dde0e4)"
+        : "transparent",
+    backgroundColor:
+      appearance === "filled"
+        ? "var(--cn-color-neutral-50, #fafbfc)"
+        : appearance === "plain"
+          ? "transparent"
+          : "var(--cn-color-surface, #ffffff)",
+    boxShadow:
+      appearance === "elevated"
+        ? "0 1px 3px rgba(17, 20, 24, 0.08), 0 6px 16px rgba(17, 20, 24, 0.06)"
+        : "none",
+    transition: "border-color 140ms ease",
+  };
+};
 
 export type CnFormSectionViewProps = {
   section: CnFormSection;
@@ -197,8 +230,10 @@ export type CnFormSectionViewProps = {
   items: CnFormValues[];
   itemKeys: string[];
   canAdd: boolean;
-  canRemove: boolean;
+  canRemove: (index: number) => boolean;
   canReorder: boolean;
+  /** Contenido extra en el encabezado de la sección (insignia, enlace…). */
+  headerRight?: ReactNode;
   onAdd: () => void;
   onRemove: (index: number) => void;
   /** Mueve el elemento `from` a la posición `to`. */
@@ -223,6 +258,7 @@ export const CnFormSectionView = ({
   onRemove,
   onMove,
   loading,
+  headerRight,
 }: CnFormSectionViewProps) => {
   const baseId = useId().replace(/:/g, "");
   const collapsible = Boolean(section.collapsible);
@@ -303,15 +339,19 @@ export const CnFormSectionView = ({
                 actions={
                   !disabled && (
                     <>
-                      {canRemove && (
-                        <Tooltip title={labels.remove}>
+                      {canRemove(index) && (
+                        <Tooltip title={section.removeLabel ?? labels.remove}>
                           <IconButton
                             size="small"
-                            aria-label={`${labels.remove} ${index + 1}`}
+                            aria-label={`${section.removeLabel ?? labels.remove} ${index + 1}`}
                             onClick={() => onRemove(index)}
                             sx={{ color: "var(--cn-color-error-600, #b52f2f)" }}
                           >
-                            <DeleteOutlineIcon fontSize="small" />
+                            {section.removeIcon ? (
+                              <CnIcon name={section.removeIcon} size="sm" />
+                            ) : (
+                              <DeleteOutlineIcon fontSize="small" />
+                            )}
                           </IconButton>
                         </Tooltip>
                       )}
@@ -329,17 +369,37 @@ export const CnFormSectionView = ({
           aria-live="polite"
           sx={{
             position: "absolute",
-            width: 1,
-            height: 1,
+            width: "1px",
+            height: "1px",
             overflow: "hidden",
             clip: "rect(0 0 0 0)",
           }}
         >
           {sortable.announcement}
         </Box>
+        {items.length === 0 && section.emptyText && (
+          <Typography
+            sx={{
+              fontSize: "var(--cn-font-size-sm, 12px)",
+              color: "var(--cn-color-text-muted, #6e7682)",
+              textAlign: "center",
+              py: "12px",
+              border: "1px dashed var(--cn-color-border, #dde0e4)",
+              borderRadius: "var(--cn-radius-md, 8px)",
+            }}
+          >
+            {section.emptyText}
+          </Typography>
+        )}
         {!disabled && canAdd && (
           <Box>
-            <CnButton variant="text" color="primary" size="small" startIcon="add" onClick={onAdd}>
+            <CnButton
+              variant="text"
+              color="primary"
+              size="small"
+              startIcon={section.addIcon ?? "add"}
+              onClick={onAdd}
+            >
               {section.addLabel ?? `${labels.add} ${itemLabel.toLowerCase()}`}
             </CnButton>
           </Box>
@@ -354,7 +414,12 @@ export const CnFormSectionView = ({
       component="section"
       aria-label={typeof section.title === "string" ? section.title : undefined}
       data-cn-section={section.id}
-      sx={cardSx("section", totalErrors > 0 && sectionCollapsed)}
+      sx={cardSx(
+        "section",
+        totalErrors > 0 && sectionCollapsed,
+        section.appearance,
+        section.padding,
+      )}
     >
       <SectionHeader
         title={section.title}
@@ -367,6 +432,7 @@ export const CnFormSectionView = ({
         labels={labels}
         level="section"
         contentId={contentId}
+        actions={headerRight}
       />
       {section.repeatable ? (
         <Box sx={{ pt: section.title || section.description ? "12px" : 0 }}>{body}</Box>

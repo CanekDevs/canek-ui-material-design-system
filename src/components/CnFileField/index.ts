@@ -1,5 +1,5 @@
 export { CnFileField } from "./CnFileField";
-export type { CnFileFieldProps, CnFileFieldVariant } from "./CnFileField";
+export type { CnFileFieldProps, CnFileFieldVariant, CnFileSizeUnit } from "./CnFileField";
 export { downloadFile, FileLightbox, isViewableFile } from "./FileLightbox";
 export {
   checkImageConstraints,
