@@ -16,7 +16,7 @@ const meta: Meta<typeof CnDateField> = {
   tags: ["autodocs"],
   args: { label: "Fecha" },
   argTypes: {
-    type: { control: "select", options: ["date", "time", "datetime", "month"] },
+    type: { control: "select", options: ["date", "time", "datetime", "month", "year"] },
     format: { control: "select", options: ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"] },
   },
 };
@@ -142,6 +142,53 @@ export const SliderAndRating: Story = {
         label="Calificación"
         labels={{ 1: "Malo", 2: "Regular", 3: "Bueno", 4: "Muy bueno", 5: "Excelente" }}
       />
+    </Stack>
+  ),
+};
+
+export const YearAndDisplayFormat: Story = {
+  render: () => (
+    <Stack spacing={2} sx={{ maxWidth: 360 }}>
+      <CnDateField
+        type="year"
+        label="Ejercicio fiscal"
+        defaultValue="2026"
+        min="2015"
+        max="2030"
+        shouldDisableYear={(year) => year === 2020}
+        helperText="2020 está cerrado"
+      />
+      <CnDateField
+        type="month"
+        label="Periodo"
+        defaultValue="2026-05"
+        displayFormat="MMMM [de] YYYY"
+        shouldDisableMonth={(month) => month.endsWith("-12")}
+      />
+      <CnDateField
+        type="date"
+        label="Entrega"
+        defaultValue="2026-11-10"
+        displayFormat="dddd D [de] MMMM [de] YYYY"
+      />
+    </Stack>
+  ),
+};
+
+export const BusinessHours: Story = {
+  render: () => (
+    <Stack spacing={2} sx={{ maxWidth: 360 }}>
+      <CnDateField
+        type="datetime"
+        label="Cita (lunes a viernes, 08:00–18:00)"
+        minTime="08:00"
+        maxTime="18:00"
+        disableWeekends
+        disablePast
+        minutesStep={15}
+        displayFormat="dddd D [de] MMMM, HH:mm"
+      />
+      <CnDateField type="time" label="Hora de entrada" minTime="07:00" maxTime="10:00" ampm />
     </Stack>
   ),
 };

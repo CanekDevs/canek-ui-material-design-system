@@ -56,3 +56,17 @@ export const States: Story = {
     </Stack>
   ),
 };
+
+export const CustomRender: Story = {
+  args: {
+    label: "País",
+    defaultValue: "es",
+    renderOption: (option) => (
+      <span>
+        <strong>{option.label}</strong> · {option.group}
+      </span>
+    ),
+    renderValue: (_value, selected) =>
+      Array.isArray(selected) || !selected ? null : `${selected.label} (${selected.group})`,
+  },
+};

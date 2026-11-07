@@ -12,7 +12,7 @@ const meta: Meta<typeof CnFileField> = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["dropzone", "button", "compact", "grid", "card", "avatar"],
+      options: ["dropzone", "button", "compact", "grid", "card", "avatar", "masonry"],
     },
   },
 };
@@ -146,3 +146,35 @@ const UploadStory = () => {
 };
 
 export const UploadProgress: Story = { render: () => <UploadStory /> };
+
+const PHOTOS = [
+  { id: 1, url: "https://picsum.photos/id/1015/600/400", name: "rio.jpg" },
+  { id: 2, url: "https://picsum.photos/id/1025/400/600", name: "perro.jpg" },
+  { id: 3, url: "https://picsum.photos/id/1035/600/600", name: "cascada.jpg" },
+  { id: 4, url: "https://picsum.photos/id/1043/600/350", name: "ciudad.jpg" },
+  { id: 5, url: "https://picsum.photos/id/1050/400/560", name: "costa.jpg" },
+];
+
+export const Masonry: Story = {
+  args: {
+    variant: "masonry",
+    label: "Galería (respeta la proporción)",
+    multiple: true,
+    accept: "image/*",
+    gridColumns: 3,
+    defaultValue: PHOTOS,
+  },
+};
+
+export const SizeUnitsAndColumns: Story = {
+  args: {
+    variant: "grid",
+    label: "Máximo 500 KB por imagen, 4 columnas",
+    multiple: true,
+    accept: "image/*",
+    maxSize: 500,
+    sizeUnit: "KB",
+    gridColumns: 4,
+    defaultValue: PHOTOS.slice(0, 3),
+  },
+};
