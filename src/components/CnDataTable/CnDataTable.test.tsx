@@ -180,7 +180,7 @@ describe("CnDataTable", () => {
       );
     };
     render(<Server />);
-    expect(screen.getByText("1–2 de 40")).toBeInTheDocument();
+    expect(screen.getByText("1-2 de 40")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Página siguiente" }));
     expect(onQueryChange).toHaveBeenLastCalledWith(expect.objectContaining({ pageIndex: 1 }));
     fireEvent.change(screen.getByLabelText("Buscar en la tabla"), { target: { value: "ana" } });
@@ -194,6 +194,63 @@ describe("CnDataTable", () => {
   it("shows the empty state", () => {
     render(<CnDataTable data={[]} columns={COLUMNS} emptyTitle="Aún no hay clientes" />);
     expect(screen.getByText("Aún no hay clientes")).toBeInTheDocument();
+  });
+});
+
+describe("CnDataTable (Tabantaj parity)", () => {
+  it("filters status columns with a select of options", () => {
+    const columns = COLUMNS.map((c) =>
+      c.id === "status" ? { ...c, filter: "select" as const } : c,
+    );
+    render(<CnDataTable data={ROWS} columns={columns} columnFilters />);
+    fireEvent.change(screen.getByLabelText("Filtrar Estado"), { target: { value: "inactive" } });
+    expect(bodyRows()).toHaveLength(1);
+    expect(within(bodyRows()[0]).getByText("Bodega Norte")).toBeInTheDocument();
+  });
+
+  it("pins and hides columns from the column menu", () => {
+    render(<CnDataTable data={ROWS} columns={COLUMNS} />);
+    fireEvent.click(screen.getAllByRole("button", { name: "Opciones de columna" })[1]);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Fijar a la izquierda" }));
+    // La columna fijada pasa al inicio.
+    const headers = screen.getAllByRole("columnheader").map((th) => th.textContent ?? "");
+    expect(headers[0]).toContain("Ciudad");
+    fireEvent.click(screen.getAllByRole("button", { name: "Opciones de columna" })[0]);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Ocultar columna" }));
+    expect(screen.queryByText("Mérida")).toBeNull();
+  });
+
+  it("toggles row selection from the toolbar checkbox", () => {
+    render(<CnDataTable data={ROWS} columns={COLUMNS} selectable selectionToggle />);
+    expect(screen.queryByLabelText("Seleccionar fila 1")).toBeNull();
+    fireEvent.click(screen.getByLabelText("Mostrar selección de filas"));
+    expect(screen.getByLabelText("Seleccionar fila 1")).toBeInTheDocument();
+  });
+
+  it("cycles density and offers download formats with scopes", () => {
+    render(<CnDataTable data={ROWS} columns={COLUMNS} />);
+    fireEvent.click(screen.getByRole("button", { name: "Cambiar densidad" }));
+    fireEvent.click(screen.getByRole("button", { name: "Descargar" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /CSV/ }));
+    expect(screen.getByRole("menuitem", { name: /Todos los registros/ })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /Página actual/ })).toBeInTheDocument();
+  });
+
+  it("renders contextual empty cells and clears filters from the empty state", () => {
+    type Person = { id: number; name: string; phone?: string };
+    render(
+      <CnDataTable<Person>
+        data={[{ id: 1, name: "Ana" }]}
+        columns={[
+          { id: "name", header: "Nombre" },
+          { id: "phone", header: "Teléfono", type: "phone" },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Sin teléfono")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Buscar en la tabla"), { target: { value: "zzz" } });
+    fireEvent.click(screen.getByRole("button", { name: "Limpiar búsqueda y filtros" }));
+    expect(screen.getByText("Ana")).toBeInTheDocument();
   });
 });
 

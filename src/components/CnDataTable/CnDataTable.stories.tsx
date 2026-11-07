@@ -2,8 +2,293 @@ import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useEffect, useMemo, useState } from "react";
 import { CnButton } from "../CnButton";
+import { CN_STATUS_PRESETS } from "./cells";
 import { CnDataTable } from "./CnDataTable";
 import type { CnColumn, CnTableQuery } from "./CnDataTable.types";
+
+const meta: Meta = {
+  title: "Data Display/CnDataTable",
+  parameters: { layout: "padded" },
+};
+
+export default meta;
+type Story = StoryObj;
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+// ─── Tabla maestra: todas las celdas ──────────────────────────────────────
+
+type Person = {
+  id: number;
+  name: string;
+  role: string;
+  email: string | null;
+  phone: string | null;
+  rfc: string;
+  curp: string | null;
+  status: "active" | "inactive" | "pending";
+  verified: boolean;
+  rating: number;
+  budget: number;
+  previousBudget: number;
+  progress: number;
+  tags: string[];
+  createdAt: string;
+  lastLogin: string | null;
+  website: string | null;
+  city: string;
+};
+
+const PEOPLE: Person[] = [
+  [
+    "Ana García",
+    "Administradora",
+    "ana.garcia@corporativo.mx",
+    "5512345678",
+    "GAAA800101AB1",
+    "GAAA800101MDFRNN09",
+    "active",
+    true,
+    5,
+    1250000,
+    980000,
+    85,
+    ["Ventas", "Norte", "VIP"],
+    "2023-01-15",
+    "2026-11-05T16:30",
+    "https://canek.mx",
+    "Ciudad de México",
+  ],
+  [
+    "Carlos López",
+    "Editor",
+    "carlos.lopez@empresa.com",
+    "5587654321",
+    "LOCA800201XY2",
+    "LOCA800201HDFPRR01",
+    "active",
+    true,
+    4,
+    750000,
+    820000,
+    62,
+    ["Soporte"],
+    "2023-02-20",
+    "2026-11-04T09:45",
+    null,
+    "Guadalajara",
+  ],
+  [
+    "María Fernández",
+    "Usuaria",
+    "maria.fernandez@proveedor.com",
+    null,
+    "NOR-EGISTR-ADO",
+    null,
+    "inactive",
+    false,
+    3,
+    0,
+    120000,
+    0,
+    [],
+    "2023-03-10",
+    null,
+    "https://github.com",
+    "Monterrey",
+  ],
+  [
+    "Juan Martínez",
+    "Editor",
+    "juan.martinez@consultoria.com",
+    "5532165498",
+    "MAJU800301AB3",
+    "MAJU800301HDFRRN04",
+    "pending",
+    true,
+    4,
+    320000,
+    300000,
+    45,
+    ["Consultoría", "Sur"],
+    "2023-04-05",
+    "2026-10-28T05:20",
+    null,
+    "Puebla",
+  ],
+  [
+    "Laura Torres",
+    "Administradora",
+    null,
+    "5599887766",
+    "TOLA800401CD4",
+    "TOLA800401MDFRRR05",
+    "active",
+    true,
+    5,
+    2500000,
+    2100000,
+    94,
+    ["Ventas", "Corporativo", "VIP", "Bajío"],
+    "2023-05-12",
+    "2026-11-06T02:00",
+    "https://anthropic.com",
+    "Querétaro",
+  ],
+  [
+    "Roberto Méndez",
+    "Usuario",
+    "roberto.mendez@startup.mx",
+    "5544332211",
+    "MERJ800501EF5",
+    "MERJ800501HDFNDB06",
+    "active",
+    false,
+    2.5,
+    180000,
+    210000,
+    38,
+    ["Startups"],
+    "2023-06-18",
+    "2026-09-13T08:30",
+    null,
+    "Mérida",
+  ],
+].map(
+  (
+    [
+      name,
+      role,
+      email,
+      phone,
+      rfc,
+      curp,
+      status,
+      verified,
+      rating,
+      budget,
+      previousBudget,
+      progress,
+      tags,
+      createdAt,
+      lastLogin,
+      website,
+      city,
+    ],
+    index,
+  ) => ({
+    id: 1001 + index,
+    name,
+    role,
+    email,
+    phone,
+    rfc,
+    curp,
+    status,
+    verified,
+    rating,
+    budget,
+    previousBudget,
+    progress,
+    tags,
+    createdAt,
+    lastLogin,
+    website,
+    city,
+  }),
+) as Person[];
+
+const MASTER_COLUMNS: CnColumn<Person>[] = [
+  { id: "id", header: "ID", type: "id", cellOptions: { prefix: "#" } },
+  {
+    id: "name",
+    header: "Nombre",
+    type: "avatar",
+    width: 220,
+    cellOptions: { subtitle: (row) => (row as Person).role },
+  },
+  { id: "email", header: "Email", type: "email", width: 270 },
+  { id: "phone", header: "Teléfono", type: "phone", width: 210, cellOptions: { whatsapp: true } },
+  { id: "rfc", header: "RFC", type: "rfc", width: 210 },
+  { id: "curp", header: "CURP", type: "curp", width: 260 },
+  {
+    id: "status",
+    header: "Estado",
+    type: "status",
+    filter: "select",
+    width: 160,
+    cellOptions: {
+      statusMap: {
+        ...CN_STATUS_PRESETS.activeInactive,
+        pending: { label: "Pendiente", color: "warning", icon: "schedule" },
+      },
+    },
+  },
+  {
+    id: "verified",
+    header: "Verificado",
+    type: "boolean",
+    filter: "select",
+    width: 150,
+    cellOptions: { trueLabel: "Verificado", falseLabel: "Sin verificar" },
+  },
+  { id: "rating", header: "Rating", type: "rating", width: 140 },
+  {
+    id: "budget",
+    header: "Presupuesto",
+    type: "currency",
+    aggregate: "sum",
+    width: 200,
+    cellOptions: { previous: (row) => (row as Person).previousBudget },
+  },
+  { id: "progress", header: "Progreso", type: "progress", aggregate: "avg", width: 170 },
+  { id: "tags", header: "Tags", type: "tags", sortable: false, width: 220 },
+  { id: "createdAt", header: "Creado", type: "date", width: 190 },
+  { id: "lastLogin", header: "Último login", type: "datetime", width: 220 },
+  { id: "website", header: "Sitio", type: "link", width: 180 },
+  { id: "city", header: "Ciudad", type: "location", width: 200 },
+];
+
+export const MasterTable: Story = {
+  name: "Tabla maestra (todas las celdas)",
+  render: () => (
+    <CnDataTable<Person>
+      title="Tabla maestra · demostración de todos los tipos de celda"
+      data={PEOPLE}
+      columns={MASTER_COLUMNS}
+      selectable
+      selectionToggle
+      columnFilters
+      persistKey="story-master"
+      rowActions={[
+        { id: "view", label: "Ver detalles", icon: "visibility", onClick: () => {} },
+        { id: "edit", label: "Editar", icon: "edit", onClick: () => {} },
+        {
+          id: "delete",
+          label: "Eliminar",
+          icon: "delete",
+          color: "error",
+          confirm: (row) => ({ variant: "delete", message: `Se eliminará a ${row.name}.` }),
+          onClick: () => wait(600),
+        },
+        { id: "fav", label: "Favorito", icon: "favorite", onClick: () => {} },
+      ]}
+      bulkActions={[
+        { id: "mail", label: "Enviar correo", icon: "mail", onClick: () => wait(500) },
+        {
+          id: "deactivate",
+          label: "Desactivar",
+          icon: "block",
+          color: "error",
+          onClick: () => wait(600),
+          confirm: (rows) => ({ variant: "danger", title: `¿Desactivar ${rows.length} usuarios?` }),
+        },
+      ]}
+    />
+  ),
+};
+
+// ─── Contratos: caso de uso real ──────────────────────────────────────────
 
 type Contract = {
   id: number;
@@ -32,7 +317,7 @@ const OWNERS = ["Ana López", "Luis Pérez", "María Hernández", "Jorge Ramíre
 const STATUSES: Contract["status"][] = ["active", "pending", "expired", "cancelled"];
 const TAGS = ["Servicios", "Licencias", "Soporte", "Hardware", "Consultoría"];
 
-const DATA: Contract[] = Array.from({ length: 57 }, (_, i) => ({
+const CONTRACTS: Contract[] = Array.from({ length: 57 }, (_, i) => ({
   id: i + 1,
   folio: `CT-${String(2400 + i).padStart(5, "0")}`,
   client: { name: NAMES[i % NAMES.length], email: `contacto${i}@empresa.mx` },
@@ -40,82 +325,58 @@ const DATA: Contract[] = Array.from({ length: 57 }, (_, i) => ({
   status: STATUSES[(i * 7) % STATUSES.length],
   amount: Math.round(((i * 7919) % 250000) + 15000),
   progress: (i * 13) % 101,
-  startDate: `2026-${String((i % 12) + 1).padStart(2, "0")}-${String((i % 27) + 1).padStart(2, "0")}`,
+  startDate: `2026-${String((i % 10) + 1).padStart(2, "0")}-${String((i % 27) + 1).padStart(2, "0")}`,
   tags: TAGS.slice(i % 3, (i % 3) + 1 + (i % 3)),
   rfc: `ABC${String(100000 + i)}XY${i % 10}`,
 }));
 
-const COLUMNS: CnColumn<Contract>[] = [
-  { id: "folio", header: "Folio", type: "code", width: 120, sticky: true },
+const CONTRACT_COLUMNS: CnColumn<Contract>[] = [
+  { id: "folio", header: "Folio", type: "code", width: 150, sticky: true },
   {
     id: "client.name",
     header: "Cliente",
     type: "avatar",
-    minWidth: 220,
+    width: 240,
     cellOptions: { subtitle: (row) => (row as Contract).client.email },
   },
   {
     id: "status",
     header: "Estado",
     type: "status",
+    filter: "select",
     cellOptions: {
       statusMap: {
         active: { label: "Vigente", color: "success", icon: "check_circle" },
         pending: { label: "Por firmar", color: "warning", icon: "schedule" },
-        expired: { label: "Vencido", color: "neutral" },
-        cancelled: { label: "Cancelado", color: "error" },
+        expired: { label: "Vencido", color: "neutral", icon: "event_busy" },
+        cancelled: { label: "Cancelado", color: "error", icon: "block" },
       },
     },
   },
-  { id: "amount", header: "Monto", type: "currency", aggregate: "sum" },
-  { id: "progress", header: "Avance", type: "progress", minWidth: 140 },
-  { id: "startDate", header: "Inicio", type: "date" },
-  { id: "owner", header: "Responsable" },
+  { id: "amount", header: "Monto", type: "currency", aggregate: "sum", width: 190 },
+  { id: "progress", header: "Avance", type: "progress", width: 170 },
+  { id: "startDate", header: "Inicio", type: "date", width: 190 },
+  { id: "owner", header: "Responsable", cellOptions: { icon: "person" } },
   { id: "tags", header: "Categorías", type: "tags", sortable: false, hidden: true },
-  { id: "rfc", header: "RFC", type: "code", hidden: true },
+  { id: "rfc", header: "RFC", type: "rfc", hidden: true, width: 200 },
 ];
 
-const meta: Meta<typeof CnDataTable<Contract>> = {
-  title: "Data Display/CnDataTable",
-  component: CnDataTable,
-  parameters: { layout: "padded" },
-};
-
-export default meta;
-type Story = StoryObj<typeof CnDataTable<Contract>>;
-
-const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-export const Complete: Story = {
+export const Contracts: Story = {
+  name: "Contratos (detalle, totales, fijada)",
   render: () => (
-    <CnDataTable
+    <CnDataTable<Contract>
       title="Contratos"
-      description="Orden múltiple con Shift, búsqueda sin acentos, filtros por columna y exportación"
-      data={DATA}
-      columns={COLUMNS}
+      description="Arrastra el asa (≡) para mover columnas, el borde para redimensionar y Shift + clic para ordenar por varias"
+      data={CONTRACTS}
+      columns={CONTRACT_COLUMNS}
       selectable
       striped
       persistKey="story-contracts"
       toolbarActions={
         <CnButton size="small" startIcon="add">
-          Nuevo
+          Nuevo contrato
         </CnButton>
       }
-      bulkActions={[
-        { id: "export", label: "Enviar recordatorio", icon: "mail", onClick: () => wait(500) },
-        {
-          id: "cancel",
-          label: "Cancelar",
-          icon: "block",
-          color: "error",
-          onClick: () => wait(600),
-          confirm: (rows) => ({
-            variant: "danger",
-            title: `¿Cancelar ${rows.length} contratos?`,
-            message: "Los contratos cancelados no se pueden reactivar.",
-          }),
-        },
-      ]}
       rowActions={[
         { id: "view", label: "Ver detalle", icon: "visibility", inline: true, onClick: () => {} },
         { id: "edit", label: "Editar", icon: "edit", onClick: () => {} },
@@ -143,7 +404,7 @@ export const Complete: Story = {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
             gap: "8px",
             fontSize: 13,
           }}
@@ -164,19 +425,7 @@ export const Complete: Story = {
   ),
 };
 
-export const Compact: Story = {
-  render: () => (
-    <CnDataTable
-      title="Contratos"
-      data={DATA.slice(0, 8)}
-      columns={COLUMNS.slice(0, 4)}
-      pagination={false}
-      maxHeight={320}
-      exportFormats={false}
-      onRowClick={() => {}}
-    />
-  ),
-};
+// ─── Servidor ─────────────────────────────────────────────────────────────
 
 const ServerStory = () => {
   const [query, setQuery] = useState<CnTableQuery>({
@@ -188,28 +437,25 @@ const ServerStory = () => {
   });
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState<{ rows: Contract[]; total: number }>({ rows: [], total: 0 });
-
   const queryKey = useMemo(() => JSON.stringify(query), [query]);
+
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => {
       const q = query.search.toLowerCase();
-      let rows = DATA.filter(
+      let rows = CONTRACTS.filter(
         (row) =>
           !q || row.client.name.toLowerCase().includes(q) || row.folio.toLowerCase().includes(q),
       );
+      if (query.filters.status) rows = rows.filter((row) => row.status === query.filters.status);
       const sort = query.sorting[0];
       if (sort) {
         rows = [...rows].sort((a, b) => {
-          const va =
+          const pick = (r: Contract) =>
             sort.id === "client.name"
-              ? a.client.name
-              : (a as unknown as Record<string, unknown>)[sort.id];
-          const vb =
-            sort.id === "client.name"
-              ? b.client.name
-              : (b as unknown as Record<string, unknown>)[sort.id];
-          const result = String(va).localeCompare(String(vb), "es", { numeric: true });
+              ? r.client.name
+              : (r as unknown as Record<string, unknown>)[sort.id];
+          const result = String(pick(a)).localeCompare(String(pick(b)), "es", { numeric: true });
           return sort.desc ? -result : result;
         });
       }
@@ -222,31 +468,32 @@ const ServerStory = () => {
   }, [queryKey]);
 
   return (
-    <CnDataTable
-      title="Contratos (servidor)"
-      description="La tabla solo pinta; paginación, orden y búsqueda se resuelven en la API"
+    <CnDataTable<Contract>
+      title="Contratos (paginados en el servidor)"
       data={page.rows}
-      columns={COLUMNS}
+      columns={CONTRACT_COLUMNS}
       loading={loading}
+      columnFilters
       serverSide={{ rowCount: page.total, query, onQueryChange: setQuery }}
       fetchAllRows={async () => {
         await wait(400);
-        return DATA;
+        return CONTRACTS;
       }}
     />
   );
 };
 
-export const ServerSide: Story = { render: () => <ServerStory /> };
+export const ServerSide: Story = { name: "Modo servidor", render: () => <ServerStory /> };
 
 export const LoadingAndEmpty: Story = {
+  name: "Cargando y vacía",
   render: () => (
-    <Box sx={{ display: "grid", gap: 3 }}>
-      <CnDataTable title="Cargando" data={[]} columns={COLUMNS} loading />
-      <CnDataTable
-        title="Vacía"
+    <Box sx={{ display: "grid", gap: 4 }}>
+      <CnDataTable<Contract> title="Cargando" data={[]} columns={CONTRACT_COLUMNS} loading />
+      <CnDataTable<Contract>
+        title="Sin datos"
         data={[]}
-        columns={COLUMNS}
+        columns={CONTRACT_COLUMNS}
         emptyTitle="Aún no hay contratos"
         emptyDescription="Crea el primero para empezar a darle seguimiento."
         emptyAction={

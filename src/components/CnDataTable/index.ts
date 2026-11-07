@@ -10,12 +10,21 @@ export type {
   CnSortItem,
   CnTableQuery,
 } from "./CnDataTable.types";
-export { formatCellText, renderTypedCell } from "./cells";
-export type { CnCellOptions, CnCellType, CnStatusOption } from "./cells";
+export {
+  CN_STATUS_PRESETS,
+  CnCellPill,
+  CnCopyButton,
+  CnEmptyCell,
+  formatCellText,
+  formatRelative,
+  renderTypedCell,
+} from "./cells";
+export type { CnCellOptions, CnCellTone, CnCellType, CnStatusOption } from "./cells";
 export {
   copyRows,
   exportRows,
   neutralizeFormula,
+  printRows,
   rowsToDelimited,
   rowsToHtmlTable,
   rowsToJson,
