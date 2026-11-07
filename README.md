@@ -16,6 +16,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 - [Formularios](#formularios)
 - [Retroalimentación y layout](#retroalimentación-y-layout)
 - [Tabla de datos](#tabla-de-datos)
+- [Gráficas](#gráficas)
 - [Temas](#temas)
 - [Tokens de diseño](#tokens-de-diseño)
 - [Estructura del proyecto](#estructura-del-proyecto)
@@ -647,6 +648,75 @@ se usa para buscar, ordenar y exportar.
 | `mrtProps.manualPagination` + `rowCount` | `serverSide` |
 | `<TbTableStatusCell config={STATUS_CONFIGS.x}>` | `type: "status", cellOptions: { statusMap: CN_STATUS_PRESETS.x }` |
 | `<TbTableEmptyCell context="pending">` | `cellOptions: { emptyContext: "pending" }` |
+
+## Gráficas
+
+Gráficas sobre **MUI X Charts Community (MIT)**, publicadas en una entrada aparte para que solo las
+instale quien las use:
+
+```bash
+npm install @mui/x-charts
+```
+
+```tsx
+import { CnBarChart, CnDonutChart } from "@canek-ui/material-design-system/charts";
+
+<CnBarChart
+  title="Ventas vs. meta"
+  data={sales}
+  xKey="month"
+  valueFormat="compactCurrency"
+  series={[
+    { key: "ventas", label: "Ventas", tone: "primary" },
+    { key: "costos", label: "Costos", tone: "accent", gradient: true },
+  ]}
+  referenceLines={[{ axis: "y", value: 150000, label: "Meta" }]}
+  summary={{ value: "$2.1 M", label: "Acumulado", trend: 12.4 }}
+  periods
+  typeOptions
+  zoom
+  loading={isLoading}
+/>;
+```
+
+| Gráfica | Base | Destacado |
+| --- | --- | --- |
+| `CnBarChart` | MUI X | Vertical u horizontal, agrupada, apilada o 100 %, etiquetas, gradiente, esquinas redondeadas |
+| `CnLineChart`, `CnAreaChart` | MUI X | Curvas, marcadores, punteadas, media móvil, área con gradiente, apilada |
+| `CnComposedChart` | MUI X | Barras + líneas + áreas con doble eje (`axis: "right"`) |
+| `CnHistogram` | MUI X | Distribución de valores crudos en intervalos |
+| `CnPieChart`, `CnDonutChart` | MUI X | Pastel, dona, media dona, anillos anidados, total central que se recalcula, "Otros" automático |
+| `CnScatterChart`, `CnBubbleChart` | MUI X | Formas por serie, burbujas por tamaño, línea de tendencia con R², cuadrantes |
+| `CnGauge` | MUI X | Semicírculo, arco o círculo; segmentos de color, aguja, meta, mínimo y máximo |
+| `CnRadarChart` | MUI X | Rejilla poligonal o circular, varias series |
+| `CnSparkline` | MUI X | Línea, área o barras; color por tendencia, extremos, promedio, valor y variación |
+| `CnHeatmap`, `CnCalendarHeatmap` | Propia | Rejilla o calendario de actividad, escala secuencial o divergente |
+| `CnFunnelChart`, `CnPyramidChart` | Propia | Embudo, pirámide o barras; conversión vs. paso anterior y total |
+| `CnSankeyChart` | Propia | Flujos por niveles, resaltado al pasar el cursor |
+| `CnCandlestickChart` | Propia | Velas OHLC, volumen, medias móviles, retícula |
+| `CnRadialBarChart`, `CnRadialLineChart` | Propia | Anillos de avance; líneas polares para ciclos |
+| `CnTreemap` | Propia | Jerárquico con navegación por niveles |
+
+Las marcadas como "Propia" cubren lo que en MUI X es Pro o Premium (heatmap, embudo, sankey, velas,
+radiales, zoom y exportación) sin licencia ni marca de agua, con el mismo tema, tooltip y leyenda.
+
+**Común a todas** (`CnChartCommonProps`): tarjeta con título, subtítulo, ícono, resumen con tendencia,
+pie, acciones, selector de periodo (con rango personalizado), cambio de tipo, actualizar, pantalla
+completa y descarga en **PNG, SVG, CSV, XLSX, JSON** o copiar; estados `loading` (skeleton propio),
+`error` (con `onRetry`) y vacío; formatos `valueFormat` (`number`, `integer`, `currency`, `percent`,
+`compact`, `compactCurrency`, `bytes`, `duration` o función) en es-MX; leyenda que oculta series;
+colores por tono de Canek (`tone`) o propios (`colors`).
+
+**Skeletons** (en la entrada principal, sin MUI X): `CnBarChartSkeleton`, `CnLineChartSkeleton`,
+`CnAreaChartSkeleton`, `CnComposedChartSkeleton`, `CnScatterChartSkeleton`, `CnPieChartSkeleton`,
+`CnDonutChartSkeleton`, `CnGaugeSkeleton`, `CnRadarChartSkeleton`, `CnRadialBarChartSkeleton`,
+`CnRadialLineChartSkeleton`, `CnHeatmapSkeleton`, `CnFunnelChartSkeleton`, `CnSankeyChartSkeleton`,
+`CnCandlestickChartSkeleton`, `CnTreemapSkeleton`, `CnHistogramSkeleton`, `CnSparklineSkeleton` o
+`<CnChartSkeleton kind="donut" />`. Cada uno sigue las variantes de su gráfica (orientación, series,
+apilado, segmentos, celdas…), con marco de tarjeta, encabezado y leyenda opcionales y animación
+`wave`, `pulse` o `none`.
+
+`CnChartCard` también sirve sola para envolver cualquier contenido con la misma barra y estados.
 
 ## Temas
 

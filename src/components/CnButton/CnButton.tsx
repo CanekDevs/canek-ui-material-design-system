@@ -400,6 +400,7 @@ export const CnButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, CnButt
         size={size}
         disabled={resolvedDisabled}
         aria-busy={loading || undefined}
+        aria-label={ariaLabel}
         startIcon={leadingIcon}
         endIcon={trailingIcon}
         onClick={handleClick}
