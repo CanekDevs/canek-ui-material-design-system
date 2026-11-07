@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useEffect, useMemo, useState } from "react";
 import { CnButton } from "../CnButton";
-import { CN_STATUS_PRESETS } from "./cells";
+import { CN_STATUS_PRESETS } from "./status-presets";
 import { CnDataTable } from "./CnDataTable";
 import type { CnColumn, CnTableQuery } from "./CnDataTable.types";
 
@@ -37,6 +37,8 @@ type Person = {
   lastLogin: string | null;
   website: string | null;
   city: string;
+  team?: { name: string; email?: string; phone?: string; position?: string }[];
+  photos?: string[];
 };
 
 const PEOPLE: Person[] = [
@@ -246,8 +248,26 @@ const MASTER_COLUMNS: CnColumn<Person>[] = [
   { id: "createdAt", header: "Creado", type: "date", width: 190 },
   { id: "lastLogin", header: "Último login", type: "datetime", width: 220 },
   { id: "website", header: "Sitio", type: "link", width: 180 },
-  { id: "city", header: "Ciudad", type: "location", width: 200 },
+  { id: "city", header: "Ciudad", type: "location", cellOptions: { mapLink: true } },
+  { id: "team", header: "Equipo", type: "contact", sortable: false, cellOptions: { maxItems: 3 } },
+  { id: "photos", header: "Fotos", type: "image", sortable: false, width: 140 },
 ];
+
+PEOPLE[0].team = [
+  { name: "Ana García", email: "ana.garcia@corporativo.mx", position: "Líder" },
+  { name: "Luis Pérez", phone: "5512345678", position: "Ventas" },
+  { name: "Sofía Torres", email: "sofia@corporativo.mx" },
+  { name: "Diego Morales", position: "Soporte" },
+  { name: "María Ruiz" },
+];
+PEOPLE[1].team = [{ name: "Carlos López", email: "carlos.lopez@empresa.com", position: "Editor" }];
+PEOPLE[0].photos = [
+  "https://picsum.photos/id/1015/300/200",
+  "https://picsum.photos/id/1025/300/200",
+  "https://picsum.photos/id/1035/300/200",
+  "https://picsum.photos/id/1043/300/200",
+];
+PEOPLE[2].photos = ["https://picsum.photos/id/1050/300/200"];
 
 export const MasterTable: Story = {
   name: "Tabla maestra (todas las celdas)",
@@ -259,6 +279,7 @@ export const MasterTable: Story = {
       selectable
       selectionToggle
       columnFilters
+      rowNumbers
       persistKey="story-master"
       rowActions={[
         { id: "view", label: "Ver detalles", icon: "visibility", onClick: () => {} },
@@ -331,7 +352,7 @@ const CONTRACTS: Contract[] = Array.from({ length: 57 }, (_, i) => ({
 }));
 
 const CONTRACT_COLUMNS: CnColumn<Contract>[] = [
-  { id: "folio", header: "Folio", type: "code", width: 150, sticky: true },
+  { id: "folio", header: "Folio", type: "code", sticky: true },
   {
     id: "client.name",
     header: "Cliente",
@@ -484,6 +505,86 @@ const ServerStory = () => {
 };
 
 export const ServerSide: Story = { name: "Modo servidor", render: () => <ServerStory /> };
+
+export const Grouped: Story = {
+  name: "Agrupada por estado y responsable",
+  render: () => (
+    <CnDataTable<Contract>
+      title="Contratos agrupados"
+      description="Agrupa desde el menú (⋮) de cualquier columna; los totales se calculan por grupo"
+      data={CONTRACTS}
+      columns={CONTRACT_COLUMNS}
+      defaultGrouping={["status"]}
+      selectable
+      pageSize={25}
+    />
+  ),
+};
+
+type Order = {
+  id: number;
+  folio: string;
+  supplier: string;
+  total: number;
+  items: { sku: string; description: string; qty: number; price: number }[];
+};
+
+const ORDERS: Order[] = Array.from({ length: 8 }, (_, i) => ({
+  id: i + 1,
+  folio: `OC-${String(500 + i).padStart(4, "0")}`,
+  supplier: NAMES[i % NAMES.length],
+  items: Array.from({ length: (i % 3) + 1 }, (_, j) => ({
+    sku: `SKU-${100 + i * 3 + j}`,
+    description: ["Laptop", "Monitor", "Teclado", "Licencia"][(i + j) % 4],
+    qty: ((i + j) % 4) + 1,
+    price: [18999, 4299, 899, 2400][(i + j) % 4],
+  })),
+  total: 0,
+})).map((order) => ({
+  ...order,
+  total: order.items.reduce((sum, item) => sum + item.qty * item.price, 0),
+}));
+
+export const ExportWithDetail: Story = {
+  name: "Exportar con partidas",
+  render: () => (
+    <CnDataTable<Order>
+      title="Órdenes de compra"
+      description="Descargar exporta una fila por partida (folio, proveedor y total se repiten)"
+      data={ORDERS}
+      columns={[
+        { id: "folio", header: "Folio", type: "code" },
+        { id: "supplier", header: "Proveedor", type: "avatar" },
+        {
+          id: "items",
+          header: "Partidas",
+          accessor: (row) => row.items.length,
+          type: "number",
+          aggregate: "sum",
+        },
+        { id: "total", header: "Total", type: "currency", aggregate: "sum" },
+      ]}
+      exportDetail={{
+        accessor: (row) => row.items,
+        columns: [
+          { id: "sku", header: "SKU" },
+          { id: "description", header: "Descripción" },
+          { id: "qty", header: "Cantidad", type: "number" },
+          { id: "price", header: "Precio", type: "currency" },
+        ],
+      }}
+      renderDetail={(row) => (
+        <Box component="ul" sx={{ m: 0, pl: "18px", fontSize: 13 }}>
+          {row.items.map((item) => (
+            <li key={item.sku}>
+              {item.qty} × {item.description} ({item.sku})
+            </li>
+          ))}
+        </Box>
+      )}
+    />
+  ),
+};
 
 export const LoadingAndEmpty: Story = {
   name: "Cargando y vacía",

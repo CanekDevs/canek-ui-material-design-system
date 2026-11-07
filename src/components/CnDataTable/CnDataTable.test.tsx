@@ -270,3 +270,150 @@ describe("table helpers", () => {
     );
   });
 });
+
+const captureDownloads = () => {
+  const blobs: Blob[] = [];
+  const create = vi.fn((blob: Blob) => {
+    blobs.push(blob);
+    return "blob:test";
+  });
+  Object.assign(URL, { createObjectURL: create, revokeObjectURL: vi.fn() });
+  return blobs;
+};
+
+const blobText = (blob: Blob) =>
+  new Promise<string>((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.readAsText(blob);
+  });
+
+describe("CnDataTable advanced", () => {
+  it("groups rows from the column menu with counts and aggregates", () => {
+    render(<CnDataTable data={ROWS} columns={COLUMNS} />);
+    fireEvent.click(screen.getAllByRole("button", { name: "Opciones de columna" })[2]);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Agrupar por Estado" }));
+    const groups = document.querySelectorAll("[data-group-row]");
+    expect(groups).toHaveLength(2);
+    expect(groups[0].textContent).toMatch(/2 registros/);
+    expect(groups[0].textContent).toMatch(/Suma total de Saldo/);
+    expect(screen.getByRole("region", { name: "Agrupación" })).toHaveTextContent("Estado");
+    // Los grupos arrancan expandidos.
+    expect(bodyRows()).toHaveLength(3);
+    fireEvent.click(screen.getAllByRole("button", { name: "Contraer grupo" })[0]);
+    expect(bodyRows()).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Quitar agrupación" }));
+    expect(document.querySelectorAll("[data-group-row]")).toHaveLength(0);
+  });
+
+  it("numbers rows across pages", () => {
+    render(
+      <CnDataTable data={ROWS} columns={COLUMNS} rowNumbers pageSize={2} pageSizeOptions={[2]} />,
+    );
+    expect(within(bodyRows()[0]).getByText("1")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Página siguiente" }));
+    expect(within(bodyRows()[0]).getByText("3")).toBeInTheDocument();
+  });
+
+  it("selects rows by clicking them", () => {
+    const onSelectionChange = vi.fn();
+    render(
+      <CnDataTable
+        data={ROWS}
+        columns={COLUMNS}
+        selectable
+        selectOnRowClick
+        onSelectionChange={onSelectionChange}
+      />,
+    );
+    fireEvent.click(bodyRows()[1]);
+    expect(onSelectionChange).toHaveBeenLastCalledWith(["2"], [ROWS[1]]);
+  });
+
+  it("hides column menus and shows header descriptions", () => {
+    const columns = COLUMNS.map((c) =>
+      c.id === "balance" ? { ...c, description: "Saldo al corte" } : c,
+    );
+    render(<CnDataTable data={ROWS} columns={columns} columnActions={false} />);
+    expect(screen.queryByRole("button", { name: "Opciones de columna" })).toBeNull();
+    expect(screen.getByLabelText("Ayuda: Saldo al corte")).toBeInTheDocument();
+  });
+
+  it("shows per-row tooltips for inline actions and custom row colors", () => {
+    render(
+      <CnDataTable
+        data={ROWS}
+        columns={COLUMNS}
+        getRowTone={(row) => (row.id === 2 ? "#fff8e1" : undefined)}
+        rowActions={[
+          {
+            id: "pay",
+            label: "Cobrar",
+            icon: "paid",
+            inline: true,
+            disabled: (row) => row.balance < 500,
+            tooltip: (row) => (row.balance < 500 ? "Saldo insuficiente" : undefined),
+            onClick: () => {},
+          },
+        ]}
+      />,
+    );
+    expect(screen.getAllByRole("button", { name: "Cobrar" })[1]).toBeDisabled();
+    expect(bodyRows()[1]).toHaveStyle({ backgroundColor: "#fff8e1" });
+  });
+
+  it("exports CSV with one row per detail item", async () => {
+    const blobs = captureDownloads();
+    type Order = { id: number; folio: string; items: { sku: string; qty: number }[] };
+    render(
+      <CnDataTable<Order>
+        data={[
+          {
+            id: 1,
+            folio: "OC-1",
+            items: [
+              { sku: "A", qty: 2 },
+              { sku: "B", qty: 5 },
+            ],
+          },
+          { id: 2, folio: "OC-2", items: [] },
+        ]}
+        columns={[{ id: "folio", header: "Folio" }]}
+        exportDetail={{
+          accessor: (row) => row.items,
+          columns: [
+            { id: "sku", header: "SKU" },
+            { id: "qty", header: "Cantidad", type: "number" },
+          ],
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Descargar" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /CSV/ }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /Todos los registros/ }));
+    await waitFor(() => expect(blobs).toHaveLength(1));
+    const csv = await blobText(blobs[0]);
+    const clean = csv.charCodeAt(0) === 0xfeff ? csv.slice(1) : csv;
+    expect(clean.split(String.fromCharCode(13, 10))).toEqual([
+      "Folio,SKU,Cantidad",
+      "OC-1,A,2",
+      "OC-1,B,5",
+      "OC-2,,",
+    ]);
+  });
+
+  it("exports a real XLSX with numeric cells", async () => {
+    const blobs = captureDownloads();
+    render(<CnDataTable data={ROWS} columns={COLUMNS} />);
+    fireEvent.click(screen.getByRole("button", { name: "Descargar" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /Excel/ }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /Todos los registros/ }));
+    await waitFor(() => expect(blobs).toHaveLength(1));
+    const content = await blobText(blobs[0]);
+    expect(content.startsWith("PK")).toBe(true);
+    expect(content).toContain("xl/worksheets/sheet1.xml");
+    expect(content).toContain("<v>1500</v>");
+    expect(content).toContain("Ánfora SA");
+    expect(blobs[0].type).toBe("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  });
+});

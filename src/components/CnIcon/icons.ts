@@ -1,5 +1,28 @@
 import type { SvgIconComponent } from "@mui/icons-material";
 
+import Snooze from "@mui/icons-material/Snooze";
+
+import Archive from "@mui/icons-material/Archive";
+import Assignment from "@mui/icons-material/Assignment";
+import AssignmentInd from "@mui/icons-material/AssignmentInd";
+import Backup from "@mui/icons-material/Backup";
+import CropSquare from "@mui/icons-material/CropSquare";
+import Handshake from "@mui/icons-material/Handshake";
+import MoneyOff from "@mui/icons-material/MoneyOff";
+import NotInterested from "@mui/icons-material/NotInterested";
+import OfflineBolt from "@mui/icons-material/OfflineBolt";
+import OnlinePrediction from "@mui/icons-material/OnlinePrediction";
+import Percent from "@mui/icons-material/Percent";
+import PhotoLibrary from "@mui/icons-material/PhotoLibrary";
+import PowerSettingsNew from "@mui/icons-material/PowerSettingsNew";
+import Rocket from "@mui/icons-material/Rocket";
+import Science from "@mui/icons-material/Science";
+import Start from "@mui/icons-material/Start";
+import StopCircle from "@mui/icons-material/StopCircle";
+import SyncProblem from "@mui/icons-material/SyncProblem";
+import TimerOff from "@mui/icons-material/TimerOff";
+import WifiFind from "@mui/icons-material/WifiFind";
+
 import AccessTime from "@mui/icons-material/AccessTime";
 import BrowserUpdated from "@mui/icons-material/BrowserUpdated";
 import CopyAll from "@mui/icons-material/CopyAll";
@@ -374,6 +397,27 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 
 export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
+  snooze: Snooze,
+  archive: Archive,
+  assignment: Assignment,
+  assignment_ind: AssignmentInd,
+  backup: Backup,
+  crop_square: CropSquare,
+  handshake: Handshake,
+  money_off: MoneyOff,
+  not_interested: NotInterested,
+  offline_bolt: OfflineBolt,
+  online_prediction: OnlinePrediction,
+  percent: Percent,
+  photo_library: PhotoLibrary,
+  power_settings_new: PowerSettingsNew,
+  rocket: Rocket,
+  science: Science,
+  start: Start,
+  stop_circle: StopCircle,
+  sync_problem: SyncProblem,
+  timer_off: TimerOff,
+  wifi_find: WifiFind,
   browser_updated: BrowserUpdated,
   copy_all: CopyAll,
   tag: Tag,
