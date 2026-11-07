@@ -386,8 +386,14 @@ export { CnMetricCard, CnSparkline } from "./components/CnMetricCard";
 export type { CnMetricCardProps, CnMetricColor, CnMetricTrend } from "./components/CnMetricCard";
 
 export {
+  CN_STATUS_PRESETS,
+  CnCellPill,
+  CnCopyButton,
   CnDataTable,
+  CnEmptyCell,
   copyRows,
+  formatRelative,
+  printRows,
   exportRows,
   formatCellText,
   neutralizeFormula,
@@ -398,6 +404,7 @@ export type {
   CnAggregate,
   CnBulkAction,
   CnCellOptions,
+  CnCellTone,
   CnCellType,
   CnColumn,
   CnDataTableProps,

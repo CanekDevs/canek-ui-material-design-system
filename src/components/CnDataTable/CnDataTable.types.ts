@@ -37,6 +37,10 @@ export type CnColumn<T extends CnRow = CnRow> = {
   footer?: ReactNode | ((rows: T[]) => ReactNode);
   /** Fija la columna a la izquierda al hacer scroll horizontal. */
   sticky?: boolean;
+  /** Filtro de la columna: texto (por defecto) o lista de opciones (estado, booleano…). */
+  filter?: "text" | "select";
+  /** Ancho redimensionable. Por defecto `true`. */
+  resizable?: boolean;
   /** Muestra la columna en la vista de tarjetas (móvil). Por defecto `true`. */
   showInCards?: boolean;
 };
@@ -126,7 +130,17 @@ export type CnDataTableProps<T extends CnRow = CnRow> = {
   renderDetail?: (row: T) => ReactNode;
   getRowTone?: (row: T) => "error" | "warning" | "success" | "info" | undefined;
 
-  density?: "compact" | "comfortable";
+  density?: "compact" | "comfortable" | "spacious";
+  /** Casilla en la barra para mostrar/ocultar la columna de selección. */
+  selectionToggle?: boolean;
+  /** Botón "Imprimir". Por defecto `true`. */
+  printable?: boolean;
+  /** Botón de pantalla completa. Por defecto `true`. */
+  fullscreenToggle?: boolean;
+  /** Reordenar columnas arrastrándolas. Por defecto `true`. */
+  columnReorder?: boolean;
+  /** Redimensionar columnas. Por defecto `true`. */
+  columnResize?: boolean;
   striped?: boolean;
   hoverable?: boolean;
   stickyHeader?: boolean;

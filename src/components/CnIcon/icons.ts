@@ -1,6 +1,21 @@
 import type { SvgIconComponent } from "@mui/icons-material";
 
 import AccessTime from "@mui/icons-material/AccessTime";
+import BrowserUpdated from "@mui/icons-material/BrowserUpdated";
+import CopyAll from "@mui/icons-material/CopyAll";
+import Tag from "@mui/icons-material/Tag";
+import PhoneDisabled from "@mui/icons-material/PhoneDisabled";
+import Unsubscribe from "@mui/icons-material/Unsubscribe";
+import HideImage from "@mui/icons-material/HideImage";
+import LocationOff from "@mui/icons-material/LocationOff";
+import PersonOff from "@mui/icons-material/PersonOff";
+import LabelOff from "@mui/icons-material/LabelOff";
+import HelpOutline from "@mui/icons-material/HelpOutline";
+import TableView from "@mui/icons-material/TableView";
+import TableRows from "@mui/icons-material/TableRows";
+import SelectAll from "@mui/icons-material/SelectAll";
+import WidthNormal from "@mui/icons-material/WidthNormal";
+import DragHandle from "@mui/icons-material/DragHandle";
 import AccountBalance from "@mui/icons-material/AccountBalance";
 import AccountBalanceWallet from "@mui/icons-material/AccountBalanceWallet";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -359,6 +374,21 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 
 export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
+  browser_updated: BrowserUpdated,
+  copy_all: CopyAll,
+  tag: Tag,
+  phone_disabled: PhoneDisabled,
+  unsubscribe: Unsubscribe,
+  hide_image: HideImage,
+  location_off: LocationOff,
+  person_off: PersonOff,
+  label_off: LabelOff,
+  help_outline: HelpOutline,
+  table_view: TableView,
+  table_rows: TableRows,
+  select_all: SelectAll,
+  width_normal: WidthNormal,
+  drag_handle: DragHandle,
   access_time: AccessTime,
   account_balance: AccountBalance,
   account_balance_wallet: AccountBalanceWallet,

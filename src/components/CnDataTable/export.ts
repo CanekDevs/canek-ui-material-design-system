@@ -132,3 +132,44 @@ export const copyRows = async (
     return false;
   }
 };
+
+/**
+ * Abre una vista de impresión con la tabla (título, fecha y conteo). El
+ * contenido se escapa: nunca se interpreta HTML de los datos.
+ */
+export const printRows = (
+  columns: CnExportColumn[],
+  rows: CnExportRow[],
+  title = "Tabla",
+): boolean => {
+  if (typeof window === "undefined") return false;
+  const win = window.open("", "_blank", "noopener=no,width=1100,height=800");
+  if (!win) return false;
+  const head = columns.map((c) => `<th>${escapeHtml(c.header)}</th>`).join("");
+  const body = rows
+    .map(
+      (row) =>
+        `<tr>${columns.map((c) => `<td>${escapeHtml(toText(row[c.id]))}</td>`).join("")}</tr>`,
+    )
+    .join("");
+  const stamp = new Date().toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" });
+  win.document
+    .write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #222831; margin: 24px; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  p { margin: 0 0 16px; color: #6e7682; font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th { text-align: left; background: #f4f5f7; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: #4e5660; }
+  th, td { padding: 6px 8px; border-bottom: 1px solid #dde0e4; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  @page { size: landscape; margin: 12mm; }
+</style></head><body>
+<h1>${escapeHtml(title)}</h1><p>${rows.length} registros · ${escapeHtml(stamp)}</p>
+<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
+<script>window.onload = function () { window.focus(); window.print(); };</script>
+</body></html>`);
+  win.document.close();
+  return true;
+};

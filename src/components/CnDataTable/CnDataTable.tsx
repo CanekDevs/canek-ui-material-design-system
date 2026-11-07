@@ -1,39 +1,42 @@
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ClearIcon from "@mui/icons-material/Clear";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DensityLargeIcon from "@mui/icons-material/DensityLarge";
 import DensityMediumIcon from "@mui/icons-material/DensityMedium";
 import DensitySmallIcon from "@mui/icons-material/DensitySmall";
-import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import DragHandleIcon from "@mui/icons-material/DragHandle";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import FilterListOffIcon from "@mui/icons-material/FilterListOff";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import SearchIcon from "@mui/icons-material/Search";
-import ViewColumnOutlinedIcon from "@mui/icons-material/ViewColumnOutlined";
+import SwapVertIcon from "@mui/icons-material/SwapVert";
+import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import Box from "@mui/material/Box";
 import Checkbox from "@mui/material/Checkbox";
 import Collapse from "@mui/material/Collapse";
+import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
 import InputBase from "@mui/material/InputBase";
+import LinearProgress from "@mui/material/LinearProgress";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Snackbar from "@mui/material/Snackbar";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableFooter from "@mui/material/TableFooter";
-import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import TableSortLabel from "@mui/material/TableSortLabel";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import type {
   ColumnDef,
+  ColumnOrderState,
+  ColumnPinningState,
+  ColumnSizingState,
   ExpandedState,
   PaginationState,
   RowSelectionState,
@@ -47,7 +50,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import type { MouseEvent } from "react";
+import type { DragEvent, MouseEvent } from "react";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mergeSx } from "../../utils/field-styles";
 import { normalizeSearchText } from "../CnAutocompleteField";
@@ -69,41 +72,107 @@ import type {
   CnTableQuery,
 } from "./CnDataTable.types";
 import type { CnExportColumn, CnExportFormat, CnExportRow } from "./export";
-import { copyRows, exportRows } from "./export";
+import { copyRows, exportRows, printRows } from "./export";
 
-const FORMAT_LABELS: Record<CnExportFormat, string> = {
-  csv: "CSV",
-  xls: "Excel (.xls)",
-  tsv: "TSV",
-  json: "JSON",
+// ─── Constantes ───────────────────────────────────────────────────────────
+
+const FORMATS: Record<CnExportFormat, { label: string; description: string; icon: string }> = {
+  xls: { label: "Excel", description: "Hoja de cálculo (.xls)", icon: "table_view" },
+  csv: { label: "CSV", description: "Valores separados por comas", icon: "dataset" },
+  tsv: { label: "TSV", description: "Valores separados por tabuladores", icon: "view_list" },
+  json: { label: "JSON", description: "Estructura de datos JSON", icon: "data_object" },
 };
 
+const COPY_FORMATS = [
+  {
+    id: "tsv" as const,
+    label: "Tabla",
+    description: "Se pega como tabla en Excel o Sheets",
+    icon: "table_rows",
+  },
+  {
+    id: "markdown" as const,
+    label: "Markdown",
+    description: "Para documentación o tickets",
+    icon: "notes",
+  },
+  { id: "json" as const, label: "JSON", description: "Estructura de datos", icon: "data_object" },
+];
+
 const AGGREGATE_LABELS: Record<CnAggregate, string> = {
-  sum: "Total",
+  sum: "Suma total",
   avg: "Promedio",
   min: "Mínimo",
   max: "Máximo",
-  count: "Registros",
+  count: "Conteo total",
+};
+
+const DENSITY = {
+  compact: { y: 6, label: "Compacta", next: "comfortable" as const },
+  comfortable: { y: 10, label: "Cómoda", next: "spacious" as const },
+  spacious: { y: 16, label: "Amplia", next: "compact" as const },
 };
 
 const TONES = {
-  error: "var(--cn-color-error-50, #fcecec)",
-  warning: "var(--cn-color-warning-50, #fdf6e6)",
-  success: "var(--cn-color-success-50, #eaf7ee)",
-  info: "var(--cn-color-info-50, #eaf3fb)",
+  error: "rgba(214, 60, 60, 0.06)",
+  warning: "rgba(196, 132, 16, 0.07)",
+  success: "rgba(34, 135, 64, 0.06)",
+  info: "rgba(34, 100, 159, 0.06)",
 };
 
-const readStore = <V,>(key: string | undefined, fallback: V): V => {
-  if (!key || typeof window === "undefined") return fallback;
+const DEFAULT_WIDTH: Partial<Record<string, number>> = {
+  id: 150,
+  code: 180,
+  rfc: 220,
+  curp: 280,
+  number: 140,
+  currency: 200,
+  percent: 140,
+  progress: 170,
+  date: 200,
+  datetime: 230,
+  time: 140,
+  duration: 140,
+  boolean: 170,
+  status: 170,
+  tags: 230,
+  avatar: 240,
+  email: 280,
+  phone: 210,
+  link: 190,
+  location: 240,
+  image: 100,
+  rating: 140,
+};
+
+const LEAD_SELECT = 48;
+const LEAD_EXPAND = 44;
+
+type Scope = "all" | "page" | "selected";
+
+// ─── Persistencia ─────────────────────────────────────────────────────────
+
+type Stored = {
+  visibility?: VisibilityState;
+  density?: "compact" | "comfortable" | "spacious";
+  pageSize?: number;
+  sorting?: SortingState;
+  order?: ColumnOrderState;
+  sizing?: ColumnSizingState;
+  pinning?: ColumnPinningState;
+};
+
+const readStore = (key: string | undefined): Stored => {
+  if (!key || typeof window === "undefined") return {};
   try {
     const raw = window.localStorage.getItem(`cnDataTable.${key}`);
-    return raw ? { ...fallback, ...JSON.parse(raw) } : fallback;
+    return raw ? (JSON.parse(raw) as Stored) : {};
   } catch {
-    return fallback;
+    return {};
   }
 };
 
-const writeStore = (key: string | undefined, value: unknown) => {
+const writeStore = (key: string | undefined, value: Stored) => {
   if (!key || typeof window === "undefined") return;
   try {
     window.localStorage.setItem(`cnDataTable.${key}`, JSON.stringify(value));
@@ -112,12 +181,7 @@ const writeStore = (key: string | undefined, value: unknown) => {
   }
 };
 
-type Stored = {
-  visibility: VisibilityState;
-  density?: "compact" | "comfortable";
-  pageSize?: number;
-  sorting?: SortingState;
-};
+// ─── Valores ──────────────────────────────────────────────────────────────
 
 const valueOf = <T extends CnRow>(column: CnColumn<T>, row: T): unknown =>
   column.accessor ? column.accessor(row) : getNestedValue(row, column.id);
@@ -151,11 +215,29 @@ const aggregate = <T extends CnRow>(column: CnColumn<T>, rows: T[]): number | nu
   }
 };
 
+const headerText = <T extends CnRow>(column: CnColumn<T>) =>
+  typeof column.header === "string" ? column.header : column.id;
+
+// ─── Estilos compartidos ──────────────────────────────────────────────────
+
+const toolbarIconSx = {
+  color: "var(--cn-color-neutral-700, #3a4048)",
+  "&:hover": { backgroundColor: "rgba(37, 77, 135, 0.08)" },
+};
+
+const outlinedToolbarButtonSx = {
+  height: 32,
+  px: "10px",
+  textTransform: "none" as const,
+};
+
 /**
- * Tabla de datos: orden (múltiple con Shift), búsqueda sin acentos, filtros
- * por columna, paginación, selección con acciones masivas, acciones por fila
- * con confirmación, detalle expandible, agregados en el pie, exportación,
- * columnas visibles persistentes, modo servidor y vista de tarjetas en móvil.
+ * Tabla de datos con el lenguaje visual de Canek: celdas tipadas en píldora con
+ * copiar, barra Descargar/Copiar/Imprimir, búsqueda sin acentos, filtros por
+ * columna, orden múltiple, columnas que se mueven, redimensionan y fijan,
+ * densidad, pantalla completa, selección con acciones masivas, acciones por
+ * fila con confirmación, detalle expandible, totales, modo servidor,
+ * preferencias persistentes y vista de tarjetas en móvil.
  */
 export const CnDataTable = <T extends CnRow>({
   data,
@@ -167,11 +249,11 @@ export const CnDataTable = <T extends CnRow>({
   error,
   toolbarActions,
   searchable = true,
-  searchPlaceholder = "Buscar…",
+  searchPlaceholder = "Buscar en todas las columnas…",
   columnFilters: columnFiltersEnabled = false,
   columnToggle = true,
   densityToggle = true,
-  exportFormats = ["xls", "csv", "json"],
+  exportFormats = ["xls", "csv", "tsv", "json"],
   copyable = true,
   exportFilename,
   fetchAllRows,
@@ -190,7 +272,7 @@ export const CnDataTable = <T extends CnRow>({
   onRowClick,
   renderDetail,
   getRowTone,
-  density: densityProp = "compact",
+  density: densityProp = "comfortable",
   striped = false,
   hoverable = true,
   stickyHeader = false,
@@ -198,6 +280,11 @@ export const CnDataTable = <T extends CnRow>({
   mobileLayout = "cards",
   persistKey,
   serverSide,
+  selectionToggle = false,
+  printable = true,
+  fullscreenToggle = true,
+  columnReorder = true,
+  columnResize = true,
   emptyTitle = "Sin registros",
   emptyDescription = "No hay información para mostrar.",
   emptyIcon = "inbox",
@@ -209,6 +296,7 @@ export const CnDataTable = <T extends CnRow>({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const cardsMode = isMobile && mobileLayout === "cards";
 
+  const stored = useMemo(() => readStore(persistKey), [persistKey]);
   const initialVisibility = useMemo(() => {
     const base: VisibilityState = {};
     for (const column of columns) if (column.hidden) base[column.id] = false;
@@ -216,21 +304,22 @@ export const CnDataTable = <T extends CnRow>({
     // Solo al montar.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const stored = useMemo(
-    () =>
-      readStore<Stored>(persistKey, {
-        visibility: initialVisibility,
-        density: densityProp,
-        pageSize: initialPageSize,
-        sorting: defaultSort,
-      }),
+  const initialPinning = useMemo<ColumnPinningState>(
+    () => ({ left: columns.filter((c) => c.sticky).map((c) => c.id), right: [] }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
-  const [visibility, setVisibility] = useState<VisibilityState>(stored.visibility);
+  const [visibility, setVisibility] = useState<VisibilityState>(
+    stored.visibility ?? initialVisibility,
+  );
   const [density, setDensity] = useState(stored.density ?? densityProp);
   const [sorting, setSorting] = useState<SortingState>(stored.sorting ?? defaultSort);
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(stored.order ?? []);
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(stored.sizing ?? {});
+  const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(
+    stored.pinning ?? initialPinning,
+  );
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [showFilters, setShowFilters] = useState(columnFiltersEnabled);
@@ -239,17 +328,45 @@ export const CnDataTable = <T extends CnRow>({
     pageSize: stored.pageSize ?? initialPageSize,
   });
   const [internalSelection, setInternalSelection] = useState<RowSelectionState>({});
+  const [selectionVisible, setSelectionVisible] = useState(!selectionToggle);
   const [expanded, setExpanded] = useState<ExpandedState>({});
+  const [fullscreen, setFullscreen] = useState(false);
   const [confirmState, setConfirmState] = useState<{
     options: CnConfirmOptions;
     run: () => void | Promise<unknown>;
   } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
 
   useEffect(() => {
-    writeStore(persistKey, { visibility, density, pageSize: paginationState.pageSize, sorting });
-  }, [density, paginationState.pageSize, persistKey, sorting, visibility]);
+    writeStore(persistKey, {
+      visibility,
+      density,
+      pageSize: paginationState.pageSize,
+      sorting,
+      order: columnOrder,
+      sizing: columnSizing,
+      pinning: columnPinning,
+    });
+  }, [
+    columnOrder,
+    columnPinning,
+    columnSizing,
+    density,
+    paginationState.pageSize,
+    persistKey,
+    sorting,
+    visibility,
+  ]);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setFullscreen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [fullscreen]);
 
   const rowIdOf = useCallback(
     (row: T, index: number) => {
@@ -260,23 +377,32 @@ export const CnDataTable = <T extends CnRow>({
     [getRowId],
   );
 
-  // ─── Selección (controlada o interna) ──────────────────────────────────
   const selection = useMemo<RowSelectionState>(() => {
     if (!selectedIds) return internalSelection;
     return Object.fromEntries(selectedIds.map((id) => [id, true]));
   }, [internalSelection, selectedIds]);
 
-  // ─── Columnas para el motor ───────────────────────────────────────────
+  const columnsById = useMemo(() => new Map(columns.map((c) => [c.id, c])), [columns]);
+
+  // ─── Motor ────────────────────────────────────────────────────────────
   const columnDefs = useMemo<ColumnDef<T>[]>(
     () =>
       columns.map((column) => ({
         id: column.id,
         accessorFn: (row: T) => valueOf(column, row),
         header: () => column.header,
+        size:
+          typeof column.width === "number"
+            ? column.width
+            : (DEFAULT_WIDTH[column.type ?? "text"] ?? 190),
+        minSize: column.minWidth ?? 90,
+        maxSize: 900,
+        enableResizing: columnResize && column.resizable !== false,
         enableSorting: sortable && column.sortable !== false,
         sortDescFirst: false,
         enableHiding: column.hideable !== false,
         enableColumnFilter: column.filterable !== false,
+        enablePinning: true,
         sortingFn: (a, b) => {
           const va = valueOf(column, a.original);
           const vb = valueOf(column, b.original);
@@ -285,29 +411,32 @@ export const CnDataTable = <T extends CnRow>({
           if (vb === null || vb === undefined || vb === "") return -1;
           const na = Number(va);
           const nb = Number(vb);
-          if (
-            typeof va !== "boolean" &&
-            Number.isFinite(na) &&
-            Number.isFinite(nb) &&
-            va !== "" &&
-            vb !== ""
-          )
-            return na - nb;
+          if (typeof va !== "boolean" && Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
           return String(va).localeCompare(String(vb), "es", { numeric: true, sensitivity: "base" });
         },
-        filterFn: (row, _id, needle: string) =>
-          normalizeSearchText(textOf(column, row.original)).includes(normalizeSearchText(needle)),
+        filterFn: (row, _id, needle: string) => {
+          if (column.filter === "select")
+            return String(valueOf(column, row.original) ?? "") === needle;
+          return normalizeSearchText(textOf(column, row.original)).includes(
+            normalizeSearchText(needle),
+          );
+        },
       })),
-    [columns, sortable],
+    [columnResize, columns, sortable],
   );
 
   const isServer = Boolean(serverSide);
+  const serverFilters = serverSide?.query.filters;
+  const activeFilters = useMemo(
+    () => (isServer ? (serverFilters ?? {}) : filters),
+    [filters, isServer, serverFilters],
+  );
   const columnFiltersState = useMemo(
     () =>
-      Object.entries(isServer ? (serverSide?.query.filters ?? {}) : filters)
-        .filter(([, value]) => value)
+      Object.entries(activeFilters)
+        .filter(([, v]) => v)
         .map(([id, value]) => ({ id, value })),
-    [filters, isServer, serverSide?.query.filters],
+    [activeFilters],
   );
 
   const emitQuery = (patch: Partial<CnTableQuery>) => {
@@ -322,6 +451,9 @@ export const CnDataTable = <T extends CnRow>({
     state: {
       sorting: isServer ? (serverSide?.query.sorting ?? []) : sorting,
       columnVisibility: visibility,
+      columnOrder,
+      columnSizing,
+      columnPinning,
       globalFilter: isServer ? serverSide?.query.search : search,
       columnFilters: columnFiltersState,
       pagination: isServer
@@ -330,6 +462,7 @@ export const CnDataTable = <T extends CnRow>({
       rowSelection: selection,
       expanded,
     },
+    columnResizeMode: "onChange",
     manualPagination: isServer,
     manualSorting: isServer,
     manualFiltering: isServer,
@@ -354,6 +487,9 @@ export const CnDataTable = <T extends CnRow>({
       else setSorting(next);
     },
     onColumnVisibilityChange: setVisibility,
+    onColumnOrderChange: setColumnOrder,
+    onColumnSizingChange: setColumnSizing,
+    onColumnPinningChange: setColumnPinning,
     onPaginationChange: (updater) => {
       const prev = isServer
         ? { pageIndex: serverSide!.query.pageIndex, pageSize: serverSide!.query.pageSize }
@@ -377,12 +513,10 @@ export const CnDataTable = <T extends CnRow>({
     getPaginationRowModel: pagination && !isServer ? getPaginationRowModel() : undefined,
   });
 
-  // Vuelve a la primera página cuando cambia la búsqueda o los filtros.
   useEffect(() => {
     if (!isServer) setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [filters, isServer, search]);
 
-  // Si la página actual queda fuera de rango (datos nuevos), retrocede.
   const pageCount = table.getPageCount();
   useEffect(() => {
     if (isServer || !pagination) return;
@@ -391,43 +525,53 @@ export const CnDataTable = <T extends CnRow>({
     }
   }, [isServer, pageCount, pagination, paginationState.pageIndex]);
 
-  const visibleColumns = columns.filter((column) => visibility[column.id] !== false);
+  // Columnas visibles en el orden actual (fijadas primero).
+  const leafColumns = table.getVisibleLeafColumns();
+  const visibleColumns = leafColumns.map((c) => columnsById.get(c.id) as CnColumn<T>);
   const filteredRows = table.getFilteredRowModel().rows.map((row) => row.original);
   const pageRows = table.getRowModel().rows;
   const selectedRows = table.getSelectedRowModel().flatRows.map((row) => row.original);
   const totalCount = isServer ? (serverSide?.rowCount ?? 0) : filteredRows.length;
+  const allCount = isServer ? (serverSide?.rowCount ?? 0) : data.length;
+  const searchValue = isServer ? (serverSide?.query.search ?? "") : search;
+  const isFiltered = Boolean(searchValue) || columnFiltersState.length > 0;
+  const showSelection = selectable && selectionVisible;
 
-  // ─── Exportación ──────────────────────────────────────────────────────
+  // ─── Exportación / impresión ──────────────────────────────────────────
   const exportColumns: CnExportColumn[] = visibleColumns.map((column) => ({
     id: column.id,
-    header: typeof column.header === "string" ? column.header : column.id,
+    header: headerText(column),
   }));
   const toExportRows = (rows: T[]): CnExportRow[] =>
     rows.map((row) => Object.fromEntries(visibleColumns.map((c) => [c.id, textOf(c, row)])));
 
-  const rowsForScope = async (scope: "all" | "page" | "selected"): Promise<T[]> => {
+  const rowsForScope = async (scope: Scope): Promise<T[]> => {
     if (scope === "selected") return selectedRows;
     if (scope === "page") return pageRows.map((row) => row.original);
     if (isServer && fetchAllRows) return fetchAllRows();
     return isServer ? (data as T[]) : filteredRows;
   };
 
-  const runExport = async (format: CnExportFormat, scope: "all" | "page" | "selected") => {
+  const baseName =
+    exportFilename ??
+    (typeof title === "string" ? normalizeSearchText(title).replace(/[^\w]+/g, "-") : "tabla");
+
+  const runExport = async (format: CnExportFormat, scope: Scope) => {
     setBusy(true);
     try {
       const rows = await rowsForScope(scope);
-      const base =
-        exportFilename ??
-        (typeof title === "string" ? normalizeSearchText(title).replace(/\s+/g, "-") : "tabla");
-      exportRows(format, exportColumns, toExportRows(rows), base);
+      exportRows(format, exportColumns, toExportRows(rows), baseName);
+      setNotice(
+        `${rows.length} ${rows.length === 1 ? "registro exportado" : "registros exportados"}`,
+      );
     } finally {
       setBusy(false);
     }
   };
 
-  const runCopy = async (scope: "all" | "page" | "selected") => {
+  const runCopy = async (format: "tsv" | "json" | "markdown", scope: Scope) => {
     const rows = await rowsForScope(scope);
-    const ok = await copyRows(exportColumns, toExportRows(rows));
+    const ok = await copyRows(exportColumns, toExportRows(rows), format);
     setNotice(
       ok
         ? `${rows.length} ${rows.length === 1 ? "fila copiada" : "filas copiadas"}`
@@ -435,7 +579,17 @@ export const CnDataTable = <T extends CnRow>({
     );
   };
 
-  // ─── Acciones con confirmación ────────────────────────────────────────
+  const runPrint = async (scope: Scope) => {
+    const rows = await rowsForScope(scope);
+    const ok = printRows(
+      exportColumns,
+      toExportRows(rows),
+      typeof title === "string" ? title : "Tabla",
+    );
+    if (!ok) setNotice("Permite las ventanas emergentes para imprimir");
+  };
+
+  // ─── Confirmaciones ───────────────────────────────────────────────────
   const withConfirm = (
     confirm: CnConfirmOptions | undefined,
     run: () => void | Promise<unknown>,
@@ -443,27 +597,21 @@ export const CnDataTable = <T extends CnRow>({
     if (confirm) setConfirmState({ options: confirm, run });
     else void run();
   };
-
   const runRowAction = (action: CnRowAction<T>, row: T) =>
     withConfirm(typeof action.confirm === "function" ? action.confirm(row) : action.confirm, () =>
       action.onClick(row),
     );
 
   // ─── Menús ────────────────────────────────────────────────────────────
-  const [menu, setMenu] = useState<{
-    kind: "columns" | "export" | "row";
-    anchor: HTMLElement;
-    row?: T;
-  } | null>(null);
+  type MenuState =
+    | { kind: "columns" | "export" | "copy" | "print"; anchor: HTMLElement }
+    | { kind: "scope"; anchor: HTMLElement; action: (scope: Scope) => void; title: string }
+    | { kind: "row"; anchor: HTMLElement; row: T }
+    | { kind: "column"; anchor: HTMLElement; columnId: string };
+  const [menu, setMenu] = useState<MenuState | null>(null);
   const closeMenu = () => setMenu(null);
 
-  const cellPadding = density === "compact" ? "6px 12px" : "12px 16px";
-  const hasActions = Boolean(rowActions?.length);
-  const leadingCols = (selectable ? 1 : 0) + (renderDetail ? 1 : 0);
-  const totalCols = leadingCols + visibleColumns.length + (hasActions ? 1 : 0);
-  const showFooter = visibleColumns.some((column) => column.aggregate || column.footer);
-  const searchValue = isServer ? (serverSide?.query.search ?? "") : search;
-  const searchRef = useRef<HTMLInputElement | null>(null);
+  const filterInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const setColumnFilter = (id: string, value: string) => {
     if (isServer)
@@ -471,18 +619,56 @@ export const CnDataTable = <T extends CnRow>({
     else setFilters((prev) => ({ ...prev, [id]: value }));
   };
 
-  const actionsFor = (row: T) =>
-    (rowActions ?? []).filter((action) => !action.visible || action.visible(row));
+  const actionsFor = (row: T) => (rowActions ?? []).filter((a) => !a.visible || a.visible(row));
+  const hasActions = Boolean(rowActions?.length);
+
+  // ─── Reordenar columnas (arrastrar el asa) ────────────────────────────
+  const moveColumn = (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+    const current = columnOrder.length ? [...columnOrder] : columns.map((c) => c.id);
+    for (const c of columns) if (!current.includes(c.id)) current.push(c.id);
+    const from = current.indexOf(sourceId);
+    const to = current.indexOf(targetId);
+    current.splice(from, 1);
+    current.splice(to, 0, sourceId);
+    setColumnOrder(current);
+  };
+
+  const resetLayout = () => {
+    setColumnOrder([]);
+    setColumnSizing({});
+    setVisibility(initialVisibility);
+    setColumnPinning(initialPinning);
+    setSorting(defaultSort);
+  };
+
+  // ─── Geometría para columnas fijadas ──────────────────────────────────
+  const leadWidth = (showSelection ? LEAD_SELECT : 0) + (renderDetail ? LEAD_EXPAND : 0);
+  const pinnedLeftIds = new Set(columnPinning.left ?? []);
+  const leftOffset = (columnId: string) => leadWidth + table.getColumn(columnId)!.getStart("left");
+  const lastPinned = [...leafColumns].reverse().find((c) => pinnedLeftIds.has(c.id))?.id;
+
+  const padY = DENSITY[density].y;
+  const cellPad = `${padY}px 12px`;
+
+  // ─── Render de celdas ─────────────────────────────────────────────────
+  const renderCellContent = (column: CnColumn<T>, row: T, index: number) => {
+    const value = valueOf(column, row);
+    if (column.cell) return column.cell(value, row, index);
+    return renderTypedCell(column.type ?? "text", value, row, column.cellOptions);
+  };
+
+  const alignOf = (column: CnColumn<T>) => column.align ?? "left";
 
   const renderActionsCell = (row: T) => {
     const actions = actionsFor(row);
     if (actions.length === 0) return null;
-    const inline = actions.filter((action) => action.inline);
-    const inMenu = actions.filter((action) => !action.inline);
+    const inline = actions.filter((a) => a.inline);
+    const inMenu = actions.filter((a) => !a.inline);
     return (
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: "2px" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", gap: "2px" }}>
         {inline.map((action) => (
-          <Tooltip key={action.id} title={action.label}>
+          <Tooltip key={action.id} title={action.label} arrow>
             <span>
               <IconButton
                 size="small"
@@ -496,7 +682,7 @@ export const CnDataTable = <T extends CnRow>({
                   color:
                     action.color === "error"
                       ? "var(--cn-color-error-600, #b52f2f)"
-                      : "var(--cn-color-neutral-600, #4e5660)",
+                      : "var(--cn-color-brand-600, #254d87)",
                 }}
               >
                 <CnIcon name={action.icon ?? "more_horiz"} size="sm" />
@@ -505,26 +691,22 @@ export const CnDataTable = <T extends CnRow>({
           </Tooltip>
         ))}
         {inMenu.length > 0 && (
-          <IconButton
-            size="small"
-            aria-label="Acciones"
-            aria-haspopup="menu"
-            onClick={(event) => {
-              event.stopPropagation();
-              setMenu({ kind: "row", anchor: event.currentTarget, row });
-            }}
-          >
-            <MoreVertIcon fontSize="small" />
-          </IconButton>
+          <Tooltip title="Opciones" arrow>
+            <IconButton
+              size="small"
+              aria-label="Acciones"
+              aria-haspopup="menu"
+              onClick={(event) => {
+                event.stopPropagation();
+                setMenu({ kind: "row", anchor: event.currentTarget, row });
+              }}
+            >
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         )}
       </Box>
     );
-  };
-
-  const renderCellContent = (column: CnColumn<T>, row: T, index: number) => {
-    const value = valueOf(column, row);
-    if (column.cell) return column.cell(value, row, index);
-    return renderTypedCell(column.type ?? "text", value, row, column.cellOptions);
   };
 
   const renderFooterValue = (column: CnColumn<T>) => {
@@ -536,49 +718,132 @@ export const CnDataTable = <T extends CnRow>({
       column.aggregate === "count"
         ? result.toLocaleString("es-MX")
         : formatCellText(
-            column.type === "currency" || column.type === "percent" ? column.type : "number",
+            column.type === "currency" || column.type === "percent"
+              ? column.type
+              : column.type === "progress"
+                ? "percent"
+                : "number",
             result,
             {},
             column.cellOptions,
           );
     return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems:
-            column.align === "right" || column.type === "currency" || column.type === "number"
-              ? "flex-end"
-              : "flex-start",
-        }}
-      >
+      <Box sx={{ display: "inline-flex", flexDirection: "column", gap: "2px" }}>
         <Box
           component="span"
           sx={{
-            fontSize: "var(--cn-font-size-xs, 11px)",
+            fontSize: "0.62rem",
+            fontWeight: 600,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
             color: "var(--cn-color-text-muted, #6e7682)",
-            fontWeight: 500,
           }}
         >
           {AGGREGATE_LABELS[column.aggregate as CnAggregate]}
         </Box>
-        <Box component="span" sx={{ fontVariantNumeric: "tabular-nums" }}>
+        <Box
+          component="span"
+          sx={{
+            fontFamily: "var(--cn-font-mono, ui-monospace, monospace)",
+            fontSize: "0.82rem",
+            fontWeight: 800,
+            color: "var(--cn-color-brand-700, #1c3d6d)",
+          }}
+        >
           {formatted}
         </Box>
       </Box>
     );
   };
 
-  const alignOf = (column: CnColumn<T>) =>
-    column.align ??
-    (column.type === "number" ||
-    column.type === "currency" ||
-    column.type === "percent" ||
-    column.type === "duration"
-      ? "right"
-      : "left");
+  // ─── Opciones de filtro "select" ──────────────────────────────────────
+  const selectOptions = (column: CnColumn<T>): { value: string; label: string }[] => {
+    const map = column.cellOptions?.statusMap;
+    if (map) {
+      return Object.entries(map).map(([value, option]) => ({
+        value,
+        label: typeof option.label === "string" ? option.label : value,
+      }));
+    }
+    if (column.type === "boolean") {
+      return [
+        { value: "true", label: String(column.cellOptions?.trueLabel ?? "Sí") },
+        { value: "false", label: String(column.cellOptions?.falseLabel ?? "No") },
+      ];
+    }
+    const seen = new Map<string, string>();
+    for (const row of data) {
+      const raw = valueOf(column, row);
+      if (raw === null || raw === undefined || raw === "") continue;
+      seen.set(String(raw), textOf(column, row));
+      if (seen.size > 50) break;
+    }
+    return [...seen.entries()]
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, "es"));
+  };
 
-  // ─── Barra de herramientas ────────────────────────────────────────────
+  // ─── Barra superior ───────────────────────────────────────────────────
+  const exportEnabled = exportFormats !== false && exportFormats.length > 0;
+  const openScope = (anchor: HTMLElement, titleText: string, action: (scope: Scope) => void) =>
+    setMenu({ kind: "scope", anchor, title: titleText, action });
+
+  const caption = (title || description) && (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "space-between",
+        gap: "12px",
+        px: "4px",
+        pb: "8px",
+        mb: "12px",
+        borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
+      }}
+    >
+      <Box sx={{ minWidth: 0 }}>
+        {title && (
+          <Typography
+            component="h2"
+            sx={{
+              m: 0,
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--cn-color-neutral-700, #3a4048)",
+            }}
+          >
+            {title}
+          </Typography>
+        )}
+        {description && (
+          <Typography
+            sx={{ fontSize: "0.72rem", color: "var(--cn-color-text-muted, #6e7682)", mt: "2px" }}
+          >
+            {description}
+          </Typography>
+        )}
+      </Box>
+      <Typography
+        sx={{
+          flexShrink: 0,
+          fontSize: "0.68rem",
+          fontWeight: 500,
+          color: "var(--cn-color-text-muted, #6e7682)",
+        }}
+      >
+        {loading && allCount === 0
+          ? "Cargando…"
+          : isFiltered && !isServer
+            ? `${totalCount.toLocaleString("es-MX")} de ${allCount.toLocaleString("es-MX")} registros`
+            : `${totalCount.toLocaleString("es-MX")} ${totalCount === 1 ? "registro" : "registros"}`}
+      </Typography>
+    </Box>
+  );
+
+  const selectionCount = selectedRows.length;
+
   const toolbar = !hideToolbar && (
     <Box
       sx={{
@@ -586,49 +851,128 @@ export const CnDataTable = <T extends CnRow>({
         flexWrap: "wrap",
         alignItems: "center",
         gap: "8px",
-        px: "16px",
-        py: "12px",
-        borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
+        px: "12px",
+        py: "10px",
+        minHeight: 56,
+        borderBottom: "1px solid var(--cn-color-border-subtle, #eceef1)",
       }}
     >
-      {(title || description) && (
-        <Box sx={{ minWidth: 0, mr: "auto", display: "flex", flexDirection: "column" }}>
-          {title && (
-            <Typography
-              component="h2"
-              sx={{ m: 0, fontSize: "var(--cn-font-size-md, 14px)", fontWeight: 700 }}
-            >
-              {title}
-              <Box
-                component="span"
-                sx={{
-                  ml: "8px",
-                  fontSize: "var(--cn-font-size-xs, 11px)",
-                  fontWeight: 500,
-                  color: "var(--cn-color-text-muted, #6e7682)",
-                }}
-              >
-                {loading
-                  ? ""
-                  : `${totalCount.toLocaleString("es-MX")} ${totalCount === 1 ? "registro" : "registros"}`}
-              </Box>
-            </Typography>
-          )}
-          {description && (
-            <Typography
-              sx={{
-                fontSize: "var(--cn-font-size-xs, 11px)",
-                color: "var(--cn-color-text-muted, #6e7682)",
-              }}
-            >
-              {description}
-            </Typography>
-          )}
-        </Box>
+      {selectable && selectionToggle && (
+        <Tooltip
+          title={selectionVisible ? "Ocultar selección de filas" : "Seleccionar filas"}
+          arrow
+        >
+          <Checkbox
+            size="small"
+            checked={selectionVisible}
+            onChange={() => {
+              if (selectionVisible) table.resetRowSelection();
+              setSelectionVisible((prev) => !prev);
+            }}
+            slotProps={{ input: { "aria-label": "Mostrar selección de filas" } }}
+          />
+        </Tooltip>
       )}
+
+      {selectionCount > 0 ? (
+        <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" }}>
+          <Box
+            component="span"
+            sx={{
+              px: "10px",
+              py: "4px",
+              borderRadius: "999px",
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              color: "var(--cn-color-brand-700, #1c3d6d)",
+              backgroundColor: "rgba(37, 77, 135, 0.1)",
+            }}
+          >
+            {selectionCount} {selectionCount === 1 ? "seleccionado" : "seleccionados"}
+          </Box>
+          {bulkActions?.map((action) => (
+            <CnButton
+              key={action.id}
+              size="small"
+              variant="outlined"
+              color={action.color ?? "primary"}
+              startIcon={action.icon}
+              sx={outlinedToolbarButtonSx}
+              onClick={() =>
+                withConfirm(
+                  typeof action.confirm === "function"
+                    ? action.confirm(selectedRows)
+                    : action.confirm,
+                  async () => {
+                    await action.onClick(selectedRows);
+                    table.resetRowSelection();
+                  },
+                )
+              }
+            >
+              {action.label}
+            </CnButton>
+          ))}
+          <CnButton
+            size="small"
+            variant="text"
+            color="neutral"
+            onClick={() => table.resetRowSelection()}
+          >
+            Quitar selección
+          </CnButton>
+        </Box>
+      ) : (
+        (exportEnabled || copyable || printable) && (
+          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" }}>
+            {exportEnabled && (
+              <CnButton
+                size="small"
+                variant="outlined"
+                startIcon="browser_updated"
+                disabled={busy || totalCount === 0}
+                sx={outlinedToolbarButtonSx}
+                aria-haspopup="menu"
+                onClick={(event) => setMenu({ kind: "export", anchor: event.currentTarget })}
+              >
+                Descargar
+              </CnButton>
+            )}
+            {copyable && (
+              <CnButton
+                size="small"
+                variant="outlined"
+                startIcon="copy_all"
+                disabled={totalCount === 0}
+                sx={outlinedToolbarButtonSx}
+                aria-haspopup="menu"
+                onClick={(event) => setMenu({ kind: "copy", anchor: event.currentTarget })}
+              >
+                Copiar
+              </CnButton>
+            )}
+            {printable && !isMobile && (
+              <CnButton
+                size="small"
+                variant="outlined"
+                startIcon="print"
+                disabled={totalCount === 0}
+                sx={outlinedToolbarButtonSx}
+                onClick={(event) =>
+                  openScope(event.currentTarget, "Imprimir", (scope) => void runPrint(scope))
+                }
+              >
+                Imprimir
+              </CnButton>
+            )}
+          </Box>
+        )
+      )}
+
+      <Box sx={{ flex: 1 }} />
+
       {searchable && (
         <InputBase
-          inputRef={searchRef}
           value={searchValue}
           onChange={(event) => {
             if (isServer) emitQuery({ search: event.target.value, pageIndex: 0 });
@@ -637,102 +981,98 @@ export const CnDataTable = <T extends CnRow>({
           placeholder={searchPlaceholder}
           inputProps={{ "aria-label": "Buscar en la tabla" }}
           startAdornment={
-            <InputAdornment position="start">
-              <SearchIcon sx={{ fontSize: 18, color: "var(--cn-color-neutral-400, #9aa1aa)" }} />
-            </InputAdornment>
+            <SearchIcon
+              sx={{ fontSize: 20, color: "var(--cn-color-neutral-500, #6e7682)", mr: "6px" }}
+            />
           }
           endAdornment={
             searchValue ? (
               <IconButton
                 size="small"
                 aria-label="Limpiar búsqueda"
-                onClick={() => {
-                  if (isServer) emitQuery({ search: "", pageIndex: 0 });
-                  else setSearch("");
-                  searchRef.current?.focus();
-                }}
+                onClick={() => (isServer ? emitQuery({ search: "", pageIndex: 0 }) : setSearch(""))}
               >
                 <ClearIcon sx={{ fontSize: 16 }} />
               </IconButton>
             ) : undefined
           }
           sx={{
-            ml: title || description ? 0 : undefined,
-            flex: { xs: "1 1 100%", sm: "0 1 260px" },
-            order: { xs: 10, sm: 0 },
+            order: { xs: 10, md: 0 },
+            flex: { xs: "1 1 100%", md: "0 1 280px" },
             height: 34,
-            px: "8px",
-            fontSize: "var(--cn-font-size-base, 13px)",
-            borderRadius: "var(--cn-radius-md, 8px)",
+            px: "10px",
+            fontSize: "0.82rem",
+            borderRadius: "999px",
+            backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
             border: "1px solid var(--cn-color-border, #dde0e4)",
-            backgroundColor: "var(--cn-color-surface, #ffffff)",
-            "&.Mui-focused": { borderColor: "var(--cn-color-brand-500, #3562a6)" },
+            transition:
+              "border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease",
+            "&.Mui-focused": {
+              backgroundColor: "var(--cn-color-surface, #fff)",
+              borderColor: "var(--cn-color-brand-500, #3562a6)",
+              boxShadow: "0 0 0 3px rgba(53, 98, 166, 0.15)",
+            },
           }}
         />
       )}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: "2px",
-          ml: title || description ? 0 : "auto",
-        }}
-      >
+
+      <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
         {columns.some((c) => c.filterable !== false) && !cardsMode && (
-          <Tooltip title={showFilters ? "Ocultar filtros" : "Filtrar por columna"}>
+          <Tooltip title={showFilters ? "Ocultar filtros" : "Mostrar filtros"} arrow>
             <IconButton
-              size="small"
-              aria-pressed={showFilters}
               aria-label="Filtros por columna"
+              aria-pressed={showFilters}
               onClick={() => setShowFilters((prev) => !prev)}
-              sx={{ color: showFilters ? "var(--cn-color-brand-600, #254d87)" : undefined }}
+              sx={{
+                ...toolbarIconSx,
+                ...(showFilters && { color: "var(--cn-color-brand-600, #254d87)" }),
+              }}
             >
-              <FilterListIcon fontSize="small" />
+              {showFilters ? <FilterListOffIcon /> : <FilterListIcon />}
             </IconButton>
           </Tooltip>
         )}
         {columnToggle && (
-          <Tooltip title="Columnas">
+          <Tooltip title="Mostrar/ocultar columnas" arrow>
             <IconButton
-              size="small"
               aria-label="Columnas visibles"
               aria-haspopup="menu"
-              onClick={(e) => setMenu({ kind: "columns", anchor: e.currentTarget })}
+              onClick={(event) => setMenu({ kind: "columns", anchor: event.currentTarget })}
+              sx={toolbarIconSx}
             >
-              <ViewColumnOutlinedIcon fontSize="small" />
+              <ViewColumnIcon />
             </IconButton>
           </Tooltip>
         )}
         {densityToggle && !cardsMode && (
-          <Tooltip title={density === "compact" ? "Vista amplia" : "Vista compacta"}>
+          <Tooltip title={`Densidad: ${DENSITY[density].label}`} arrow>
             <IconButton
-              size="small"
               aria-label="Cambiar densidad"
-              onClick={() => setDensity((d) => (d === "compact" ? "comfortable" : "compact"))}
+              onClick={() => setDensity(DENSITY[density].next)}
+              sx={toolbarIconSx}
             >
               {density === "compact" ? (
-                <DensityMediumIcon fontSize="small" />
+                <DensitySmallIcon />
+              ) : density === "comfortable" ? (
+                <DensityMediumIcon />
               ) : (
-                <DensitySmallIcon fontSize="small" />
+                <DensityLargeIcon />
               )}
             </IconButton>
           </Tooltip>
         )}
-        {(exportFormats !== false && exportFormats.length > 0) || copyable ? (
-          <Tooltip title="Exportar">
-            <span>
-              <IconButton
-                size="small"
-                aria-label="Exportar"
-                aria-haspopup="menu"
-                disabled={busy || totalCount === 0}
-                onClick={(e) => setMenu({ kind: "export", anchor: e.currentTarget })}
-              >
-                <FileDownloadOutlinedIcon fontSize="small" />
-              </IconButton>
-            </span>
+        {fullscreenToggle && !isMobile && (
+          <Tooltip title={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"} arrow>
+            <IconButton
+              aria-label="Pantalla completa"
+              aria-pressed={fullscreen}
+              onClick={() => setFullscreen((prev) => !prev)}
+              sx={toolbarIconSx}
+            >
+              {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+            </IconButton>
           </Tooltip>
-        ) : null}
+        )}
       </Box>
       {toolbarActions && (
         <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>{toolbarActions}</Box>
@@ -740,96 +1080,408 @@ export const CnDataTable = <T extends CnRow>({
     </Box>
   );
 
-  const bulkBar = selectable && selectedRows.length > 0 && (
-    <Box
-      role="region"
-      aria-label="Acciones para la selección"
-      sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "center",
-        gap: "8px",
-        px: "16px",
-        py: "8px",
-        backgroundColor: "var(--cn-color-brand-50, #eef3fb)",
-        borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
-        fontSize: "var(--cn-font-size-sm, 12px)",
-      }}
-    >
-      <Box component="span" sx={{ fontWeight: 600, mr: "auto" }}>
-        {selectedRows.length} {selectedRows.length === 1 ? "seleccionado" : "seleccionados"}
-      </Box>
-      {bulkActions?.map((action) => (
-        <CnButton
-          key={action.id}
-          size="small"
-          variant="outlined"
-          color={action.color ?? "neutral"}
-          startIcon={action.icon}
-          onClick={() =>
-            withConfirm(
-              typeof action.confirm === "function" ? action.confirm(selectedRows) : action.confirm,
-              async () => {
-                await action.onClick(selectedRows);
-                table.resetRowSelection();
-              },
-            )
-          }
-        >
-          {action.label}
-        </CnButton>
-      ))}
-      <CnButton
-        size="small"
-        variant="text"
-        color="neutral"
-        onClick={() => table.resetRowSelection()}
-      >
-        Quitar selección
-      </CnButton>
-    </Box>
-  );
+  // ─── Encabezado ───────────────────────────────────────────────────────
+  const stickyCell = (left: number, z = 2) => ({
+    position: "sticky" as const,
+    left,
+    zIndex: z,
+    backgroundColor: "var(--cn-color-surface, #ffffff)",
+  });
 
-  // ─── Cuerpo ───────────────────────────────────────────────────────────
-  const isEmpty = !loading && pageRows.length === 0;
+  const headCellBase = {
+    position: "relative" as const,
+    boxSizing: "border-box" as const,
+    textAlign: "left" as const,
+    verticalAlign: "top",
+    padding: "10px 12px 8px",
+    borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
+    backgroundColor: "var(--cn-color-surface, #ffffff)",
+    color: "var(--cn-color-neutral-800, #2d333a)",
+  };
+
+  const isEmptyResult = !loading && pageRows.length === 0;
   const emptyNode = (
     <CnEmptyState
-      icon={searchValue || columnFiltersState.length ? "search_off" : emptyIcon}
-      title={searchValue || columnFiltersState.length ? "Sin resultados" : emptyTitle}
-      description={
-        searchValue || columnFiltersState.length
-          ? "Prueba con otra búsqueda o quita los filtros."
-          : emptyDescription
+      icon={isFiltered ? "search_off" : emptyIcon}
+      title={isFiltered ? "Sin resultados" : emptyTitle}
+      description={isFiltered ? "Prueba con otra búsqueda o quita los filtros." : emptyDescription}
+      action={
+        isFiltered ? (
+          <CnButton
+            size="small"
+            variant="outlined"
+            color="neutral"
+            onClick={() => {
+              if (isServer) emitQuery({ search: "", filters: {}, pageIndex: 0 });
+              else {
+                setSearch("");
+                setFilters({});
+              }
+            }}
+          >
+            Limpiar búsqueda y filtros
+          </CnButton>
+        ) : (
+          emptyAction
+        )
       }
-      action={searchValue || columnFiltersState.length ? undefined : emptyAction}
       size="sm"
     />
   );
 
-  const headerCellSx = {
-    padding: cellPadding,
-    fontSize: "var(--cn-font-size-xs, 11px)",
-    fontWeight: 700,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.03em",
-    color: "var(--cn-color-text-muted, #6e7682)",
-    backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
-    whiteSpace: "nowrap" as const,
-    borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
-  };
+  const totalCols =
+    (showSelection ? 1 : 0) + (renderDetail ? 1 : 0) + visibleColumns.length + (hasActions ? 1 : 0);
+  const showFooter =
+    !loading && !isEmptyResult && visibleColumns.some((c) => c.aggregate || c.footer);
+  const tableWidth = leadWidth + table.getTotalSize() + (hasActions ? 88 : 0);
+
+  const headerCells = table.getHeaderGroups()[0].headers.map((header) => {
+    const column = columnsById.get(header.column.id) as CnColumn<T>;
+    const sorted = header.column.getIsSorted();
+    const canSort = header.column.getCanSort();
+    const pinned = pinnedLeftIds.has(column.id);
+    const sortIndex = header.column.getSortIndex();
+    const filterValue = activeFilters[column.id] ?? "";
+    return (
+      <Box
+        component="th"
+        key={header.id}
+        scope="col"
+        aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : undefined}
+        onDragOver={(event: DragEvent) => {
+          if (!dragging || dragging === column.id) return;
+          event.preventDefault();
+          setDropTarget(column.id);
+        }}
+        onDragLeave={() => setDropTarget((prev) => (prev === column.id ? null : prev))}
+        onDrop={(event: DragEvent) => {
+          event.preventDefault();
+          if (dragging) moveColumn(dragging, column.id);
+          setDragging(null);
+          setDropTarget(null);
+        }}
+        sx={{
+          ...headCellBase,
+          width: header.getSize(),
+          minWidth: header.getSize(),
+          maxWidth: header.getSize(),
+          ...(pinned && { ...stickyCell(leftOffset(column.id), 4) }),
+          ...(pinned &&
+            lastPinned === column.id && { boxShadow: "4px 0 6px -4px rgba(17,20,24,0.18)" }),
+          ...(dropTarget === column.id && {
+            boxShadow: "inset 3px 0 0 var(--cn-color-brand-500, #3562a6)",
+          }),
+          opacity: dragging === column.id ? 0.5 : 1,
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: "2px", minHeight: 24 }}>
+          <Box
+            component={canSort ? "button" : "span"}
+            type={canSort ? "button" : undefined}
+            onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+            title={canSort ? "Ordenar (Shift + clic para varias columnas)" : undefined}
+            sx={{
+              ...(canSort && { all: "unset", cursor: "pointer" }),
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              minWidth: 0,
+              flex: 1,
+              borderRadius: "4px",
+              "&:focus-visible": { outline: "2px solid var(--cn-color-brand-400, #5081c4)" },
+              "&:hover .cn-sort-icon": { opacity: 1 },
+            }}
+          >
+            {pinned && (
+              <PushPinOutlinedIcon
+                sx={{
+                  fontSize: 13,
+                  color: "var(--cn-color-brand-500, #3562a6)",
+                  transform: "rotate(45deg)",
+                }}
+              />
+            )}
+            <Box
+              component="span"
+              sx={{
+                fontSize: "0.8rem",
+                fontWeight: 800,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                color: "var(--cn-color-neutral-800, #2d333a)",
+              }}
+            >
+              {column.header}
+            </Box>
+            {canSort && (
+              <Box
+                component="span"
+                className="cn-sort-icon"
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  flexShrink: 0,
+                  opacity: sorted ? 1 : 0.4,
+                  color: sorted
+                    ? "var(--cn-color-brand-600, #254d87)"
+                    : "var(--cn-color-neutral-500, #6e7682)",
+                }}
+              >
+                {sorted === "asc" ? (
+                  <ArrowUpwardIcon sx={{ fontSize: 16 }} />
+                ) : sorted === "desc" ? (
+                  <ArrowDownwardIcon sx={{ fontSize: 16 }} />
+                ) : (
+                  <SwapVertIcon sx={{ fontSize: 16 }} />
+                )}
+                {sorted &&
+                  sortIndex >= 0 &&
+                  (isServer ? (serverSide?.query.sorting.length ?? 0) : sorting.length) > 1 && (
+                    <Box component="span" sx={{ fontSize: 9, fontWeight: 800, ml: "1px" }}>
+                      {sortIndex + 1}
+                    </Box>
+                  )}
+              </Box>
+            )}
+          </Box>
+          {columnReorder && !pinned && (
+            <Tooltip title="Arrastra para mover" arrow>
+              <Box
+                component="span"
+                role="button"
+                tabIndex={-1}
+                aria-label="Mover columna"
+                draggable
+                onDragStart={(event: DragEvent) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", column.id);
+                  setDragging(column.id);
+                }}
+                onDragEnd={() => {
+                  setDragging(null);
+                  setDropTarget(null);
+                }}
+                sx={{
+                  display: "inline-flex",
+                  cursor: "grab",
+                  color: "var(--cn-color-neutral-500, #6e7682)",
+                  opacity: 0.7,
+                  p: "2px",
+                  "&:hover": { opacity: 1 },
+                  "&:active": { cursor: "grabbing" },
+                }}
+              >
+                <DragHandleIcon sx={{ fontSize: 18 }} />
+              </Box>
+            </Tooltip>
+          )}
+          <IconButton
+            size="small"
+            aria-label="Opciones de columna"
+            aria-haspopup="menu"
+            onClick={(event) =>
+              setMenu({ kind: "column", anchor: event.currentTarget, columnId: column.id })
+            }
+            sx={{ p: "2px", color: "var(--cn-color-neutral-500, #6e7682)" }}
+          >
+            <MoreVertIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
+
+        {showFilters && (
+          <Box sx={{ mt: "6px", minHeight: 30 }}>
+            {column.filterable !== false &&
+              (column.filter === "select" ? (
+                <Box
+                  component="select"
+                  aria-label={`Filtrar ${headerText(column)}`}
+                  value={filterValue}
+                  onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                    setColumnFilter(column.id, event.target.value)
+                  }
+                  sx={{
+                    width: "100%",
+                    height: 30,
+                    border: 0,
+                    borderBottom: "1px solid var(--cn-color-neutral-400, #9aa1aa)",
+                    background: "transparent",
+                    fontFamily: "inherit",
+                    fontSize: "0.8rem",
+                    color: filterValue
+                      ? "var(--cn-color-text, #222831)"
+                      : "var(--cn-color-text-subtle, #9aa1aa)",
+                    outline: "none",
+                    "&:focus": { borderBottom: "2px solid var(--cn-color-brand-500, #3562a6)" },
+                  }}
+                >
+                  <option value="">Todos</option>
+                  {selectOptions(column).map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Box>
+              ) : (
+                <InputBase
+                  inputRef={(node: HTMLInputElement | null) => {
+                    filterInputs.current[column.id] = node;
+                  }}
+                  value={filterValue}
+                  onChange={(event) => setColumnFilter(column.id, event.target.value)}
+                  placeholder={`Filtrar por ${headerText(column)}`}
+                  inputProps={{ "aria-label": `Filtrar ${headerText(column)}` }}
+                  endAdornment={
+                    filterValue ? (
+                      <IconButton
+                        size="small"
+                        aria-label="Limpiar filtro"
+                        onClick={() => setColumnFilter(column.id, "")}
+                        sx={{ p: "2px" }}
+                      >
+                        <ClearIcon sx={{ fontSize: 14 }} />
+                      </IconButton>
+                    ) : undefined
+                  }
+                  sx={{
+                    width: "100%",
+                    height: 30,
+                    fontSize: "0.8rem",
+                    borderBottom: "1px solid var(--cn-color-neutral-400, #9aa1aa)",
+                    transition: "border-color 140ms ease",
+                    "&.Mui-focused": {
+                      borderBottom: "2px solid var(--cn-color-brand-500, #3562a6)",
+                    },
+                    "& input::placeholder": {
+                      color: "var(--cn-color-text-subtle, #9aa1aa)",
+                      opacity: 1,
+                    },
+                  }}
+                />
+              ))}
+          </Box>
+        )}
+
+        {header.column.getCanResize() && (
+          <Box
+            role="separator"
+            aria-orientation="vertical"
+            aria-label={`Redimensionar ${headerText(column)}`}
+            onMouseDown={header.getResizeHandler()}
+            onTouchStart={header.getResizeHandler()}
+            onDoubleClick={() => header.column.resetSize()}
+            sx={{
+              position: "absolute",
+              top: 10,
+              bottom: 10,
+              right: 0,
+              width: 7,
+              cursor: "col-resize",
+              userSelect: "none",
+              touchAction: "none",
+              display: "flex",
+              justifyContent: "center",
+              "&::after": {
+                content: '""',
+                width: 3,
+                borderRadius: 2,
+                backgroundColor: header.column.getIsResizing()
+                  ? "var(--cn-color-brand-500, #3562a6)"
+                  : "var(--cn-color-neutral-200, #dde0e4)",
+                transition: "background-color 140ms ease",
+              },
+              "&:hover::after": { backgroundColor: "var(--cn-color-brand-400, #5081c4)" },
+            }}
+          />
+        )}
+      </Box>
+    );
+  });
+
+  // ─── Cuerpo ───────────────────────────────────────────────────────────
+  const bodyRowSx = (index: number, selected: boolean, tone?: keyof typeof TONES) => ({
+    cursor: onRowClick ? "pointer" : undefined,
+    backgroundColor: selected
+      ? "rgba(37, 77, 135, 0.06)"
+      : tone
+        ? TONES[tone]
+        : striped && index % 2 === 1
+          ? "var(--cn-color-neutral-50, #fafbfc)"
+          : "var(--cn-color-surface, #ffffff)",
+    transition: "background-color 120ms ease",
+    "& > td": {
+      boxSizing: "border-box" as const,
+      padding: cellPad,
+      fontSize: "0.82rem",
+      color: "var(--cn-color-text, #222831)",
+      borderBottom: "1px solid var(--cn-color-border-subtle, #f0f1f3)",
+      verticalAlign: "middle",
+      backgroundColor: "inherit",
+    },
+    "&:hover .cn-cell-copy": { opacity: 0.75 },
+    ...(hoverable && {
+      "&:hover": {
+        backgroundColor: selected
+          ? "rgba(37, 77, 135, 0.09)"
+          : "var(--cn-color-neutral-50, #f7f8fa)",
+      },
+    }),
+    "&:focus-visible": {
+      outline: "2px solid var(--cn-color-brand-400, #5081c4)",
+      outlineOffset: -2,
+    },
+  });
 
   const tableView = (
-    <TableContainer sx={{ maxHeight, overflowX: "auto" }}>
-      <Table
-        stickyHeader={stickyHeader || Boolean(maxHeight)}
-        size="small"
+    <Box
+      sx={{
+        position: "relative",
+        overflow: "auto",
+        maxHeight: fullscreen ? "calc(100vh - 190px)" : maxHeight,
+        scrollbarWidth: "thin",
+        scrollbarColor: "var(--cn-color-neutral-300, #c4c9cf) transparent",
+      }}
+    >
+      {loading && pageRows.length > 0 && (
+        <LinearProgress
+          sx={{ position: "sticky", top: 0, left: 0, zIndex: 6, height: 2 }}
+          aria-label="Actualizando"
+        />
+      )}
+      <Box
+        component="table"
         aria-busy={loading || undefined}
         aria-rowcount={totalCount}
+        sx={{
+          width: "100%",
+          minWidth: tableWidth,
+          tableLayout: "fixed",
+          borderCollapse: "separate",
+          borderSpacing: 0,
+          fontFamily: "inherit",
+        }}
       >
-        <TableHead>
-          <TableRow>
-            {selectable && (
-              <TableCell padding="checkbox" sx={headerCellSx}>
+        <Box
+          component="thead"
+          sx={{
+            ...((stickyHeader || maxHeight || fullscreen) && {
+              position: "sticky",
+              top: 0,
+              zIndex: 5,
+            }),
+          }}
+        >
+          <tr>
+            {showSelection && (
+              <Box
+                component="th"
+                sx={{
+                  ...headCellBase,
+                  ...stickyCell(0, 4),
+                  width: LEAD_SELECT,
+                  padding: "8px 0 0 6px",
+                }}
+              >
                 <Checkbox
                   size="small"
                   checked={table.getIsAllPageRowsSelected()}
@@ -839,261 +1491,242 @@ export const CnDataTable = <T extends CnRow>({
                     input: { "aria-label": "Seleccionar todas las filas de la página" },
                   }}
                 />
-              </TableCell>
+              </Box>
             )}
-            {renderDetail && <TableCell sx={{ ...headerCellSx, width: 40 }} aria-label="Detalle" />}
+            {renderDetail && (
+              <Box
+                component="th"
+                aria-label="Detalle"
+                sx={{
+                  ...headCellBase,
+                  ...stickyCell(showSelection ? LEAD_SELECT : 0, 4),
+                  width: LEAD_EXPAND,
+                }}
+              />
+            )}
             {hasActions && rowActionsPosition === "start" && (
-              <TableCell sx={{ ...headerCellSx, width: 56 }} aria-label="Acciones" />
+              <Box component="th" sx={{ ...headCellBase, width: 88, textAlign: "center" }}>
+                <Box component="span" sx={{ fontSize: "0.8rem", fontWeight: 800 }}>
+                  Acciones
+                </Box>
+              </Box>
             )}
-            {table.getHeaderGroups()[0].headers.map((header) => {
-              const column = columns.find((c) => c.id === header.column.id) as CnColumn<T>;
-              const sorted = header.column.getIsSorted();
-              const canSort = header.column.getCanSort();
-              return (
-                <TableCell
-                  key={header.id}
-                  align={alignOf(column)}
-                  sortDirection={sorted || false}
+            {headerCells}
+            {hasActions && rowActionsPosition === "end" && (
+              <Box component="th" sx={{ ...headCellBase, width: 88, textAlign: "center" }}>
+                <Box component="span" sx={{ fontSize: "0.8rem", fontWeight: 800 }}>
+                  Acciones
+                </Box>
+              </Box>
+            )}
+          </tr>
+        </Box>
+        <tbody>
+          {loading &&
+            pageRows.length === 0 &&
+            Array.from({ length: Math.min(paginationState.pageSize, 6) }, (_, i) => (
+              <Box component="tr" key={`sk-${i}`} sx={bodyRowSx(i, false)}>
+                {Array.from({ length: totalCols }, (_, j) => (
+                  <td key={j}>
+                    <CnSkeleton
+                      variant={j % 3 === 1 ? "rounded" : "text"}
+                      width={j % 3 === 1 ? 110 : "65%"}
+                      height={j % 3 === 1 ? 26 : undefined}
+                    />
+                  </td>
+                ))}
+              </Box>
+            ))}
+          {isEmptyResult && (
+            <tr>
+              <Box component="td" colSpan={totalCols} sx={{ py: "32px", borderBottom: 0 }}>
+                <Box sx={{ position: "sticky", left: 0, width: "min(100%, 100vw - 64px)" }}>
+                  {emptyNode}
+                </Box>
+              </Box>
+            </tr>
+          )}
+          {pageRows.map((row, index) => {
+            const original = row.original;
+            const isExpanded = row.getIsExpanded();
+            const selected = row.getIsSelected();
+            return (
+              <Fragment key={row.id}>
+                <Box
+                  component="tr"
+                  data-row-id={row.id}
+                  aria-selected={showSelection ? selected : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  onClick={onRowClick ? () => onRowClick(original) : undefined}
+                  onKeyDown={
+                    onRowClick
+                      ? (event: React.KeyboardEvent) => {
+                          if (event.key === "Enter" && event.target === event.currentTarget)
+                            onRowClick(original);
+                        }
+                      : undefined
+                  }
                   sx={{
-                    ...headerCellSx,
-                    width: column.width,
-                    minWidth: column.minWidth ?? 80,
-                    ...(column.sticky && { position: "sticky", left: 0, zIndex: 3 }),
+                    ...bodyRowSx(index, selected, getRowTone?.(original)),
+                    opacity: loading ? 0.6 : 1,
                   }}
                 >
-                  {canSort ? (
-                    <TableSortLabel
-                      active={Boolean(sorted)}
-                      direction={sorted || "asc"}
-                      onClick={header.column.getToggleSortingHandler()}
-                      title="Ordenar (Shift para varias columnas)"
-                    >
-                      {column.header}
-                      {sorted && sorting.length > 1 && !isServer && (
-                        <Box component="span" sx={{ ml: "2px", fontSize: 9 }}>
-                          {header.column.getSortIndex() + 1}
-                        </Box>
-                      )}
-                    </TableSortLabel>
-                  ) : (
-                    column.header
-                  )}
-                </TableCell>
-              );
-            })}
-            {hasActions && rowActionsPosition === "end" && (
-              <TableCell sx={{ ...headerCellSx, width: 56 }} aria-label="Acciones" />
-            )}
-          </TableRow>
-          {showFilters && (
-            <TableRow>
-              {Array.from(
-                { length: leadingCols + (hasActions && rowActionsPosition === "start" ? 1 : 0) },
-                (_, i) => (
-                  <TableCell key={`f-${i}`} sx={{ ...headerCellSx, py: "4px" }} />
-                ),
-              )}
-              {visibleColumns.map((column) => (
-                <TableCell
-                  key={`filter-${column.id}`}
-                  sx={{ ...headerCellSx, py: "4px", textTransform: "none" }}
-                >
-                  {column.filterable !== false && (
-                    <InputBase
-                      value={
-                        (isServer ? serverSide?.query.filters[column.id] : filters[column.id]) ?? ""
-                      }
-                      onChange={(event) => setColumnFilter(column.id, event.target.value)}
-                      placeholder="Filtrar…"
-                      inputProps={{
-                        "aria-label": `Filtrar ${typeof column.header === "string" ? column.header : column.id}`,
-                      }}
+                  {showSelection && (
+                    <Box
+                      component="td"
+                      onClick={(event: MouseEvent) => event.stopPropagation()}
                       sx={{
-                        width: "100%",
-                        height: 28,
-                        px: "6px",
-                        fontSize: "var(--cn-font-size-sm, 12px)",
-                        borderRadius: "var(--cn-radius-sm, 6px)",
-                        border: "1px solid var(--cn-color-border, #dde0e4)",
-                        backgroundColor: "var(--cn-color-surface, #ffffff)",
+                        ...stickyCell(0, 2),
+                        backgroundColor: "inherit !important",
+                        padding: "0 0 0 6px !important",
                       }}
-                    />
+                    >
+                      <Checkbox
+                        size="small"
+                        checked={selected}
+                        onChange={row.getToggleSelectedHandler()}
+                        slotProps={{ input: { "aria-label": `Seleccionar fila ${index + 1}` } }}
+                      />
+                    </Box>
                   )}
-                </TableCell>
-              ))}
-              {hasActions && rowActionsPosition === "end" && (
-                <TableCell sx={{ ...headerCellSx, py: "4px" }} />
-              )}
-            </TableRow>
-          )}
-        </TableHead>
-        <TableBody>
-          {loading &&
-            Array.from({ length: Math.min(paginationState.pageSize, 6) }, (_, i) => (
-              <TableRow key={`sk-${i}`}>
-                {Array.from({ length: totalCols }, (_, j) => (
-                  <TableCell key={j} sx={{ padding: cellPadding }}>
-                    <CnSkeleton variant="text" width={j === 0 ? "70%" : "50%"} />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          {isEmpty && (
-            <TableRow>
-              <TableCell colSpan={totalCols} sx={{ border: 0, py: "24px" }}>
-                {emptyNode}
-              </TableCell>
-            </TableRow>
-          )}
-          {!loading &&
-            pageRows.map((row, index) => {
-              const original = row.original;
-              const tone = getRowTone?.(original);
-              const isExpanded = row.getIsExpanded();
-              return (
-                <Fragment key={row.id}>
-                  <TableRow
-                    hover={hoverable}
-                    selected={row.getIsSelected()}
-                    onClick={onRowClick ? () => onRowClick(original) : undefined}
-                    onKeyDown={
-                      onRowClick
-                        ? (event) => {
-                            if (event.key === "Enter" && event.target === event.currentTarget)
-                              onRowClick(original);
-                          }
-                        : undefined
-                    }
-                    tabIndex={onRowClick ? 0 : undefined}
-                    data-row-id={row.id}
-                    sx={{
-                      cursor: onRowClick ? "pointer" : undefined,
-                      backgroundColor: tone
-                        ? TONES[tone]
-                        : striped && index % 2 === 1
-                          ? "var(--cn-color-neutral-50, #fafbfc)"
-                          : undefined,
-                      "&.Mui-selected, &.Mui-selected:hover": {
-                        backgroundColor: "var(--cn-color-brand-50, #eef3fb)",
-                      },
-                      "&:focus-visible": {
-                        outline: "2px solid var(--cn-color-brand-400, #5081c4)",
-                        outlineOffset: -2,
-                      },
-                      "& > td": {
-                        padding: cellPadding,
-                        fontSize: "var(--cn-font-size-base, 13px)",
-                        color: "var(--cn-color-text, #222831)",
-                        borderBottom: "1px solid var(--cn-color-border-subtle, #eceef1)",
-                        verticalAlign: "middle",
-                      },
-                    }}
-                  >
-                    {selectable && (
-                      <TableCell padding="checkbox" onClick={(event) => event.stopPropagation()}>
-                        <Checkbox
-                          size="small"
-                          checked={row.getIsSelected()}
-                          onChange={row.getToggleSelectedHandler()}
-                          slotProps={{ input: { "aria-label": `Seleccionar fila ${index + 1}` } }}
+                  {renderDetail && (
+                    <Box
+                      component="td"
+                      onClick={(event: MouseEvent) => event.stopPropagation()}
+                      sx={{
+                        ...stickyCell(showSelection ? LEAD_SELECT : 0, 2),
+                        backgroundColor: "inherit !important",
+                        padding: "0 0 0 4px !important",
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        aria-label={isExpanded ? "Ocultar detalle" : "Ver detalle"}
+                        aria-expanded={isExpanded}
+                        onClick={row.getToggleExpandedHandler()}
+                      >
+                        <ChevronRightIcon
+                          fontSize="small"
+                          sx={{
+                            transform: isExpanded ? "rotate(90deg)" : "none",
+                            transition: "transform 160ms ease",
+                          }}
                         />
-                      </TableCell>
-                    )}
-                    {renderDetail && (
-                      <TableCell sx={{ width: 40 }} onClick={(event) => event.stopPropagation()}>
-                        <IconButton
-                          size="small"
-                          aria-label={isExpanded ? "Ocultar detalle" : "Ver detalle"}
-                          aria-expanded={isExpanded}
-                          onClick={row.getToggleExpandedHandler()}
-                        >
-                          <ChevronRightIcon
-                            fontSize="small"
-                            sx={{
-                              transform: isExpanded ? "rotate(90deg)" : "none",
-                              transition: "transform 140ms ease",
-                            }}
-                          />
-                        </IconButton>
-                      </TableCell>
-                    )}
-                    {hasActions && rowActionsPosition === "start" && (
-                      <TableCell>{renderActionsCell(original)}</TableCell>
-                    )}
-                    {visibleColumns.map((column) => (
-                      <TableCell
-                        key={column.id}
-                        align={alignOf(column)}
+                      </IconButton>
+                    </Box>
+                  )}
+                  {hasActions && rowActionsPosition === "start" && (
+                    <td>{renderActionsCell(original)}</td>
+                  )}
+                  {row.getVisibleCells().map((cell) => {
+                    const column = columnsById.get(cell.column.id) as CnColumn<T>;
+                    const pinned = pinnedLeftIds.has(column.id);
+                    return (
+                      <Box
+                        component="td"
+                        key={cell.id}
                         sx={{
-                          maxWidth: column.width ?? 360,
-                          ...(column.sticky && {
-                            position: "sticky",
-                            left: 0,
-                            zIndex: 1,
-                            backgroundColor: "var(--cn-color-surface, #ffffff)",
+                          textAlign: alignOf(column),
+                          overflow: "hidden",
+                          ...(pinned && {
+                            ...stickyCell(leftOffset(column.id), 2),
+                            backgroundColor: "inherit !important",
                           }),
+                          ...(pinned &&
+                            lastPinned === column.id && {
+                              boxShadow: "4px 0 6px -4px rgba(17,20,24,0.18)",
+                            }),
                         }}
                       >
                         {renderCellContent(column, original, index)}
-                      </TableCell>
-                    ))}
-                    {hasActions && rowActionsPosition === "end" && (
-                      <TableCell align="right">{renderActionsCell(original)}</TableCell>
-                    )}
-                  </TableRow>
-                  {renderDetail && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={totalCols}
-                        sx={{ p: 0, borderBottom: isExpanded ? undefined : 0 }}
-                      >
-                        <Collapse in={isExpanded} unmountOnExit>
-                          <Box
-                            sx={{
-                              p: "12px 16px 16px",
-                              backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
-                            }}
-                          >
-                            {renderDetail(original)}
-                          </Box>
-                        </Collapse>
-                      </TableCell>
-                    </TableRow>
+                      </Box>
+                    );
+                  })}
+                  {hasActions && rowActionsPosition === "end" && (
+                    <td>{renderActionsCell(original)}</td>
                   )}
-                </Fragment>
-              );
-            })}
-        </TableBody>
-        {showFooter && !loading && !isEmpty && (
-          <TableFooter>
-            <TableRow>
+                </Box>
+                {renderDetail && isExpanded && (
+                  <tr>
+                    <Box
+                      component="td"
+                      colSpan={totalCols}
+                      sx={{
+                        p: 0,
+                        borderBottom: "1px solid var(--cn-color-border-subtle, #f0f1f3)",
+                      }}
+                    >
+                      <Collapse in appear>
+                        <Box
+                          sx={{
+                            position: "sticky",
+                            left: 0,
+                            maxWidth: "100vw",
+                            p: "14px 20px 18px 56px",
+                            backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+                            borderLeft: "3px solid var(--cn-color-brand-500, #3562a6)",
+                          }}
+                        >
+                          {renderDetail(original)}
+                        </Box>
+                      </Collapse>
+                    </Box>
+                  </tr>
+                )}
+              </Fragment>
+            );
+          })}
+        </tbody>
+        {showFooter && (
+          <tfoot>
+            <tr>
               {Array.from(
-                { length: leadingCols + (hasActions && rowActionsPosition === "start" ? 1 : 0) },
+                {
+                  length:
+                    (showSelection ? 1 : 0) +
+                    (renderDetail ? 1 : 0) +
+                    (hasActions && rowActionsPosition === "start" ? 1 : 0),
+                },
                 (_, i) => (
-                  <TableCell key={`ft-${i}`} />
+                  <Box
+                    component="td"
+                    key={`fl-${i}`}
+                    sx={{
+                      backgroundColor: "var(--cn-color-neutral-50, #f7f8fa)",
+                      borderTop: "2px solid var(--cn-color-border, #dde0e4)",
+                    }}
+                  />
                 ),
               )}
               {visibleColumns.map((column) => (
-                <TableCell
+                <Box
+                  component="td"
                   key={`foot-${column.id}`}
-                  align={alignOf(column)}
                   sx={{
-                    padding: cellPadding,
-                    fontSize: "var(--cn-font-size-base, 13px)",
-                    fontWeight: 700,
-                    color: "var(--cn-color-text, #222831)",
+                    padding: "10px 12px",
+                    textAlign: alignOf(column),
+                    backgroundColor: "var(--cn-color-neutral-50, #f7f8fa)",
                     borderTop: "2px solid var(--cn-color-border, #dde0e4)",
+                    ...(pinnedLeftIds.has(column.id) && stickyCell(leftOffset(column.id), 2)),
                   }}
                 >
                   {renderFooterValue(column)}
-                </TableCell>
+                </Box>
               ))}
-              {hasActions && rowActionsPosition === "end" && <TableCell />}
-            </TableRow>
-          </TableFooter>
+              {hasActions && rowActionsPosition === "end" && (
+                <Box
+                  component="td"
+                  sx={{
+                    backgroundColor: "var(--cn-color-neutral-50, #f7f8fa)",
+                    borderTop: "2px solid var(--cn-color-border, #dde0e4)",
+                  }}
+                />
+              )}
+            </tr>
+          </tfoot>
         )}
-      </Table>
-    </TableContainer>
+      </Box>
+    </Box>
   );
 
   const cardsView = (
@@ -1110,289 +1743,586 @@ export const CnDataTable = <T extends CnRow>({
       }}
     >
       {loading &&
+        pageRows.length === 0 &&
         Array.from({ length: 3 }, (_, i) => (
           <Box component="li" key={i}>
-            <CnSkeleton variant="rounded" height={110} />
+            <CnSkeleton variant="rounded" height={120} />
           </Box>
         ))}
-      {isEmpty && <Box component="li">{emptyNode}</Box>}
-      {!loading &&
-        pageRows.map((row, index) => {
-          const original = row.original;
-          const [first, ...rest] = visibleColumns.filter((column) => column.showInCards !== false);
-          return (
-            <Box
-              component="li"
-              key={row.id}
-              data-row-id={row.id}
-              onClick={onRowClick ? () => onRowClick(original) : undefined}
-              sx={{
-                p: "12px",
-                borderRadius: "var(--cn-radius-md, 8px)",
-                border: "1px solid var(--cn-color-border, #dde0e4)",
-                backgroundColor: row.getIsSelected()
-                  ? "var(--cn-color-brand-50, #eef3fb)"
-                  : "var(--cn-color-surface, #ffffff)",
-                cursor: onRowClick ? "pointer" : undefined,
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-                {selectable && (
-                  <Checkbox
-                    size="small"
-                    sx={{ p: "2px" }}
-                    checked={row.getIsSelected()}
-                    onClick={(event) => event.stopPropagation()}
-                    onChange={row.getToggleSelectedHandler()}
-                    slotProps={{ input: { "aria-label": `Seleccionar fila ${index + 1}` } }}
-                  />
-                )}
-                <Box
-                  sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    fontWeight: 600,
-                    fontSize: "var(--cn-font-size-md, 14px)",
-                  }}
-                >
-                  {first ? renderCellContent(first, original, index) : null}
-                </Box>
-                {hasActions && (
-                  <Box onClick={(event) => event.stopPropagation()}>
-                    {renderActionsCell(original)}
-                  </Box>
-                )}
+      {isEmptyResult && <Box component="li">{emptyNode}</Box>}
+      {pageRows.map((row, index) => {
+        const original = row.original;
+        const [first, ...rest] = visibleColumns.filter((column) => column.showInCards !== false);
+        return (
+          <Box
+            component="li"
+            key={row.id}
+            data-row-id={row.id}
+            onClick={onRowClick ? () => onRowClick(original) : undefined}
+            sx={{
+              p: "14px",
+              borderRadius: "12px",
+              border: "1px solid var(--cn-color-border, #dde0e4)",
+              backgroundColor: row.getIsSelected()
+                ? "rgba(37, 77, 135, 0.06)"
+                : "var(--cn-color-surface, #ffffff)",
+              cursor: onRowClick ? "pointer" : undefined,
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              "& .cn-cell-copy": { opacity: 0.7 },
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+              {showSelection && (
+                <Checkbox
+                  size="small"
+                  sx={{ p: "2px" }}
+                  checked={row.getIsSelected()}
+                  onClick={(event) => event.stopPropagation()}
+                  onChange={row.getToggleSelectedHandler()}
+                  slotProps={{ input: { "aria-label": `Seleccionar fila ${index + 1}` } }}
+                />
+              )}
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                {first ? renderCellContent(first, original, index) : null}
               </Box>
-              <Box
-                component="dl"
-                sx={{
-                  m: 0,
-                  display: "grid",
-                  gridTemplateColumns: "minmax(90px, 40%) 1fr",
-                  gap: "6px 12px",
-                  fontSize: "var(--cn-font-size-sm, 12px)",
-                }}
-              >
-                {rest.map((column) => (
-                  <Fragment key={column.id}>
-                    <Box component="dt" sx={{ color: "var(--cn-color-text-muted, #6e7682)" }}>
-                      {column.header}
-                    </Box>
-                    <Box component="dd" sx={{ m: 0, minWidth: 0 }}>
-                      {renderCellContent(column, original, index)}
-                    </Box>
-                  </Fragment>
-                ))}
-              </Box>
-              {renderDetail && (
+              {hasActions && (
                 <Box onClick={(event) => event.stopPropagation()}>
-                  <CnButton
-                    size="small"
-                    variant="text"
-                    color="neutral"
-                    endIcon={row.getIsExpanded() ? "expand_less" : "expand_more"}
-                    onClick={row.getToggleExpandedHandler()}
-                  >
-                    {row.getIsExpanded() ? "Ocultar detalle" : "Ver detalle"}
-                  </CnButton>
-                  <Collapse in={row.getIsExpanded()} unmountOnExit>
-                    <Box sx={{ pt: "8px" }}>{renderDetail(original)}</Box>
-                  </Collapse>
+                  {renderActionsCell(original)}
                 </Box>
               )}
             </Box>
-          );
-        })}
+            <Box
+              component="dl"
+              sx={{
+                m: 0,
+                display: "grid",
+                gridTemplateColumns: "minmax(88px, 36%) 1fr",
+                gap: "8px 12px",
+                alignItems: "center",
+              }}
+            >
+              {rest.map((column) => (
+                <Fragment key={column.id}>
+                  <Box
+                    component="dt"
+                    sx={{
+                      fontSize: "0.7rem",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                      color: "var(--cn-color-text-muted, #6e7682)",
+                    }}
+                  >
+                    {column.header}
+                  </Box>
+                  <Box component="dd" sx={{ m: 0, minWidth: 0, fontSize: "0.82rem" }}>
+                    {renderCellContent(column, original, index)}
+                  </Box>
+                </Fragment>
+              ))}
+            </Box>
+            {renderDetail && (
+              <Box onClick={(event) => event.stopPropagation()}>
+                <CnButton
+                  size="small"
+                  variant="text"
+                  color="neutral"
+                  endIcon={row.getIsExpanded() ? "expand_less" : "expand_more"}
+                  onClick={row.getToggleExpandedHandler()}
+                >
+                  {row.getIsExpanded() ? "Ocultar detalle" : "Ver detalle"}
+                </CnButton>
+                <Collapse in={row.getIsExpanded()} unmountOnExit>
+                  <Box sx={{ pt: "8px" }}>{renderDetail(original)}</Box>
+                </Collapse>
+              </Box>
+            )}
+          </Box>
+        );
+      })}
     </Box>
   );
 
-  const menuRow = menu?.row;
+  // ─── Menús ────────────────────────────────────────────────────────────
+  const menuPaperSx = {
+    borderRadius: "12px",
+    minWidth: 220,
+    boxShadow: "0 10px 30px rgba(17, 20, 24, 0.14)",
+    "& .MuiMenuItem-root": {
+      fontSize: "0.82rem",
+      borderRadius: "8px",
+      mx: "6px",
+      my: "1px",
+      py: "7px",
+    },
+    "& .MuiListItemIcon-root": { minWidth: 32, color: "var(--cn-color-neutral-600, #4e5660)" },
+  };
+
+  const scopeItems = (action: (scope: Scope) => void) =>
+    [
+      {
+        scope: "all" as const,
+        label: isFiltered && !isServer ? "Registros filtrados" : "Todos los registros",
+        count: totalCount,
+        icon: "select_all",
+      },
+      { scope: "page" as const, label: "Página actual", count: pageRows.length, icon: "article" },
+      ...(selectable
+        ? [
+            {
+              scope: "selected" as const,
+              label: "Seleccionados",
+              count: selectionCount,
+              icon: "check_box",
+            },
+          ]
+        : []),
+    ].map((item) => (
+      <MenuItem
+        key={item.scope}
+        disabled={item.count === 0}
+        onClick={() => {
+          closeMenu();
+          action(item.scope);
+        }}
+      >
+        <ListItemIcon>
+          <CnIcon name={item.icon} size="sm" />
+        </ListItemIcon>
+        <ListItemText primaryTypographyProps={{ fontSize: "0.82rem", fontWeight: 600 }}>
+          {item.label}
+        </ListItemText>
+        <Box
+          component="span"
+          sx={{
+            ml: "12px",
+            fontSize: "0.7rem",
+            fontWeight: 700,
+            color: "var(--cn-color-text-muted, #6e7682)",
+          }}
+        >
+          {item.count.toLocaleString("es-MX")}
+        </Box>
+      </MenuItem>
+    ));
+
+  const menuColumn =
+    menu?.kind === "column" ? (columnsById.get(menu.columnId) as CnColumn<T>) : undefined;
+  const menuTableColumn = menuColumn ? table.getColumn(menuColumn.id) : undefined;
+
+  const wrapperSx = fullscreen
+    ? {
+        position: "fixed" as const,
+        inset: 0,
+        zIndex: 1300,
+        p: "20px",
+        overflow: "auto",
+        backgroundColor: "var(--cn-color-background, #f4f6f9)",
+      }
+    : {};
 
   return (
     <Box
       className={className}
       data-cn-data-table
       sx={mergeSx(
-        {
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-          borderRadius: "var(--cn-radius-lg, 12px)",
-          border: "1px solid var(--cn-color-border, #dde0e4)",
-          backgroundColor: "var(--cn-color-surface, #ffffff)",
-          overflow: "hidden",
-          fontFamily: "var(--cn-font-sans, system-ui, sans-serif)",
-        },
+        { minWidth: 0, fontFamily: "var(--cn-font-sans, system-ui, sans-serif)", ...wrapperSx },
         sx,
       )}
     >
-      {toolbar}
-      {bulkBar}
-      {error && (
-        <Box
-          role="alert"
-          sx={{
-            px: "16px",
-            py: "10px",
-            color: "var(--cn-color-error-600, #b52f2f)",
-            backgroundColor: "var(--cn-color-error-50, #fcecec)",
-            fontSize: "var(--cn-font-size-sm, 12px)",
-          }}
-        >
-          {error}
-        </Box>
-      )}
-      {cardsMode ? cardsView : tableView}
-      {pagination && !isEmpty && (
-        <TablePagination
-          component="div"
-          count={totalCount}
-          page={Math.min(
-            table.getState().pagination.pageIndex,
-            Math.max(0, Math.ceil(totalCount / table.getState().pagination.pageSize) - 1),
-          )}
-          rowsPerPage={table.getState().pagination.pageSize}
-          rowsPerPageOptions={pageSizeOptions}
-          onPageChange={(_, page) => table.setPageIndex(page)}
-          onRowsPerPageChange={(event) => {
-            table.setPageSize(Number(event.target.value));
-            table.setPageIndex(0);
-          }}
-          labelRowsPerPage={isMobile ? "Filas" : "Filas por página"}
-          labelDisplayedRows={({ from, to, count }) =>
-            `${from}–${to} de ${count.toLocaleString("es-MX")}`
-          }
-          getItemAriaLabel={(type) =>
-            type === "first"
-              ? "Primera página"
-              : type === "last"
-                ? "Última página"
-                : type === "next"
-                  ? "Página siguiente"
-                  : "Página anterior"
-          }
-          showFirstButton={!isMobile}
-          showLastButton={!isMobile}
-          sx={{
-            borderTop: "1px solid var(--cn-color-border, #dde0e4)",
-            "& .MuiTablePagination-toolbar": { minHeight: 44 },
-          }}
-        />
-      )}
+      {caption}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          minWidth: 0,
+          borderRadius: "12px",
+          border: "1px solid var(--cn-color-border, #dde0e4)",
+          backgroundColor: "var(--cn-color-surface, #ffffff)",
+          overflow: "hidden",
+        }}
+      >
+        {toolbar}
+        {error && (
+          <Box
+            role="alert"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              px: "16px",
+              py: "10px",
+              color: "var(--cn-color-error-700, #922626)",
+              backgroundColor: "rgba(214, 60, 60, 0.07)",
+              fontSize: "0.8rem",
+              borderBottom: "1px solid rgba(214, 60, 60, 0.2)",
+            }}
+          >
+            <CnIcon name="error_outline" size="sm" />
+            {error}
+          </Box>
+        )}
+        {cardsMode ? cardsView : tableView}
+        {pagination && !isEmptyResult && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "8px",
+              pl: "16px",
+              borderTop: "1px solid var(--cn-color-border-subtle, #eceef1)",
+            }}
+          >
+            <Box sx={{ fontSize: "0.72rem", color: "var(--cn-color-text-muted, #6e7682)" }}>
+              {selectionCount > 0
+                ? `${selectionCount} de ${totalCount.toLocaleString("es-MX")} seleccionados`
+                : null}
+            </Box>
+            <TablePagination
+              component="div"
+              count={totalCount}
+              page={Math.min(
+                table.getState().pagination.pageIndex,
+                Math.max(0, Math.ceil(totalCount / table.getState().pagination.pageSize) - 1),
+              )}
+              rowsPerPage={table.getState().pagination.pageSize}
+              rowsPerPageOptions={pageSizeOptions}
+              onPageChange={(_, page) => table.setPageIndex(page)}
+              onRowsPerPageChange={(event) => {
+                table.setPageSize(Number(event.target.value));
+                table.setPageIndex(0);
+              }}
+              labelRowsPerPage={isMobile ? "Filas" : "Filas por página"}
+              labelDisplayedRows={({ from, to, count }) =>
+                `${from}-${to} de ${count.toLocaleString("es-MX")}`
+              }
+              getItemAriaLabel={(type) =>
+                type === "first"
+                  ? "Primera página"
+                  : type === "last"
+                    ? "Última página"
+                    : type === "next"
+                      ? "Página siguiente"
+                      : "Página anterior"
+              }
+              showFirstButton={!isMobile && pageCount > 3}
+              showLastButton={!isMobile && pageCount > 3}
+              sx={{
+                border: 0,
+                "& .MuiTablePagination-toolbar": { minHeight: 52 },
+                "& .MuiTablePagination-displayedRows, & .MuiTablePagination-selectLabel": {
+                  fontSize: "0.82rem",
+                },
+              }}
+            />
+          </Box>
+        )}
+      </Box>
 
-      {/* Menú de columnas */}
-      <Menu open={menu?.kind === "columns"} anchorEl={menu?.anchor} onClose={closeMenu}>
-        {columns.map((column) => (
+      {/* Descargar */}
+      <Menu
+        open={menu?.kind === "export"}
+        anchorEl={menu?.anchor}
+        onClose={closeMenu}
+        slotProps={{ paper: { sx: menuPaperSx } }}
+      >
+        {(exportFormats || []).map((format) => (
           <MenuItem
-            key={column.id}
-            dense
-            disabled={column.hideable === false}
-            onClick={() =>
-              setVisibility((prev) => ({ ...prev, [column.id]: prev[column.id] === false }))
+            key={format}
+            onClick={(event) =>
+              openScope(
+                event.currentTarget,
+                `Descargar ${FORMATS[format].label}`,
+                (scope) => void runExport(format, scope),
+              )
             }
           >
-            <Checkbox
-              size="small"
-              sx={{ p: "2px", mr: "8px" }}
-              checked={visibility[column.id] !== false}
-              tabIndex={-1}
+            <ListItemIcon>
+              <CnIcon name={FORMATS[format].icon} size="sm" />
+            </ListItemIcon>
+            <ListItemText
+              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 700 }}
+              secondaryTypographyProps={{ fontSize: "0.72rem" }}
+              secondary={FORMATS[format].description}
+            >
+              {FORMATS[format].label}
+            </ListItemText>
+            <ChevronRightIcon
+              sx={{ fontSize: 18, ml: "8px", color: "var(--cn-color-neutral-400, #9aa1aa)" }}
             />
-            <ListItemText primaryTypographyProps={{ fontSize: 13 }}>{column.header}</ListItemText>
           </MenuItem>
         ))}
       </Menu>
 
-      {/* Menú de exportación */}
-      <Menu open={menu?.kind === "export"} anchorEl={menu?.anchor} onClose={closeMenu}>
-        {(exportFormats || []).flatMap((format) => [
+      {/* Copiar */}
+      <Menu
+        open={menu?.kind === "copy"}
+        anchorEl={menu?.anchor}
+        onClose={closeMenu}
+        slotProps={{ paper: { sx: menuPaperSx } }}
+      >
+        {COPY_FORMATS.map((format) => (
           <MenuItem
-            key={`${format}-all`}
-            dense
-            onClick={() => {
-              closeMenu();
-              void runExport(format, "all");
-            }}
+            key={format.id}
+            onClick={(event) =>
+              openScope(
+                event.currentTarget,
+                `Copiar como ${format.label}`,
+                (scope) => void runCopy(format.id, scope),
+              )
+            }
           >
             <ListItemIcon>
-              <FileDownloadOutlinedIcon fontSize="small" />
+              <CnIcon name={format.icon} size="sm" />
             </ListItemIcon>
             <ListItemText
-              primaryTypographyProps={{ fontSize: 13 }}
-              secondary={
-                searchValue || columnFiltersState.length
-                  ? "Registros filtrados"
-                  : "Todos los registros"
+              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 700 }}
+              secondaryTypographyProps={{ fontSize: "0.72rem" }}
+              secondary={format.description}
+            >
+              {format.label}
+            </ListItemText>
+            <ChevronRightIcon
+              sx={{ fontSize: 18, ml: "8px", color: "var(--cn-color-neutral-400, #9aa1aa)" }}
+            />
+          </MenuItem>
+        ))}
+      </Menu>
+
+      {/* Alcance (todos / página / selección) */}
+      <Menu
+        open={menu?.kind === "scope"}
+        anchorEl={menu?.anchor}
+        onClose={closeMenu}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+        slotProps={{ paper: { sx: menuPaperSx } }}
+      >
+        {menu?.kind === "scope" && [
+          <Box
+            key="title"
+            sx={{
+              px: "16px",
+              pt: "6px",
+              pb: "4px",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: "var(--cn-color-text-muted, #6e7682)",
+            }}
+          >
+            {menu.title}
+          </Box>,
+          ...scopeItems(menu.action),
+        ]}
+      </Menu>
+
+      {/* Columnas */}
+      <Menu
+        open={menu?.kind === "columns"}
+        anchorEl={menu?.anchor}
+        onClose={closeMenu}
+        slotProps={{ paper: { sx: { ...menuPaperSx, maxHeight: 420 } } }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "8px",
+            px: "12px",
+            pb: "6px",
+          }}
+        >
+          <CnButton size="small" variant="text" onClick={() => setVisibility({})}>
+            Mostrar todas
+          </CnButton>
+          <CnButton size="small" variant="text" color="neutral" onClick={resetLayout}>
+            Restablecer
+          </CnButton>
+        </Box>
+        <Divider sx={{ mb: "4px" }} />
+        {table.getAllLeafColumns().map((tableColumn) => {
+          const column = columnsById.get(tableColumn.id) as CnColumn<T>;
+          const pinned = pinnedLeftIds.has(column.id);
+          return (
+            <MenuItem
+              key={column.id}
+              disabled={column.hideable === false}
+              onClick={() =>
+                setVisibility((prev) => ({ ...prev, [column.id]: prev[column.id] === false }))
               }
             >
-              {FORMAT_LABELS[format]}
-            </ListItemText>
-          </MenuItem>,
-        ])}
-        {selectable &&
-          selectedRows.length > 0 &&
-          (exportFormats || []).slice(0, 1).map((format) => (
+              <Checkbox
+                size="small"
+                sx={{ p: "2px", mr: "8px" }}
+                checked={visibility[column.id] !== false}
+                tabIndex={-1}
+              />
+              <ListItemText primaryTypographyProps={{ fontSize: "0.82rem" }}>
+                {column.header}
+              </ListItemText>
+              <Tooltip title={pinned ? "Desfijar" : "Fijar a la izquierda"} arrow>
+                <IconButton
+                  size="small"
+                  aria-label={
+                    pinned ? `Desfijar ${headerText(column)}` : `Fijar ${headerText(column)}`
+                  }
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    tableColumn.pin(pinned ? false : "left");
+                  }}
+                  sx={{
+                    ml: "8px",
+                    color: pinned
+                      ? "var(--cn-color-brand-600, #254d87)"
+                      : "var(--cn-color-neutral-400, #9aa1aa)",
+                  }}
+                >
+                  <PushPinOutlinedIcon
+                    sx={{ fontSize: 16, transform: pinned ? "rotate(45deg)" : "none" }}
+                  />
+                </IconButton>
+              </Tooltip>
+            </MenuItem>
+          );
+        })}
+      </Menu>
+
+      {/* Menú de columna */}
+      <Menu
+        open={menu?.kind === "column"}
+        anchorEl={menu?.anchor}
+        onClose={closeMenu}
+        slotProps={{ paper: { sx: menuPaperSx } }}
+      >
+        {menuColumn &&
+          menuTableColumn && [
+            menuTableColumn.getCanSort() && (
+              <MenuItem
+                key="asc"
+                onClick={() => {
+                  menuTableColumn.toggleSorting(false);
+                  closeMenu();
+                }}
+              >
+                <ListItemIcon>
+                  <ArrowUpwardIcon fontSize="small" />
+                </ListItemIcon>
+                Ordenar ascendente
+              </MenuItem>
+            ),
+            menuTableColumn.getCanSort() && (
+              <MenuItem
+                key="desc"
+                onClick={() => {
+                  menuTableColumn.toggleSorting(true);
+                  closeMenu();
+                }}
+              >
+                <ListItemIcon>
+                  <ArrowDownwardIcon fontSize="small" />
+                </ListItemIcon>
+                Ordenar descendente
+              </MenuItem>
+            ),
+            menuTableColumn.getIsSorted() && (
+              <MenuItem
+                key="clear"
+                onClick={() => {
+                  menuTableColumn.clearSorting();
+                  closeMenu();
+                }}
+              >
+                <ListItemIcon>
+                  <SwapVertIcon fontSize="small" />
+                </ListItemIcon>
+                Quitar orden
+              </MenuItem>
+            ),
+            <Divider key="d1" />,
+            menuColumn.filterable !== false && (
+              <MenuItem
+                key="filter"
+                onClick={() => {
+                  closeMenu();
+                  setShowFilters(true);
+                  setTimeout(() => filterInputs.current[menuColumn.id]?.focus(), 50);
+                }}
+              >
+                <ListItemIcon>
+                  <FilterListIcon fontSize="small" />
+                </ListItemIcon>
+                Filtrar por {headerText(menuColumn)}
+              </MenuItem>
+            ),
             <MenuItem
-              key={`${format}-sel`}
-              dense
+              key="pin"
               onClick={() => {
+                menuTableColumn.pin(pinnedLeftIds.has(menuColumn.id) ? false : "left");
                 closeMenu();
-                void runExport(format, "selected");
               }}
             >
               <ListItemIcon>
-                <FileDownloadOutlinedIcon fontSize="small" />
+                <PushPinOutlinedIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText
-                primaryTypographyProps={{ fontSize: 13 }}
-                secondary={`${selectedRows.length} seleccionados`}
+              {pinnedLeftIds.has(menuColumn.id) ? "Desfijar columna" : "Fijar a la izquierda"}
+            </MenuItem>,
+            menuTableColumn.getCanResize() && (
+              <MenuItem
+                key="size"
+                onClick={() => {
+                  menuTableColumn.resetSize();
+                  closeMenu();
+                }}
               >
-                {FORMAT_LABELS[format]}
-              </ListItemText>
-            </MenuItem>
-          ))}
-        {copyable && (
-          <MenuItem
-            dense
-            onClick={() => {
-              closeMenu();
-              void runCopy(selectable && selectedRows.length ? "selected" : "page");
-            }}
-          >
-            <ListItemIcon>
-              <ContentCopyIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primaryTypographyProps={{ fontSize: 13 }}
-              secondary="Se pega como tabla en Excel"
-            >
-              {selectable && selectedRows.length ? "Copiar selección" : "Copiar página"}
-            </ListItemText>
-          </MenuItem>
-        )}
+                <ListItemIcon>
+                  <CnIcon name="width_normal" size="sm" />
+                </ListItemIcon>
+                Restablecer ancho
+              </MenuItem>
+            ),
+            menuColumn.hideable !== false && (
+              <MenuItem
+                key="hide"
+                onClick={() => {
+                  menuTableColumn.toggleVisibility(false);
+                  closeMenu();
+                }}
+              >
+                <ListItemIcon>
+                  <CnIcon name="visibility_off" size="sm" />
+                </ListItemIcon>
+                Ocultar columna
+              </MenuItem>
+            ),
+          ]}
       </Menu>
 
-      {/* Menú de acciones de fila */}
+      {/* Acciones de fila */}
       <Menu
         open={menu?.kind === "row"}
         anchorEl={menu?.anchor}
         onClose={closeMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{ paper: { sx: { ...menuPaperSx, minWidth: 180 } } }}
       >
-        {menuRow &&
-          actionsFor(menuRow)
+        {menu?.kind === "row" &&
+          actionsFor(menu.row)
             .filter((action) => !action.inline)
             .map((action) => (
               <MenuItem
                 key={action.id}
-                dense
-                disabled={action.disabled?.(menuRow)}
+                disabled={action.disabled?.(menu.row)}
                 onClick={() => {
+                  const row = menu.row;
                   closeMenu();
-                  runRowAction(action, menuRow);
+                  runRowAction(action, row);
                 }}
                 sx={{
                   color:
@@ -1400,11 +2330,13 @@ export const CnDataTable = <T extends CnRow>({
                 }}
               >
                 {action.icon && (
-                  <ListItemIcon sx={{ color: "inherit" }}>
+                  <ListItemIcon
+                    sx={{ color: action.color === "error" ? "inherit !important" : undefined }}
+                  >
                     <CnIcon name={action.icon} size="sm" />
                   </ListItemIcon>
                 )}
-                <ListItemText primaryTypographyProps={{ fontSize: 13 }}>
+                <ListItemText primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 500 }}>
                   {action.label}
                 </ListItemText>
               </MenuItem>
