@@ -192,6 +192,15 @@ export const normalizePath = (path: string): string =>
 export type BuildFormDataOptions = {
   excludeFields?: string[];
   dateFormat?: (date: Date) => string;
+  /**
+   * Arreglos de valores simples: `indices` (`tags[0]=a`, por defecto),
+   * `brackets` (`tags[]=a`) o `json` (`tags='["a"]'`).
+   */
+  arrayFormat?: "indices" | "brackets" | "json";
+  /** Archivos existentes `{ id, url }`: enviar su `id` (por defecto) u omitirlos. */
+  existingFiles?: "id" | "omit";
+  /** Booleanos como `"1"/"0"` (por defecto) o `"true"/"false"`. */
+  booleanFormat?: "number" | "string";
 };
 
 /**
@@ -202,7 +211,13 @@ export type BuildFormDataOptions = {
  */
 export const buildFormData = (
   values: Record<string, unknown>,
-  { excludeFields = [], dateFormat }: BuildFormDataOptions = {},
+  {
+    excludeFields = [],
+    dateFormat,
+    arrayFormat = "indices",
+    existingFiles = "id",
+    booleanFormat = "number",
+  }: BuildFormDataOptions = {},
 ): FormData => {
   const formData = new FormData();
   const excluded = new Set(excludeFields.map(normalizePath));
@@ -216,12 +231,22 @@ export const buildFormData = (
     } else if (value instanceof Date) {
       formData.append(key, dateFormat ? dateFormat(value) : value.toISOString());
     } else if (typeof value === "boolean") {
-      formData.append(key, value ? "1" : "0");
+      const text = booleanFormat === "string" ? String(value) : value ? "1" : "0";
+      formData.append(key, text);
     } else if (Array.isArray(value)) {
-      value.forEach((item, index) => append(`${key}[${index}]`, `${dotted}.${index}`, item));
+      const primitives = value.every(
+        (item) => item === null || ["string", "number", "boolean"].includes(typeof item),
+      );
+      if (primitives && arrayFormat === "json") {
+        formData.append(key, JSON.stringify(value));
+      } else if (primitives && arrayFormat === "brackets") {
+        value.forEach((item) => append(`${key}[]`, dotted, item));
+      } else {
+        value.forEach((item, index) => append(`${key}[${index}]`, `${dotted}.${index}`, item));
+      }
     } else if (isPlainObject(value)) {
       if ("url" in value && "id" in value && !isBinary(value)) {
-        formData.append(`${key}[id]`, String(value.id));
+        if (existingFiles === "id") formData.append(`${key}[id]`, String(value.id));
         return;
       }
       for (const [child, childValue] of Object.entries(value)) {

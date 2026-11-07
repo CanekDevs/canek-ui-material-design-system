@@ -4,7 +4,7 @@
  * `YYYY-MM-DD`, `HH:mm`, `YYYY-MM-DDTHH:mm`, `YYYY-MM`.
  */
 
-export type CnDateKind = "date" | "time" | "datetime" | "month";
+export type CnDateKind = "date" | "time" | "datetime" | "month" | "year";
 export type CnDateDisplayFormat = "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
 export type CnWeekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -47,6 +47,8 @@ export const isValidIsoValue = (value: string, kind: CnDateKind): boolean => {
       return /^\d{4}-\d{2}-\d{2}$/.test(value) && parseIsoDate(value) !== null;
     case "month":
       return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+    case "year":
+      return /^\d{4}$/.test(value) && Number(value) > 0;
     case "time":
       return /^\d{2}:\d{2}$/.test(value) && parseIsoTime(value) !== null;
     case "datetime":
@@ -145,6 +147,8 @@ export const getInputPattern = (
       return time;
     case "month":
       return format === "YYYY-MM-DD" ? "YYYY-MM" : "MM/YYYY";
+    case "year":
+      return "YYYY";
     case "datetime":
       return `${DATE_PATTERNS[format]} ${time}`;
     default:
@@ -205,6 +209,7 @@ export const parseMaskedInput = (
   const pattern = getInputPattern(kind, format, ampm);
   const core = ampm ? pattern.replace(" aa", "") : pattern;
   if (text.length < core.length) return null;
+  if (kind === "year") return /^\d{4}$/.test(text) && Number(text) > 0 ? text : null;
 
   let datePart = "";
   if (kind !== "time") {
@@ -246,6 +251,7 @@ export const formatIsoForInput = (
   ampm = false,
 ): string => {
   if (!value || !isValidIsoValue(value, kind)) return value ?? "";
+  if (kind === "year") return value;
   const pattern = getInputPattern(kind, format, ampm);
   const date = kind === "time" ? null : parseIsoDate(kind === "month" ? `${value}-01` : value);
   const time = kind === "time" || kind === "datetime" ? parseIsoTime(value) : null;
@@ -268,6 +274,60 @@ export const formatIsoForInput = (
     }
   }
   return output;
+};
+
+/**
+ * Presenta un valor ISO con un formato libre (solo lectura): `YYYY`, `YY`,
+ * `MMMM` (enero), `MMM` (ene), `MM`, `M`, `DD`, `D`, `dddd` (lunes), `ddd`,
+ * `HH`, `H`, `hh`, `h`, `mm`, `a` (a. m./p. m.). El texto entre corchetes se
+ * deja tal cual: `"D [de] MMMM [de] YYYY"` → `5 de mayo de 2024`.
+ */
+export const formatIsoDisplay = (
+  value: string,
+  kind: CnDateKind,
+  pattern: string,
+  locale = "es-MX",
+): string => {
+  if (!value || !isValidIsoValue(value, kind)) return value ?? "";
+  const date =
+    kind === "time"
+      ? new Date(2000, 0, 1)
+      : (parseIsoDate(
+          kind === "year" ? `${value}-01-01` : kind === "month" ? `${value}-01` : value,
+        ) as Date);
+  const time = kind === "time" || kind === "datetime" ? parseIsoTime(value) : null;
+  const hours = time?.hours ?? 0;
+  const minutes = time?.minutes ?? 0;
+  const monthLong = capitalize(new Intl.DateTimeFormat(locale, { month: "long" }).format(date));
+  const monthShort = capitalize(
+    new Intl.DateTimeFormat(locale, { month: "short" }).format(date),
+  ).replace(".", "");
+  const dayLong = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date);
+  const dayShort = new Intl.DateTimeFormat(locale, { weekday: "short" })
+    .format(date)
+    .replace(".", "");
+  const tokens: Record<string, string> = {
+    YYYY: String(date.getFullYear()),
+    YY: String(date.getFullYear()).slice(-2),
+    MMMM: monthLong.toLocaleLowerCase(locale),
+    MMM: monthShort.toLocaleLowerCase(locale),
+    MM: pad2(date.getMonth() + 1),
+    M: String(date.getMonth() + 1),
+    DD: pad2(date.getDate()),
+    D: String(date.getDate()),
+    dddd: dayLong,
+    ddd: dayShort,
+    HH: pad2(hours),
+    H: String(hours),
+    hh: pad2(hours % 12 || 12),
+    h: String(hours % 12 || 12),
+    mm: pad2(minutes),
+    a: hours >= 12 ? "p. m." : "a. m.",
+  };
+  return pattern.replace(
+    /\[([^\]]*)\]|YYYY|YY|MMMM|MMM|MM|M|DD|D|dddd|ddd|HH|H|hh|h|mm|a/g,
+    (match, literal: string | undefined) => (literal !== undefined ? literal : tokens[match]),
+  );
 };
 
 export const defaultFormatForLocale = (locale: string): CnDateDisplayFormat =>

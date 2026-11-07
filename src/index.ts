@@ -143,6 +143,8 @@ export type {
   CnPhoneCountryCode,
   CnPostalCodeFormat,
   CnValidationRule,
+  CnValidationRuleCommon,
+  CnValidationRuleDefinition,
   BuildFormDataOptions,
   UseFieldValidationOptions,
   UseFieldValidationReturn,
@@ -159,6 +161,8 @@ export {
   hasFiles,
   isDeepEqual,
   isEmptyValue,
+  isoToDate,
+  normalizeDateValue,
   normalizePath,
   omitPaths,
   parseDateInput,
@@ -258,6 +262,7 @@ export type {
   CnExistingFile,
   CnFileFieldProps,
   CnFileFieldVariant,
+  CnFileSizeUnit,
   CnFileKind,
   CnFileMetadata,
   CnFileRejection,
@@ -321,6 +326,33 @@ export type {
 export { CnNumberRangeField, NUMBER_RANGE_RULES } from "./components/CnNumberRangeField";
 export type { CnNumberRangeFieldProps, CnNumberRangeValue } from "./components/CnNumberRangeField";
 
+export { CnChoiceCardsField } from "./components/CnChoiceCardsField";
+export type {
+  CnChoiceCardsFieldProps,
+  CnChoiceCardsOption,
+  CnChoiceCardsValue,
+} from "./components/CnChoiceCardsField";
+
+export { CnTransferListField } from "./components/CnTransferListField";
+export type {
+  CnTransferListFieldProps,
+  CnTransferListValue,
+} from "./components/CnTransferListField";
+
+export { CnTreeSelectField } from "./components/CnTreeSelectField";
+export type {
+  CnTreeOption,
+  CnTreeSelectFieldProps,
+  CnTreeSelectValue,
+} from "./components/CnTreeSelectField";
+
+export { CnKeyValueField, findKeyValueIssues, KEY_VALUE_RULE } from "./components/CnKeyValueField";
+export type {
+  CnKeyValueFieldProps,
+  CnKeyValuePair,
+  CnKeyValueValue,
+} from "./components/CnKeyValueField";
+
 export { CnFormSkeleton } from "./components/CnFormSkeleton";
 export type { CnFormSkeletonProps } from "./components/CnFormSkeleton";
 
@@ -348,6 +380,13 @@ export {
 } from "./utils/date-utils";
 export type { CnDateDisplayFormat, CnDateKind, CnWeekday } from "./utils/date-utils";
 export { moveArrayItem, useSortableList } from "./utils/use-sortable-list";
+export { useAsyncOptions, useOptionMemory } from "./utils/use-async-options";
+export type {
+  CnLoadOptions,
+  CnLoadOptionsContext,
+  UseAsyncOptionsParams,
+  UseAsyncOptionsReturn,
+} from "./utils/use-async-options";
 export { usePressRepeat } from "./utils/use-press-repeat";
 export type { UseSortableListOptions } from "./utils/use-sortable-list";
 export type { CnPhoneCountry } from "./utils/phone-countries";

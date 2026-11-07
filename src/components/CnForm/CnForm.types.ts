@@ -1,5 +1,6 @@
 import type { GridSize, SxProps, Theme } from "@mui/material";
 import type { ReactNode, Ref } from "react";
+import type { BuildFormDataOptions } from "./CnForm.helpers";
 
 export type CnFormValues = Record<string, unknown>;
 
@@ -23,6 +24,7 @@ export type CnFormFieldType =
   | "time"
   | "datetime"
   | "month"
+  | "year"
   | "daterange"
   | "slider"
   | "range"
@@ -37,6 +39,12 @@ export type CnFormFieldType =
   | "signature"
   | "country"
   | "numberrange"
+  | "choicecards"
+  | "transferlist"
+  | "treeselect"
+  | "keyvalue"
+  | "hidden"
+  | "display"
   | "custom";
 
 export type CnFormSectionContext = {
@@ -70,6 +78,10 @@ export type CnFormSelectOption = {
   initials?: string | true;
   /** Código de país para mostrar su bandera. */
   flag?: string;
+  /** choicecards: texto destacado (precio, insignia…). */
+  meta?: ReactNode;
+  /** treeselect: opciones hijas. */
+  children?: readonly CnFormSelectOption[];
 };
 
 /** Alias para usar las opciones fuera de `CnForm`. */
@@ -108,16 +120,38 @@ export type CnPostalCodeFormat =
 
 export type CnDateStringFormat = "YYYY-MM-DD" | "DD/MM/YYYY" | "MM/DD/YYYY";
 
-export type CnValidationRule =
+/** Opciones comunes a todas las reglas. */
+export type CnValidationRuleCommon = {
+  /**
+   * Aplica la regla solo cuando devuelve `true` (p. ej. requerido solo si
+   * otro campo tiene cierto valor). Recibe los valores, el contexto de la
+   * sección repetible y el valor del campo.
+   */
+  when?: (
+    formValues: CnFormValues,
+    ctx: CnFormSectionContext | undefined,
+    value: unknown,
+  ) => boolean;
+};
+
+export type CnValidationRule = CnValidationRuleCommon & CnValidationRuleDefinition;
+
+export type CnValidationRuleDefinition =
   | { type: "required"; message?: CnFormDynamicMessage }
   | { type: "email"; message?: CnFormDynamicMessage }
   | { type: "url"; message?: CnFormDynamicMessage }
   | { type: "minLength"; value: number; message?: CnFormDynamicMessage }
   | { type: "maxLength"; value: number; message?: CnFormDynamicMessage }
-  | { type: "exactLength"; value: number; message?: CnFormDynamicMessage }
+  | {
+      type: "exactLength";
+      value?: number;
+      /** Alias de `value`. */
+      length?: number;
+      message?: CnFormDynamicMessage;
+    }
   | { type: "min"; value: number; message?: CnFormDynamicMessage }
   | { type: "max"; value: number; message?: CnFormDynamicMessage }
-  | { type: "between"; min: number; max: number; message?: CnFormDynamicMessage }
+  | { type: "between"; min?: number; max?: number; message?: CnFormDynamicMessage }
   | { type: "numeric"; message?: CnFormDynamicMessage }
   | { type: "integer"; message?: CnFormDynamicMessage }
   | { type: "positive"; message?: CnFormDynamicMessage }
@@ -200,7 +234,7 @@ export type CnValidationRule =
   | { type: "maxItems"; value: number; message?: CnFormDynamicMessage }
   | { type: "maxFiles"; value: number; message?: CnFormDynamicMessage }
   | { type: "minFiles"; value: number; message?: CnFormDynamicMessage }
-  | { type: "maxSize"; value: number; message?: CnFormDynamicMessage }
+  | { type: "maxSize"; value: number; unit?: "KB" | "MB" | "GB"; message?: CnFormDynamicMessage }
   | { type: "fileType"; types: string[]; message?: CnFormDynamicMessage };
 
 export type CnFormGridProps = {
@@ -259,14 +293,45 @@ export type CnFormField = CnFormGridProps & {
   loading?: boolean;
   /** autocomplete: notifica lo que se escribe (búsqueda remota). */
   onInputChange?: (input: string, formValues: CnFormValues) => void;
+  /**
+   * Opciones remotas para select, autocomplete, radio, checkbox (grupo) y
+   * segmented. En autocomplete recibe el texto buscado; se cancela la petición
+   * anterior y se recarga cuando cambian los campos de `dependsOn`.
+   */
+  loadOptions?: (ctx: {
+    input: string;
+    signal: AbortSignal;
+    formValues: CnFormValues;
+    sectionContext?: CnFormSectionContext;
+  }) => Promise<readonly CnFormSelectOption[]>;
+  /**
+   * Campos de los que depende (rutas; dentro de una sección repetible son
+   * relativas al elemento). Al cambiar se recargan las opciones y el valor se
+   * limpia (ver `resetOnDependencyChange`). Si alguno está vacío, el campo se
+   * deshabilita y no carga opciones.
+   */
+  dependsOn?: string[];
+  /** Limpia el valor cuando cambia un campo de `dependsOn`. Por defecto `true`. */
+  resetOnDependencyChange?: boolean;
+  /** autocomplete remoto: caracteres mínimos para buscar. */
+  minSearchLength?: number;
+  /** autocomplete remoto: espera tras teclear (ms). Por defecto 300. */
+  searchDebounceMs?: number;
+  /** autocomplete: opciones del valor actual (edición con búsqueda remota). */
+  selectedOptions?: readonly CnFormSelectOption[];
+  /** autocomplete: permite crear opciones nuevas ("Crear …"). */
+  onCreateOption?: (
+    input: string,
+    formValues: CnFormValues,
+  ) => CnFormSelectOption | string | void | Promise<CnFormSelectOption | string | void>;
   direction?: "row" | "column";
   labelPlacement?: "start" | "end" | "top" | "bottom";
   description?: string;
 
   multiline?: boolean;
-  rows?: number;
-  minRows?: number;
-  maxRows?: number;
+  rows?: CnFormDynamicValue<number>;
+  minRows?: CnFormDynamicValue<number>;
+  maxRows?: CnFormDynamicValue<number>;
   maxLength?: number;
   showCounter?: boolean;
   transform?: "uppercase" | "lowercase" | "capitalize" | "none";
@@ -275,8 +340,8 @@ export type CnFormField = CnFormGridProps & {
 
   min?: CnFormDynamicValue<number>;
   max?: CnFormDynamicValue<number>;
-  step?: number;
-  decimals?: number;
+  step?: CnFormDynamicValue<number>;
+  decimals?: CnFormDynamicValue<number>;
   /** @deprecated Usa `controls`. */
   showSteppers?: boolean;
   /** number/currency: estilo de los controles (`stacked`, `split`, `inline`, `none`). */
@@ -295,6 +360,13 @@ export type CnFormField = CnFormGridProps & {
   locale?: string;
 
   defaultCountry?: CnPhoneCountryCode;
+  /**
+   * phone / tel: muestra el selector de país. En `tel` lo convierte en un
+   * teléfono internacional validado por país (como `phone`).
+   */
+  showCountrySelect?: boolean;
+  /** phone / tel con selector: `e164` (`+525512345678`, por defecto) o `national`. */
+  phoneValueFormat?: "e164" | "national";
   countries?: CnPhoneCountryCode[];
 
   minDate?: CnFormDynamicValue<string | undefined>;
@@ -307,11 +379,29 @@ export type CnFormField = CnFormGridProps & {
   /** Fechas puntuales deshabilitadas (`YYYY-MM-DD`). */
   disabledDates?: CnFormDynamicValue<string[]>;
   shouldDisableDate?: (isoDate: string, formValues: CnFormValues) => boolean;
+  /** Deshabilita meses en la vista de meses (`YYYY-MM`). */
+  shouldDisableMonth?: (isoMonth: string, formValues: CnFormValues) => boolean;
+  /** Deshabilita años en la vista de años. */
+  shouldDisableYear?: (year: number, formValues: CnFormValues) => boolean;
+  /** time / datetime: deshabilita horas puntuales (`HH:mm`). */
+  shouldDisableTime?: (time: string, formValues: CnFormValues) => boolean;
   /** Formato visible de captura de fechas. */
   dateFormat?: "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
-  ampm?: boolean;
-  minutesStep?: number;
+  /**
+   * Formato de presentación libre cuando el campo no tiene el foco:
+   * `"MMMM [de] YYYY"`, `"dddd D [de] MMMM"`, `"hh:mm a"`…
+   */
+  displayFormat?: string;
+  ampm?: CnFormDynamicValue<boolean>;
+  minutesStep?: CnFormDynamicValue<number>;
+  /** time / datetime: ventana horaria diaria (`HH:mm`). */
+  minTime?: CnFormDynamicValue<string | undefined>;
+  maxTime?: CnFormDynamicValue<string | undefined>;
   views?: ("day" | "month" | "year")[];
+  /** Vista con la que abre el calendario. */
+  openTo?: "day" | "month" | "year";
+  /** Mes visible al abrir sin valor (`YYYY-MM` o `YYYY-MM-DD`). */
+  defaultCalendarMonth?: CnFormDynamicValue<string | undefined>;
   highlightedDates?: CnFormDynamicValue<string[]>;
   /** daterange: duración máxima en días. */
   maxDays?: number;
@@ -361,14 +451,20 @@ export type CnFormField = CnFormGridProps & {
   iconOnly?: boolean;
 
   marks?: boolean | { value: number; label?: string }[];
-  precision?: number;
+  precision?: CnFormDynamicValue<number>;
 
   accept?: string;
   maxFiles?: number;
   /** Tamaño máximo por archivo en MB. */
   maxSize?: number;
   reorderable?: boolean;
-  fileVariant?: "dropzone" | "button" | "compact" | "grid" | "card" | "avatar";
+  fileVariant?: "dropzone" | "button" | "compact" | "grid" | "card" | "avatar" | "masonry";
+  /** Unidad de `maxSize` / `maxTotalSize`. Por defecto `MB`. */
+  fileSizeUnit?: "KB" | "MB" | "GB";
+  /** file (grid, card, masonry): columnas fijas. */
+  gridColumns?: number;
+  /** file: miniaturas en las variantes de lista. */
+  showPreviews?: boolean;
   /** Tamaño máximo sumando todos los archivos, en MB. */
   maxTotalSize?: number;
   imageConstraints?: {
@@ -399,6 +495,51 @@ export type CnFormField = CnFormGridProps & {
    */
   componentProps?: Record<string, unknown>;
 
+  /**
+   * Campo calculado: su valor se deriva de los demás y se mantiene
+   * sincronizado (p. ej. `total = cantidad × precio`). Queda de solo lectura.
+   */
+  compute?: (formValues: CnFormValues, ctx?: CnFormSectionContext) => unknown;
+  /** display: cómo mostrar el valor (por defecto como texto). */
+  format?: (value: unknown, formValues: CnFormValues) => ReactNode;
+  /** choicecards: columnas de tarjetas. */
+  optionColumns?: 1 | 2 | 3 | 4;
+  /** treeselect (multiple): marcar un padre marca sus hijos. Por defecto `true`. */
+  cascade?: boolean;
+  /** treeselect (multiple + cascade): `all`, `leaves` o `parents`. */
+  treeValueMode?: "all" | "leaves" | "parents";
+  /** treeselect (simple): solo se pueden elegir hojas. */
+  leavesOnly?: boolean;
+  /** keyvalue: `array` de pares u `object`. */
+  valueFormat?: "array" | "object";
+
+  /** Tamaño de este campo (por defecto el `size` del formulario). */
+  size?: "sm" | "md" | "lg";
+  /** select / autocomplete / radio / checkbox: contenido propio de cada opción. */
+  renderOption?: (option: CnFormSelectOption) => ReactNode;
+  /** select: contenido del campo cerrado con la selección. */
+  renderValue?: (
+    value: unknown,
+    selected: CnFormSelectOption | CnFormSelectOption[] | undefined,
+  ) => ReactNode;
+  /** Texto mostrado por opción (select, autocomplete…); por defecto `label`. */
+  getOptionLabel?: (option: CnFormSelectOption) => string;
+  /**
+   * Fechas: tipo de valor que guarda el formulario. `string` (ISO local, por
+   * defecto) o `date` (objeto `Date`). En ambos casos acepta `Date`, ISO con
+   * zona horaria y `"YYYY-MM-DD HH:mm:ss"` como valor inicial.
+   */
+  valueType?: "string" | "date";
+  /** currency: selector de moneda (`hidden`, `readonly`, `editable`). */
+  currencySelectorMode?: "hidden" | "readonly" | "editable";
+  /**
+   * file: ruta del formulario donde se acumulan los ids de los archivos
+   * existentes que el usuario quitó (p. ej. `"removed_photo_ids"`).
+   */
+  removedFilesName?: string;
+  /** custom: permite que Enter dentro del control envíe el formulario. Por defecto `false`. */
+  submitOnEnter?: boolean;
+
   /** Solo `type: "custom"`: renderiza un control propio enlazado al estado del formulario. */
   render?: (props: CnFormCustomRenderProps) => ReactNode;
 
@@ -419,6 +560,8 @@ export type CnFormField = CnFormGridProps & {
 export type CnFormCustomElement = CnFormGridProps & {
   type: "custom";
   component: ReactNode;
+  /** Permite que Enter dentro del elemento envíe el formulario. Por defecto `false`. */
+  submitOnEnter?: boolean;
   visibleWhen?: (formValues: CnFormValues, ctx?: CnFormSectionContext) => boolean;
 };
 
@@ -442,9 +585,30 @@ export type CnFormSection = {
   /** Título de cada elemento; por defecto `${title} ${n}`. */
   itemTitle?: (index: number, item: CnFormValues) => ReactNode;
   addLabel?: string;
+  /** Ícono del botón agregar (registro de `CnIcon`). */
+  addIcon?: string;
+  /** Ícono del botón eliminar de cada elemento (registro de `CnIcon`). */
+  removeIcon?: string;
+  /**
+   * Apariencia: `card` (borde, por defecto), `elevated` (sombra), `filled`
+   * (fondo suave) o `plain` (sin contenedor, solo título).
+   */
+  appearance?: "card" | "elevated" | "filled" | "plain";
+  /** Relleno interno de la sección. Por defecto `md`. */
+  padding?: "none" | "sm" | "md" | "lg";
+  /** Texto del botón eliminar de cada elemento. */
+  removeLabel?: string;
+  /** Texto cuando no hay elementos (`minItems: 0`). */
+  emptyText?: ReactNode;
+  /** Elementos con los que arranca la sección. Por defecto `max(minItems, 1)`; con `minItems: 0`, 0. */
+  initialItems?: number;
   canAdd?: CnFormDynamicValue<boolean>;
+  /** Se evalúa por elemento: `ctx` incluye `{ index, item }`. */
   canRemove?: CnFormDynamicValue<boolean>;
+  /** Por defecto `true` en secciones repetibles. */
   canReorder?: CnFormDynamicValue<boolean>;
+  /** Contenido extra en el encabezado (insignia, enlace, botón). */
+  headerRight?: ReactNode | ((formValues: CnFormValues) => ReactNode);
   /** Valores iniciales de cada elemento nuevo (se combinan con los `defaultValue` de los campos). */
   newItem?: CnFormValues | ((formValues: CnFormValues) => CnFormValues);
 };
@@ -493,6 +657,8 @@ export type CnFormButtonProps = {
   size?: "small" | "medium" | "large";
   fullWidth?: boolean;
   icon?: string;
+  /** Ícono después del texto. */
+  endIcon?: string;
   disabled?: boolean;
 };
 
@@ -502,7 +668,12 @@ export type CnFormExtraAction = {
   icon?: string;
   variant?: "contained" | "outlined" | "text";
   color?: CnFormButtonColor;
+  size?: "small" | "medium" | "large";
   disabled?: boolean;
+  /** Estado de carga externo (además del automático mientras corre `onClick`). */
+  loading?: boolean;
+  /** Mostrar solo cuando devuelve `true`. */
+  visibleWhen?: (formValues: CnFormValues) => boolean;
   /** Valida el formulario antes de ejecutar la acción. */
   validate?: boolean;
   onClick: (values: CnFormValues, helpers: CnFormHelpers) => void | Promise<void>;
@@ -531,6 +702,8 @@ export type CnFormLabels = {
 };
 
 export type CnFormLoadingStates = {
+  /** Todo el formulario (equivale a `isLoading`). */
+  global?: boolean;
   sections?: Record<string, boolean>;
   tabs?: Record<string, boolean>;
   steps?: Record<string, boolean>;
@@ -545,14 +718,28 @@ export type CnFormHelpers = {
   reset: (values?: CnFormValues) => void;
   setErrors: (errors: Record<string, string>) => void;
   setFieldValue: (path: string, value: unknown) => void;
+  /** Actualiza varias rutas a la vez (`{ "address.city": "GDL", total: 10 }`). */
+  setValues: (patch: Record<string, unknown>) => void;
+  getFieldValue: (path: string) => unknown;
+  /** Error manual en un campo (se borra al editarlo). */
+  setFieldError: (path: string, message: string) => void;
+  /** Borra errores manuales/del servidor; sin rutas borra todos. */
+  clearErrors: (paths?: string | string[]) => void;
 };
 
 /** API imperativa expuesta mediante `formRef`. */
 export type CnFormHandle = CnFormHelpers & {
   submit: () => Promise<boolean>;
-  validate: () => Promise<boolean>;
+  /** Valida todo el formulario (o solo las rutas indicadas) y muestra los errores. */
+  validate: (paths?: string | string[]) => Promise<boolean>;
   getValues: () => CnFormValues;
+  /** Errores visibles actualmente, por ruta. */
+  getErrors: () => Record<string, string>;
   isDirty: () => boolean;
+  /** Cambia de pestaña/paso/sección si hace falta y enfoca el campo. */
+  focusField: (path: string) => void;
+  /** Marca el estado actual como guardado (deja de estar "sucio"). */
+  markSaved: () => void;
 };
 
 export type CnFormProps<TValue extends CnFormValues = CnFormValues> = {
@@ -567,6 +754,12 @@ export type CnFormProps<TValue extends CnFormValues = CnFormValues> = {
   /** Valores iniciales (modo no controlado) y destino de `reset()`. */
   defaultValues?: Partial<TValue>;
   /**
+   * Si `defaultValues` cambia después de montar (datos cargados de la API) y
+   * no hay cambios sin guardar, el formulario se reinicia con los nuevos
+   * valores. Por defecto `true`.
+   */
+  reinitialize?: boolean;
+  /**
    * `patch` contiene solo las claves de primer nivel que cambiaron (con sus
    * objetos anidados completos), así que `setValue(v => ({ ...v, ...patch }))`
    * funciona con rutas anidadas y secciones repetibles.
@@ -578,12 +771,17 @@ export type CnFormProps<TValue extends CnFormValues = CnFormValues> = {
    */
   onSubmit?: (payload: TValue | FormData, ctx: CnFormSubmitContext<TValue>) => void | Promise<void>;
   onCancel?: () => void;
-  onSuccess?: () => void;
+  /** Tras un envío exitoso; recibe el payload enviado y los valores. */
+  onSuccess?: (payload: TValue | FormData, values: TValue) => void;
   onError?: (error: unknown) => void;
   onDirtyChange?: (dirty: boolean) => void;
 
   title?: ReactNode;
   description?: ReactNode;
+  /** Ícono del encabezado (registro de `CnIcon`). */
+  icon?: string;
+  /** Título del modal si debe ser distinto de `title`. */
+  dialogTitle?: ReactNode;
 
   size?: CnFormSize;
   columns?: 1 | 2 | 3 | 4;
@@ -595,6 +793,12 @@ export type CnFormProps<TValue extends CnFormValues = CnFormValues> = {
   submitButtonProps?: CnFormButtonProps;
   cancelButtonProps?: CnFormButtonProps;
   extraActions?: CnFormExtraAction[];
+  /** Botón "Siguiente" del wizard. */
+  nextButtonProps?: CnFormButtonProps;
+  /** Botón "Atrás" del wizard. */
+  backButtonProps?: CnFormButtonProps;
+  /** Deshabilita los botones sin deshabilitar los campos. */
+  disableActions?: boolean;
   actionsAlign?: CnFormActionsAlign;
   stickyActions?: boolean;
   hideActions?: boolean;
@@ -610,6 +814,8 @@ export type CnFormProps<TValue extends CnFormValues = CnFormValues> = {
 
   validateOn?: CnFormValidateOn;
   serverError?: unknown;
+  /** Muestra arriba del formulario el mensaje general de un error del servidor. Por defecto `true`. */
+  showServerErrorAlert?: boolean;
   error?: ReactNode;
   errorSummary?: CnFormErrorSummary;
   scrollToFirstError?: boolean;
@@ -624,6 +830,8 @@ export type CnFormProps<TValue extends CnFormValues = CnFormValues> = {
   /** Excluye del payload los campos ocultos por `visibleWhen`. */
   omitHiddenFields?: boolean;
   dateFormat?: (date: Date) => string;
+  /** Formato de arreglos, booleanos y archivos existentes en `FormData`. */
+  formDataOptions?: Omit<BuildFormDataOptions, "excludeFields" | "dateFormat">;
 
   activeTab?: string;
   onTabChange?: (tabId: string) => void;
@@ -641,6 +849,8 @@ export type CnFormProps<TValue extends CnFormValues = CnFormValues> = {
   dialogMaxWidth?: CnFormDialogWidth;
   dialogFullScreen?: boolean;
   dialogHeaderRight?: ReactNode;
+  /** Modal no controlado: vuelve a los valores iniciales cada vez que se abre. Por defecto `true`. */
+  resetOnOpen?: boolean;
 
   formRef?: Ref<CnFormHandle>;
   externalSubmitRef?: { current: (() => Promise<boolean>) | null };
