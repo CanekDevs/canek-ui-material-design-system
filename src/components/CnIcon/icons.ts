@@ -1,6 +1,54 @@
 import type { SvgIconComponent } from "@mui/icons-material";
 
+import AudioFile from "@mui/icons-material/AudioFile";
+import Directions from "@mui/icons-material/Directions";
+import List from "@mui/icons-material/List";
+import Movie from "@mui/icons-material/Movie";
+import Payments from "@mui/icons-material/Payments";
+import SdStorage from "@mui/icons-material/SdStorage";
+import Slideshow from "@mui/icons-material/Slideshow";
+import Sms from "@mui/icons-material/Sms";
+import TableChart from "@mui/icons-material/TableChart";
+
+import Snooze from "@mui/icons-material/Snooze";
+
+import Archive from "@mui/icons-material/Archive";
+import Assignment from "@mui/icons-material/Assignment";
+import AssignmentInd from "@mui/icons-material/AssignmentInd";
+import Backup from "@mui/icons-material/Backup";
+import CropSquare from "@mui/icons-material/CropSquare";
+import Handshake from "@mui/icons-material/Handshake";
+import MoneyOff from "@mui/icons-material/MoneyOff";
+import NotInterested from "@mui/icons-material/NotInterested";
+import OfflineBolt from "@mui/icons-material/OfflineBolt";
+import OnlinePrediction from "@mui/icons-material/OnlinePrediction";
+import Percent from "@mui/icons-material/Percent";
+import PhotoLibrary from "@mui/icons-material/PhotoLibrary";
+import PowerSettingsNew from "@mui/icons-material/PowerSettingsNew";
+import Rocket from "@mui/icons-material/Rocket";
+import Science from "@mui/icons-material/Science";
+import Start from "@mui/icons-material/Start";
+import StopCircle from "@mui/icons-material/StopCircle";
+import SyncProblem from "@mui/icons-material/SyncProblem";
+import TimerOff from "@mui/icons-material/TimerOff";
+import WifiFind from "@mui/icons-material/WifiFind";
+
 import AccessTime from "@mui/icons-material/AccessTime";
+import BrowserUpdated from "@mui/icons-material/BrowserUpdated";
+import CopyAll from "@mui/icons-material/CopyAll";
+import Tag from "@mui/icons-material/Tag";
+import PhoneDisabled from "@mui/icons-material/PhoneDisabled";
+import Unsubscribe from "@mui/icons-material/Unsubscribe";
+import HideImage from "@mui/icons-material/HideImage";
+import LocationOff from "@mui/icons-material/LocationOff";
+import PersonOff from "@mui/icons-material/PersonOff";
+import LabelOff from "@mui/icons-material/LabelOff";
+import HelpOutline from "@mui/icons-material/HelpOutline";
+import TableView from "@mui/icons-material/TableView";
+import TableRows from "@mui/icons-material/TableRows";
+import SelectAll from "@mui/icons-material/SelectAll";
+import WidthNormal from "@mui/icons-material/WidthNormal";
+import DragHandle from "@mui/icons-material/DragHandle";
 import AccountBalance from "@mui/icons-material/AccountBalance";
 import AccountBalanceWallet from "@mui/icons-material/AccountBalanceWallet";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -359,6 +407,51 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 
 export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
+  audio_file: AudioFile,
+  directions: Directions,
+  list: List,
+  movie: Movie,
+  payments: Payments,
+  sd_storage: SdStorage,
+  slideshow: Slideshow,
+  sms: Sms,
+  table_chart: TableChart,
+  snooze: Snooze,
+  archive: Archive,
+  assignment: Assignment,
+  assignment_ind: AssignmentInd,
+  backup: Backup,
+  crop_square: CropSquare,
+  handshake: Handshake,
+  money_off: MoneyOff,
+  not_interested: NotInterested,
+  offline_bolt: OfflineBolt,
+  online_prediction: OnlinePrediction,
+  percent: Percent,
+  photo_library: PhotoLibrary,
+  power_settings_new: PowerSettingsNew,
+  rocket: Rocket,
+  science: Science,
+  start: Start,
+  stop_circle: StopCircle,
+  sync_problem: SyncProblem,
+  timer_off: TimerOff,
+  wifi_find: WifiFind,
+  browser_updated: BrowserUpdated,
+  copy_all: CopyAll,
+  tag: Tag,
+  phone_disabled: PhoneDisabled,
+  unsubscribe: Unsubscribe,
+  hide_image: HideImage,
+  location_off: LocationOff,
+  person_off: PersonOff,
+  label_off: LabelOff,
+  help_outline: HelpOutline,
+  table_view: TableView,
+  table_rows: TableRows,
+  select_all: SelectAll,
+  width_normal: WidthNormal,
+  drag_handle: DragHandle,
   access_time: AccessTime,
   account_balance: AccountBalance,
   account_balance_wallet: AccountBalanceWallet,

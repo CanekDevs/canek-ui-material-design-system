@@ -385,6 +385,49 @@ export type {
 export { CnMetricCard, CnSparkline } from "./components/CnMetricCard";
 export type { CnMetricCardProps, CnMetricColor, CnMetricTrend } from "./components/CnMetricCard";
 
+export {
+  CN_STATUS_PRESETS,
+  CnCell,
+  CnCellDetail,
+  CnCellPill,
+  CnCopyButton,
+  CnDataTable,
+  CnEmptyCell,
+  CnImageViewer,
+  amountInWords,
+  colorFromText,
+  copyRows,
+  formatBytesText,
+  numberToSpanishWords,
+  rowsToXlsx,
+  formatRelative,
+  printRows,
+  exportRows,
+  formatCellText,
+  neutralizeFormula,
+  renderTypedCell,
+  serializeRows,
+} from "./components/CnDataTable";
+export type {
+  CnAggregate,
+  CnBulkAction,
+  CnCellDetailAction,
+  CnCellDetailRow,
+  CnCellOptions,
+  CnCellProps,
+  CnCellTone,
+  CnCellType,
+  CnColumn,
+  CnDataTableProps,
+  CnExportColumn,
+  CnExportFormat,
+  CnRowAction,
+  CnServerSide,
+  CnSortItem,
+  CnStatusOption,
+  CnTableQuery,
+} from "./components/CnDataTable";
+
 export { CnFormSkeleton } from "./components/CnFormSkeleton";
 export type { CnFormSkeletonProps } from "./components/CnFormSkeleton";
 
