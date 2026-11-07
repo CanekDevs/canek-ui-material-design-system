@@ -53,7 +53,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import type { DragEvent, MouseEvent } from "react";
+import type { DragEvent, KeyboardEvent as ReactKeyboardEvent, MouseEvent } from "react";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mergeSx } from "../../utils/field-styles";
 import { normalizeSearchText } from "../CnAutocompleteField";
@@ -764,11 +764,28 @@ export const CnDataTable = <T extends CnRow>({
   // ─── Menús ────────────────────────────────────────────────────────────
   type MenuState =
     | { kind: "columns" | "export" | "copy" | "print"; anchor: HTMLElement }
-    | { kind: "scope"; anchor: HTMLElement; action: (scope: Scope) => void; title: string }
     | { kind: "row"; anchor: HTMLElement; row: T }
     | { kind: "column"; anchor: HTMLElement; columnId: string };
   const [menu, setMenu] = useState<MenuState | null>(null);
-  const closeMenu = () => setMenu(null);
+  /**
+   * Submenú de alcance (todos / página / selección). Es un menú en cascada:
+   * el menú de formatos sigue abierto mientras se elige el alcance.
+   */
+  type ScopeMenuState = {
+    anchor: HTMLElement;
+    key: string;
+    title: string;
+    action: (scope: Scope) => void;
+    placement: "side" | "below";
+  };
+  const [scopeMenu, setScopeMenu] = useState<ScopeMenuState | null>(null);
+  // El contenido se conserva mientras el submenú se desvanece al cerrar.
+  const [scopeOpen, setScopeOpen] = useState(false);
+  const closeScopeMenu = () => setScopeOpen(false);
+  const closeMenu = () => {
+    setScopeOpen(false);
+    setMenu(null);
+  };
 
   const filterInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -959,8 +976,29 @@ export const CnDataTable = <T extends CnRow>({
 
   // ─── Barra superior ───────────────────────────────────────────────────
   const exportEnabled = exportFormats !== false && exportFormats.length > 0;
-  const openScope = (anchor: HTMLElement, titleText: string, action: (scope: Scope) => void) =>
-    setMenu({ kind: "scope", anchor, title: titleText, action });
+  const openScope = (
+    anchor: HTMLElement,
+    titleText: string,
+    action: (scope: Scope) => void,
+    placement: ScopeMenuState["placement"] = "side",
+  ) => {
+    setScopeMenu({ anchor, key: titleText, title: titleText, action, placement });
+    setScopeOpen(true);
+  };
+
+  /** Abre el submenú con clic, Enter o flecha derecha sobre la opción. */
+  const submenuTriggerProps = (titleText: string, action: (scope: Scope) => void) => ({
+    selected: scopeOpen && scopeMenu?.key === titleText,
+    "aria-haspopup": "menu" as const,
+    "aria-expanded": scopeOpen && scopeMenu?.key === titleText,
+    onClick: (event: MouseEvent<HTMLElement>) => openScope(event.currentTarget, titleText, action),
+    onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => {
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        openScope(event.currentTarget, titleText, action);
+      }
+    },
+  });
 
   const caption = (title || description) && (
     <Box
@@ -1136,7 +1174,12 @@ export const CnDataTable = <T extends CnRow>({
                 disabled={totalCount === 0}
                 sx={outlinedToolbarButtonSx}
                 onClick={(event) =>
-                  openScope(event.currentTarget, "Imprimir", (scope) => void runPrint(scope))
+                  openScope(
+                    event.currentTarget,
+                    "Imprimir",
+                    (scope) => void runPrint(scope),
+                    "below",
+                  )
                 }
               >
                 Imprimir
@@ -2520,13 +2563,10 @@ export const CnDataTable = <T extends CnRow>({
         {(exportFormats || []).map((format) => (
           <MenuItem
             key={format}
-            onClick={(event) =>
-              openScope(
-                event.currentTarget,
-                `Descargar ${FORMATS[format].label}`,
-                (scope) => void runExport(format, scope),
-              )
-            }
+            {...submenuTriggerProps(
+              `Descargar ${FORMATS[format].label}`,
+              (scope) => void runExport(format, scope),
+            )}
           >
             <ListItemIcon>
               <CnIcon name={FORMATS[format].icon} size="sm" />
@@ -2555,13 +2595,10 @@ export const CnDataTable = <T extends CnRow>({
         {COPY_FORMATS.map((format) => (
           <MenuItem
             key={format.id}
-            onClick={(event) =>
-              openScope(
-                event.currentTarget,
-                `Copiar como ${format.label}`,
-                (scope) => void runCopy(format.id, scope),
-              )
-            }
+            {...submenuTriggerProps(
+              `Copiar como ${format.label}`,
+              (scope) => void runCopy(format.id, scope),
+            )}
           >
             <ListItemIcon>
               <CnIcon name={format.icon} size="sm" />
@@ -2582,14 +2619,32 @@ export const CnDataTable = <T extends CnRow>({
 
       {/* Alcance (todos / página / selección) */}
       <Menu
-        open={menu?.kind === "scope"}
-        anchorEl={menu?.anchor}
-        onClose={closeMenu}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={scopeOpen && Boolean(scopeMenu)}
+        anchorEl={scopeMenu?.anchor}
+        // Escape o clic fuera cierran solo el submenú; el de formatos sigue abierto.
+        onClose={closeScopeMenu}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowLeft" && scopeMenu?.placement === "side") {
+            event.stopPropagation();
+            closeScopeMenu();
+          }
+        }}
+        anchorOrigin={
+          scopeMenu?.placement === "below"
+            ? { vertical: "bottom", horizontal: "left" }
+            : { vertical: "top", horizontal: "right" }
+        }
         transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{ paper: { sx: menuPaperSx } }}
+        slotProps={{
+          paper: {
+            sx: {
+              ...menuPaperSx,
+              ...(scopeMenu?.placement === "side" && { ml: "4px", mt: "-6px" }),
+            },
+          },
+        }}
       >
-        {menu?.kind === "scope" && [
+        {scopeMenu && [
           <Box
             key="title"
             sx={{
@@ -2603,9 +2658,9 @@ export const CnDataTable = <T extends CnRow>({
               color: "var(--cn-color-text-muted, #6e7682)",
             }}
           >
-            {menu.title}
+            {scopeMenu.title}
           </Box>,
-          ...scopeItems(menu.action),
+          ...scopeItems(scopeMenu.action),
         ]}
       </Menu>
 
