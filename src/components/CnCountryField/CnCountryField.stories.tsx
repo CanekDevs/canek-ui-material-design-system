@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnCountryField } from "./CnCountryField";
+import Stack from "@mui/material/Stack";
+import { CnCountryFieldSkeleton } from "./CnCountryFieldSkeleton";
 
 const meta: Meta<typeof CnCountryField> = {
   title: "Forms/CnCountryField",
@@ -18,4 +20,17 @@ export const Multiple: Story = {
 };
 export const Restricted: Story = {
   args: { label: "País (LatAm)", countries: ["MX", "GT", "CO", "PE", "CL", "AR", "BR"] },
+};
+
+/** Estado de carga: bandera + nombre o chips (`skeleton` o `CnCountryFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3}>
+      <CnCountryField label="País" helperText="Residencia fiscal" skeleton />
+      <CnCountryFieldSkeleton size="sm" />
+      <CnCountryFieldSkeleton size="lg" />
+      <CnCountryFieldSkeleton multiple selectedCount={5} limitTags={3} />
+      <CnCountryFieldSkeleton variant="filled" value={false} />
+    </Stack>
+  ),
 };

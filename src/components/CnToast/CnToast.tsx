@@ -15,6 +15,7 @@ import {
 import { CnButton } from "../CnButton";
 import { getServerErrorMessage, parseServerErrors } from "../CnForm/CnForm.helpers";
 import { CnIcon } from "../CnIcon";
+import { CnToastSkeleton } from "./CnToastSkeleton";
 
 export type CnToastSeverity = "success" | "error" | "warning" | "info" | "loading";
 
@@ -34,6 +35,8 @@ export type CnToastOptions = {
   /** Lista de detalles (errores por campo…). */
   details?: string[];
   closable?: boolean;
+  /** Muestra el skeleton del aviso (misma distribución) mientras llega su contenido. */
+  skeleton?: boolean;
 };
 
 export type CnToastItem = Required<Pick<CnToastOptions, "id" | "severity">> &
@@ -156,6 +159,21 @@ const ToastCard = ({ item, onDismiss }: { item: CnToastItem; onDismiss: (id: str
   }, [item.id, item.createdAt, onDismiss, paused, duration]);
 
   const title = item.title ?? DEFAULT_TITLES[item.severity];
+
+  if (item.skeleton) {
+    return (
+      <CnToastSkeleton
+        severity={item.severity}
+        title={Boolean(title)}
+        lines={item.message ? 1 : 0}
+        details={Math.min(item.details?.length ?? 0, 6)}
+        action={Boolean(item.action)}
+        closable={item.closable !== false}
+        sx={{ pointerEvents: "auto" }}
+      />
+    );
+  }
+
   return (
     <Box
       role={item.severity === "error" ? "alert" : "status"}

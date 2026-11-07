@@ -809,6 +809,11 @@ export type CnFormProps<TValue extends CnFormValues = CnFormValues> = {
   isSubmitting?: boolean;
   isLoading?: boolean;
   loadingStates?: CnFormLoadingStates;
+  /**
+   * Muestra el skeleton del formulario completo (encabezado, pestañas/pasos,
+   * campos según su tipo y columnas, y acciones) en lugar del formulario.
+   */
+  skeleton?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
 

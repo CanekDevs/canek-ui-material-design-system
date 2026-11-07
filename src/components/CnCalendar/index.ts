@@ -5,3 +5,5 @@ export type {
   CnCalendarRange,
   CnCalendarView,
 } from "./CnCalendar";
+export { CnCalendarSkeleton } from "./CnCalendarSkeleton";
+export type { CnCalendarSkeletonProps } from "./CnCalendarSkeleton";

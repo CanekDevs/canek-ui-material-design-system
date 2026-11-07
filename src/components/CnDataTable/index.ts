@@ -1,4 +1,6 @@
 export { CnDataTable } from "./CnDataTable";
+export { CnDataTableSkeleton } from "./CnDataTableSkeleton";
+export type { CnDataTableSkeletonColumn, CnDataTableSkeletonProps } from "./CnDataTableSkeleton";
 export type {
   CnAggregate,
   CnBulkAction,

@@ -13,6 +13,7 @@ import { useControllableValue, useFieldControl } from "../../utils/field-control
 import { getOutlinedFieldSx, mergeSx, MUI_FIELD_SIZE } from "../../utils/field-styles";
 import { hasOptionMedia, OptionContent, OptionMedia } from "../../utils/option-media";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
+import { CnSelectFieldSkeleton } from "./CnSelectFieldSkeleton";
 
 export type CnSelectValue = string | number | "" | null | Array<string | number>;
 
@@ -36,6 +37,8 @@ export type CnSelectFieldProps = CnFieldBaseProps<CnSelectValue> & {
   ) => ReactNode;
   startAdornment?: ReactNode;
   autoFocus?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 const optionKey = (value: string | number): string => `${typeof value}:${value}`;
@@ -75,6 +78,7 @@ export const CnSelectField = forwardRef<HTMLDivElement, CnSelectFieldProps>(func
     renderValue: renderValueProp,
     startAdornment,
     autoFocus,
+    skeleton = false,
   },
   ref,
 ) {
@@ -240,6 +244,28 @@ export const CnSelectField = forwardRef<HTMLDivElement, CnSelectFieldProps>(func
   }, [emptyText, options, renderOption]);
 
   const showClear = clearable && hasValue && !disabled && !readOnly;
+
+  if (skeleton) {
+    return (
+      <CnSelectFieldSkeleton
+        size={size}
+        label={Boolean(label)}
+        helperText={Boolean(helperText)}
+        multiple={multiple}
+        chips={chips}
+        selectedCount={
+          multiple && Array.isArray(selectedKeys) && selectedKeys.length > 0
+            ? selectedKeys.length
+            : undefined
+        }
+        clearable={clearable}
+        startAdornment={Boolean(startAdornment)}
+        optionMedia={options.some(hasOptionMedia)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <TextField

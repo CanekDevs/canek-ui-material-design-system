@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnColorField } from "./CnColorField";
+import Stack from "@mui/material/Stack";
+import { CnColorFieldSkeleton } from "./CnColorFieldSkeleton";
 
 const meta: Meta<typeof CnColorField> = {
   title: "Forms/CnColorField",
@@ -28,3 +30,16 @@ export const CustomPresets: Story = {
   },
 };
 export const PaletteOnly: Story = { args: { allowInput: false, label: "Color (solo paleta)" } };
+
+/** Estado de carga: muestra, hex y paleta (`skeleton` o `CnColorFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 320 }}>
+      <CnColorField label="Color" helperText="Formato #RRGGBB" skeleton />
+      <CnColorFieldSkeleton size="sm" />
+      <CnColorFieldSkeleton size="lg" value={false} />
+      <CnColorFieldSkeleton palette />
+      <CnColorFieldSkeleton palette presets={8} variant="filled" />
+    </Stack>
+  ),
+};

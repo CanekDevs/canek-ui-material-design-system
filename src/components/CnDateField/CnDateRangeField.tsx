@@ -41,6 +41,7 @@ import { CnButton } from "../CnButton";
 import type { CnCalendarDisableOptions, CnCalendarRange } from "../CnCalendar";
 import { CnCalendar } from "../CnCalendar";
 import type { CnValidationRule } from "../CnForm/CnForm.types";
+import { CnDateRangeFieldSkeleton } from "./CnDateRangeFieldSkeleton";
 
 /** `[desde, hasta]` en `YYYY-MM-DD`; `""` cuando falta un extremo. */
 export type CnDateRangeValue = [string, string];
@@ -65,6 +66,8 @@ export type CnDateRangeFieldProps = CnFieldBaseProps<CnDateRangeValue> &
     /** `true` usa los atajos por defecto; o una lista propia; `false` los oculta. */
     presets?: boolean | CnDateRangePreset[];
     highlightedDates?: string[];
+    /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+    skeleton?: boolean;
   };
 
 const EMPTY: CnDateRangeValue = ["", ""];
@@ -212,6 +215,7 @@ export const CnDateRangeField = forwardRef<HTMLDivElement, CnDateRangeFieldProps
       maxDays,
       presets = true,
       highlightedDates,
+      skeleton = false,
     },
     ref,
   ) {
@@ -311,6 +315,19 @@ export const CnDateRangeField = forwardRef<HTMLDivElement, CnDateRangeFieldProps
       isValidIsoValue(current[0], "date") ? current[0] : null,
       isValidIsoValue(current[1], "date") ? current[1] : null,
     ];
+
+    if (skeleton) {
+      return (
+        <CnDateRangeFieldSkeleton
+          size={size}
+          label={Boolean(label)}
+          helperText={Boolean(helperText)}
+          fieldLabels={Boolean(startLabel || endLabel)}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <FormControl

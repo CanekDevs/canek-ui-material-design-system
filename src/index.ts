@@ -68,12 +68,29 @@ export type {
   CnEmptyStateVariant,
 } from "./components/CnEmptyState";
 
-export { CnSkeleton } from "./components/CnSkeleton";
+export {
+  CnFieldSkeleton,
+  CnSkeleton,
+  CnSkeletonGroup,
+  SkBlock,
+  SkLabeled,
+  SkLines,
+  SkText,
+  useSkeletonGroup,
+  varyWidth,
+} from "./components/CnSkeleton";
 export type {
+  CnFieldSkeletonProps,
   CnSkeletonAnimation,
+  CnSkeletonCommonProps,
+  CnSkeletonGroupProps,
   CnSkeletonProps,
   CnSkeletonVariant,
 } from "./components/CnSkeleton";
+
+// Gráficas: skeletons, tarjeta, paleta y formatos (sin @mui/x-charts).
+// Las gráficas están en "@canek-ui/material-design-system/charts".
+export * from "./components/CnCharts";
 
 export { CnBadge } from "./components/CnBadge";
 export type {
@@ -173,9 +190,10 @@ export {
   validateFieldValue,
 } from "./components/CnForm";
 
-export { CnTextField } from "./components/CnTextField";
+export { CnTextField, CnTextFieldSkeleton } from "./components/CnTextField";
 export type {
   CnTextFieldProps,
+  CnTextFieldSkeletonProps,
   CnTextFieldSize,
   CnTextFieldSlotProps,
   CnTextFieldTransform,
@@ -471,3 +489,96 @@ export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";
 
 export { colors, motion, radii, shadows, spacing, typography, zIndex } from "./tokens";
 export type { CnColorScale, CnColorStep, CnRadius, CnShadow, CnSpacing } from "./tokens";
+
+// ─── Skeletons (estado de carga de cada componente) ─────────────────
+export { CnAlertSkeleton } from "./components/CnAlert";
+export { CnAutocompleteFieldSkeleton } from "./components/CnAutocompleteField";
+export { CnAvatarGroupSkeleton, CnAvatarSkeleton } from "./components/CnAvatar";
+export { CnBadgeSkeleton } from "./components/CnBadge";
+export { CnButtonSkeleton } from "./components/CnButton";
+export { CnCalendarSkeleton } from "./components/CnCalendar";
+export { CnCardSkeleton } from "./components/CnCard";
+export { CnCheckboxFieldSkeleton } from "./components/CnCheckboxField";
+export { CnChipSkeleton } from "./components/CnChip";
+export { CnChoiceCardsFieldSkeleton } from "./components/CnChoiceCardsField";
+export { CnColorFieldSkeleton } from "./components/CnColorField";
+export { CnConfirmDialogSkeleton } from "./components/CnConfirmDialog";
+export { CnCountryFieldSkeleton } from "./components/CnCountryField";
+export { CnCurrencyFieldSkeleton } from "./components/CnCurrencyField";
+export { CnDataTableSkeleton } from "./components/CnDataTable";
+export { CnDateFieldSkeleton, CnDateRangeFieldSkeleton } from "./components/CnDateField";
+export { CnEmptyStateSkeleton } from "./components/CnEmptyState";
+export { CnFileFieldSkeleton } from "./components/CnFileField";
+export { CnFlagIconSkeleton } from "./components/CnFlagIcon";
+export { CnIconSkeleton } from "./components/CnIcon";
+export { CnKeyValueFieldSkeleton } from "./components/CnKeyValueField";
+export { CnMaskedFieldSkeleton } from "./components/CnMaskedField";
+export { CnMetricCardSkeleton } from "./components/CnMetricCard";
+export { CnNumberFieldSkeleton } from "./components/CnNumberField";
+export { CnNumberRangeFieldSkeleton } from "./components/CnNumberRangeField";
+export { CnOtpFieldSkeleton } from "./components/CnOtpField";
+export { CnPageContainerSkeleton } from "./components/CnPageContainer";
+export { CnPasswordFieldSkeleton } from "./components/CnPasswordField";
+export { CnPhoneFieldSkeleton } from "./components/CnPhoneField";
+export { CnRadioGroupFieldSkeleton } from "./components/CnRadioGroupField";
+export { CnRatingFieldSkeleton } from "./components/CnRatingField";
+export { CnRichTextFieldSkeleton } from "./components/CnRichTextField/CnRichTextFieldSkeleton";
+export { CnSegmentedFieldSkeleton } from "./components/CnSegmentedField";
+export { CnSelectFieldSkeleton } from "./components/CnSelectField";
+export { CnSignatureFieldSkeleton } from "./components/CnSignatureField";
+export { CnSliderFieldSkeleton } from "./components/CnSliderField";
+export { CnSwitchFieldSkeleton } from "./components/CnSwitchField";
+export { CnTabsSkeleton } from "./components/CnTabs";
+export { CnTagsFieldSkeleton } from "./components/CnTagsField";
+export { CnToastSkeleton } from "./components/CnToast";
+export { CnTransferListFieldSkeleton } from "./components/CnTransferListField";
+export { CnTreeSelectFieldSkeleton } from "./components/CnTreeSelectField";
+export type { CnAlertSkeletonProps } from "./components/CnAlert";
+export type { CnAutocompleteFieldSkeletonProps } from "./components/CnAutocompleteField";
+export type { CnAvatarGroupSkeletonProps, CnAvatarSkeletonProps } from "./components/CnAvatar";
+export type { CnBadgeSkeletonProps } from "./components/CnBadge";
+export type { CnButtonSkeletonProps } from "./components/CnButton";
+export type { CnCalendarSkeletonProps } from "./components/CnCalendar";
+export type { CnCardSkeletonProps } from "./components/CnCard";
+export type { CnCheckboxFieldSkeletonProps } from "./components/CnCheckboxField";
+export type { CnChipSkeletonProps } from "./components/CnChip";
+export type { CnChoiceCardsFieldSkeletonProps } from "./components/CnChoiceCardsField";
+export type { CnColorFieldSkeletonProps } from "./components/CnColorField";
+export type { CnConfirmDialogSkeletonProps } from "./components/CnConfirmDialog";
+export type { CnCountryFieldSkeletonProps } from "./components/CnCountryField";
+export type { CnCurrencyFieldSkeletonProps } from "./components/CnCurrencyField";
+export type { CnDataTableSkeletonColumn, CnDataTableSkeletonProps } from "./components/CnDataTable";
+export type {
+  CnDateFieldSkeletonProps,
+  CnDateRangeFieldSkeletonProps,
+} from "./components/CnDateField";
+export type { CnEmptyStateSkeletonProps } from "./components/CnEmptyState";
+export type { CnFileFieldSkeletonProps } from "./components/CnFileField";
+export type { CnFlagIconSkeletonProps } from "./components/CnFlagIcon";
+export type { CnFormSkeletonField, CnFormSkeletonSection } from "./components/CnFormSkeleton";
+export type { CnIconSkeletonProps } from "./components/CnIcon";
+export type { CnKeyValueFieldSkeletonProps } from "./components/CnKeyValueField";
+export type { CnMaskedFieldSkeletonProps } from "./components/CnMaskedField";
+export type { CnMetricCardSkeletonProps } from "./components/CnMetricCard";
+export type { CnNumberFieldSkeletonProps } from "./components/CnNumberField";
+export type { CnNumberRangeFieldSkeletonProps } from "./components/CnNumberRangeField";
+export type { CnOtpFieldSkeletonProps } from "./components/CnOtpField";
+export type {
+  CnPageContainerSkeletonContent,
+  CnPageContainerSkeletonProps,
+} from "./components/CnPageContainer";
+export type { CnPasswordFieldSkeletonProps } from "./components/CnPasswordField";
+export type { CnPhoneFieldSkeletonProps } from "./components/CnPhoneField";
+export type { CnRadioGroupFieldSkeletonProps } from "./components/CnRadioGroupField";
+export type { CnRatingFieldSkeletonProps } from "./components/CnRatingField";
+export type { CnRichTextFieldSkeletonProps } from "./components/CnRichTextField/CnRichTextFieldSkeleton";
+export type { CnSegmentedFieldSkeletonProps } from "./components/CnSegmentedField";
+export type { CnSelectFieldSkeletonProps } from "./components/CnSelectField";
+export type { CnSignatureFieldSkeletonProps } from "./components/CnSignatureField";
+export type { CnSliderFieldSkeletonProps } from "./components/CnSliderField";
+export type { CnSwitchFieldSkeletonProps } from "./components/CnSwitchField";
+export type { CnTabsSkeletonProps } from "./components/CnTabs";
+export type { CnTagsFieldSkeletonProps } from "./components/CnTagsField";
+export type { CnToastSkeletonProps } from "./components/CnToast";
+export type { CnTransferListFieldSkeletonProps } from "./components/CnTransferListField";
+export type { CnTreeSelectFieldSkeletonProps } from "./components/CnTreeSelectField";

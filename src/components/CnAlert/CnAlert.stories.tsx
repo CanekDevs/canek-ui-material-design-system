@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnAlert } from "./CnAlert";
+import { CnAlertSkeleton } from "./CnAlertSkeleton";
 
 const meta: Meta<typeof CnAlert> = {
   title: "Components/CnAlert",
@@ -280,5 +281,24 @@ export const FormValidation: Story = {
         onClose={() => {}}
       />
     </Box>
+  ),
+};
+
+/** Estado de carga: ícono, título, mensaje, acción y cerrar según la variante (`skeleton` o `CnAlertSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={2} sx={{ maxWidth: 560 }}>
+      <CnAlert
+        severity="warning"
+        title="Revisa los datos"
+        message="Algunos campos requieren tu atención antes de continuar."
+        skeleton
+      />
+      <CnAlertSkeleton />
+      <CnAlertSkeleton variant="outlined" title action closable />
+      <CnAlertSkeleton variant="filled" title lines={2} />
+      <CnAlertSkeleton icon={false} lines={1} closable />
+      <CnAlertSkeleton mode="toast" variant="outlined" title lines={1} />
+    </Stack>
   ),
 };

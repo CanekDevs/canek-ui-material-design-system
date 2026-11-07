@@ -7,6 +7,7 @@ import { forwardRef, useEffect, useRef } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { FIELD_SIZE_TOKENS, groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
+import { CnOtpFieldSkeleton } from "./CnOtpFieldSkeleton";
 
 export type CnOtpFieldProps = CnFieldBaseProps<string> & {
   /** Número de caracteres (por defecto 6). */
@@ -20,6 +21,8 @@ export type CnOtpFieldProps = CnFieldBaseProps<string> & {
   /** Se llama al completar todos los caracteres. */
   onComplete?: (value: string) => void;
   autoFocus?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 /**
@@ -58,6 +61,7 @@ export const CnOtpField = forwardRef<HTMLDivElement, CnOtpFieldProps>(function C
     groupSize,
     onComplete,
     autoFocus,
+    skeleton = false,
   },
   ref,
 ) {
@@ -155,6 +159,21 @@ export const CnOtpField = forwardRef<HTMLDivElement, CnOtpFieldProps>(function C
   };
 
   const box = FIELD_SIZE_TOKENS[size].height + 4;
+
+  if (skeleton) {
+    return (
+      <CnOtpFieldSkeleton
+        size={size}
+        length={length}
+        groupSize={groupSize}
+        mask={mask}
+        label={Boolean(label)}
+        helperText={Boolean(control.helperText)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <FormControl

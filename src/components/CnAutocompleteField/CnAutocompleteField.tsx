@@ -11,6 +11,7 @@ import { hasOptionMedia, OptionContent, OptionMedia } from "../../utils/option-m
 import type { CnLoadOptions } from "../../utils/use-async-options";
 import { useAsyncOptions, useOptionMemory } from "../../utils/use-async-options";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
+import { CnAutocompleteFieldSkeleton } from "./CnAutocompleteFieldSkeleton";
 
 export type CnAutocompleteValue = string | number | null | Array<string | number>;
 
@@ -53,6 +54,8 @@ export type CnAutocompleteFieldProps = CnFieldBaseProps<CnAutocompleteValue> & {
   createOptionLabel?: (input: string) => string;
   /** Texto cuando faltan caracteres para buscar. */
   typeToSearchText?: string;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 type CreateOption = CnFieldOption & { __create?: string };
@@ -113,6 +116,7 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
       onCreateOption,
       createOptionLabel = (input) => `Crear "${input}"`,
       typeToSearchText,
+      skeleton = false,
     },
     ref,
   ) {
@@ -231,6 +235,26 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
 
     const needsMoreText =
       Boolean(loadOptions) && minSearchLength > 0 && inputText.trim().length < minSearchLength;
+
+    if (skeleton) {
+      return (
+        <CnAutocompleteFieldSkeleton
+          size={size}
+          label={Boolean(label)}
+          helperText={Boolean(helperText)}
+          multiple={multiple}
+          selectedCount={
+            multiple && Array.isArray(current) && current.length > 0 ? current.length : undefined
+          }
+          limitTags={limitTags}
+          freeSolo={freeSolo}
+          optionMedia={allOptions.some(hasOptionMedia)}
+          mediaShape={allOptions.some((option) => option.flag) ? "flag" : "circle"}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <Autocomplete<CnFieldOption, boolean, false, boolean>

@@ -18,6 +18,7 @@ import { getOutlinedFieldSx, mergeSx, MUI_FIELD_SIZE } from "../../utils/field-s
 import { OptionContent } from "../../utils/option-media";
 import { normalizeSearchText } from "../CnAutocompleteField";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
+import { CnTreeSelectFieldSkeleton } from "./CnTreeSelectFieldSkeleton";
 
 export type CnTreeOption = CnFieldOption & {
   children?: readonly CnTreeOption[];
@@ -49,6 +50,8 @@ export type CnTreeSelectFieldProps = CnFieldBaseProps<CnTreeSelectValue> & {
   showPath?: boolean;
   renderOption?: (option: CnTreeOption) => ReactNode;
   autoFocus?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 type FlatNode = {
@@ -135,6 +138,7 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
       showPath = false,
       renderOption,
       autoFocus,
+      skeleton = false,
     },
     ref,
   ) {
@@ -342,6 +346,22 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
     };
 
     const hasValue = selectedKeys.size > 0;
+
+    if (skeleton) {
+      return (
+        <CnTreeSelectFieldSkeleton
+          size={size}
+          label={Boolean(label)}
+          helperText={Boolean(helperText)}
+          multiple={multiple}
+          selectedCount={multiple && displayKeys.length > 0 ? displayKeys.length : undefined}
+          clearable={clearable}
+          showPath={showPath}
+          sx={sx}
+          className={className}
+        />
+      );
+    }
 
     return (
       <>

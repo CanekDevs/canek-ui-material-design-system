@@ -4,6 +4,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { forwardRef, isValidElement } from "react";
 import { CnIcon } from "../CnIcon";
+import { CnEmptyStateSkeleton } from "./CnEmptyStateSkeleton";
 
 export type CnEmptyStateVariant = "default" | "compact" | "card";
 export type CnEmptyStateSize = "sm" | "md" | "lg";
@@ -24,6 +25,8 @@ export type CnEmptyStateProps = {
 
   role?: "status" | "alert" | "none";
   ariaLabel?: string;
+  /** Muestra el skeleton del estado vacío (misma variante, tamaño y piezas). */
+  skeleton?: boolean;
   sx?: SxProps<Theme>;
   className?: string;
 };
@@ -178,11 +181,27 @@ export const CnEmptyState = forwardRef<HTMLDivElement, CnEmptyStateProps>(functi
 
     role = "status",
     ariaLabel,
+    skeleton = false,
     sx,
     className,
   },
   ref,
 ) {
+  if (skeleton) {
+    return (
+      <CnEmptyStateSkeleton
+        variant={variant}
+        size={size}
+        illustration={Boolean(illustration)}
+        title={typeof title === "string" ? title : Boolean(title)}
+        description={typeof description === "string" ? description : Boolean(description)}
+        action={Boolean(action)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
+
   const tokens = resolveSizeTokens(variant, size);
   const colorTokens = COLOR_TOKENS[color];
 

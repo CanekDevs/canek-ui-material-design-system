@@ -4,6 +4,7 @@ import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnTabs } from "./CnTabs";
+import { CnTabsSkeleton } from "./CnTabsSkeleton";
 
 const meta: Meta<typeof CnTabs> = {
   title: "Components/CnTabs",
@@ -280,4 +281,29 @@ export const ToggleViewPattern: Story = {
 
 export const ContainedWithContent: Story = {
   render: () => <ContainedWithContentStory />,
+};
+
+/** Estado de carga: el skeleton sigue las variantes de las pestañas (`skeleton` o `CnTabsSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 640 }}>
+      <CnTabs
+        options={[
+          { id: "a", label: "General", icon: "home" },
+          { id: "b", label: "Detalle", icon: "info" },
+          { id: "c", label: "Historial", icon: "history" },
+        ]}
+        value="a"
+        onChange={() => undefined}
+        skeleton
+      />
+      <CnTabsSkeleton tabs={4} panel />
+      <CnTabsSkeleton variant="pill" size="sm" />
+      <CnTabsSkeleton variant="soft" icons badges />
+      <CnTabsSkeleton variant="contained" size="lg" fullWidth />
+      <CnTabsSkeleton variant="outlined" icons iconPosition="top" tabs={4} />
+      <CnTabsSkeleton variant="line" subtitles tabs={3} />
+      <CnTabsSkeleton orientation="vertical" icons tabs={4} verticalWidth={200} panel={5} />
+    </Stack>
+  ),
 };

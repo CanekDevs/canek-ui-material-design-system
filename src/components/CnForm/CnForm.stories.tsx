@@ -543,3 +543,26 @@ export const LoadingAndReadOnly: Story = {
     </Box>
   ),
 };
+
+/**
+ * Estado de carga: con `skeleton` el formulario dibuja su propio skeleton a partir
+ * de su configuración (tipo de cada campo, columnas, secciones, pestañas o pasos).
+ */
+export const Skeleton: Story = {
+  render: () => (
+    <Box sx={{ display: "grid", gap: 6, maxWidth: 760 }}>
+      <CnForm
+        title="Nuevo cliente"
+        description="Datos generales"
+        columns={2}
+        fields={allFields}
+        onSubmit={() => {}}
+        onCancel={() => {}}
+        skeleton
+      />
+      <CnForm title="Por secciones" sections={sections} onSubmit={() => {}} skeleton />
+      <CnForm title="Con pestañas" tabs={tabs} onSubmit={() => {}} skeleton />
+      <CnForm title="Asistente" steps={steps} onSubmit={() => {}} skeleton />
+    </Box>
+  ),
+};

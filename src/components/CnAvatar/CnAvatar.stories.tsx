@@ -4,6 +4,7 @@ import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnAvatar } from "./CnAvatar";
 import { CnAvatarGroup } from "./CnAvatarGroup";
+import { CnAvatarGroupSkeleton, CnAvatarSkeleton } from "./CnAvatarSkeleton";
 
 const meta: Meta<typeof CnAvatar> = {
   title: "Components/CnAvatar",
@@ -302,6 +303,37 @@ export const InContext: Story = {
           Equipo de diseño
         </Typography>
       </Box>
+    </Stack>
+  ),
+};
+
+/** Estado de carga: tamaño, forma, estado, insignia y grupos (`skeleton` o `CnAvatarSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={3}>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <CnAvatar name="Ana López" status="online" skeleton />
+        {(["xs", "sm", "md", "lg", "xl", "2xl"] as const).map((size) => (
+          <CnAvatarSkeleton key={size} size={size} />
+        ))}
+      </Stack>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <CnAvatarSkeleton variant="rounded" size="lg" />
+        <CnAvatarSkeleton variant="square" size="lg" />
+        <CnAvatarSkeleton size="lg" status />
+        <CnAvatarSkeleton size="lg" badge />
+      </Stack>
+      <Stack direction="row" spacing={3} alignItems="center">
+        <CnAvatarGroup max={4} skeleton>
+          <CnAvatar name="Ana" />
+          <CnAvatar name="Beto" />
+          <CnAvatar name="Carla" />
+          <CnAvatar name="Dani" />
+          <CnAvatar name="Eva" />
+        </CnAvatarGroup>
+        <CnAvatarGroupSkeleton count={3} size="sm" spacing="tight" />
+        <CnAvatarGroupSkeleton count={8} max={5} size="lg" variant="rounded" />
+      </Stack>
     </Stack>
   ),
 };

@@ -1,5 +1,13 @@
 import type { SvgIconComponent } from "@mui/icons-material";
 
+import AreaChart from "@mui/icons-material/AreaChart";
+import CandlestickChart from "@mui/icons-material/CandlestickChart";
+import DataUsage from "@mui/icons-material/DataUsage";
+import GridOn from "@mui/icons-material/GridOn";
+import Polyline from "@mui/icons-material/Polyline";
+import Radar from "@mui/icons-material/Radar";
+import Speed from "@mui/icons-material/Speed";
+
 import AudioFile from "@mui/icons-material/AudioFile";
 import Directions from "@mui/icons-material/Directions";
 import List from "@mui/icons-material/List";
@@ -407,6 +415,13 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 
 export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
+  area_chart: AreaChart,
+  candlestick_chart: CandlestickChart,
+  data_usage: DataUsage,
+  grid_on: GridOn,
+  polyline: Polyline,
+  radar: Radar,
+  speed: Speed,
   audio_file: AudioFile,
   directions: Directions,
   list: List,

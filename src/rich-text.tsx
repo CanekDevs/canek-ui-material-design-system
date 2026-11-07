@@ -9,7 +9,11 @@ import type { CnRichTextFieldProps } from "./components/CnRichTextField";
 import { registerFormFieldType } from "./components/CnForm/CnFormField";
 
 export { CnRichTextField, normalizeLink, RICH_TEXT_TOOLBARS } from "./components/CnRichTextField";
-export type { CnRichTextFieldProps, CnRichTextTool } from "./components/CnRichTextField";
+export type {
+  CnRichTextFieldProps,
+  CnRichTextTool,
+  CnRichTextToolbar,
+} from "./components/CnRichTextField";
 
 /**
  * Habilita `type: "richtext"` en `CnForm`. Llamar una vez al iniciar la app.

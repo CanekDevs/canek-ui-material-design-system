@@ -10,6 +10,7 @@ import { useControllableValue, useFieldControl } from "../../utils/field-control
 import { FIELD_SIZE_TOKENS, groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
 import type { CnValidationRule } from "../CnForm/CnForm.types";
 import { validateFieldValue } from "../CnForm/CnForm.validation";
+import { CnTagsFieldSkeleton } from "./CnTagsFieldSkeleton";
 
 export type CnTagsFieldProps = CnFieldBaseProps<string[]> & {
   placeholder?: string;
@@ -25,6 +26,8 @@ export type CnTagsFieldProps = CnFieldBaseProps<string[]> & {
   /** Sugerencias que se muestran mientras se escribe. */
   suggestions?: string[];
   autoFocus?: boolean;
+  /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
+  skeleton?: boolean;
 };
 
 /**
@@ -66,6 +69,7 @@ export const CnTagsField = forwardRef<HTMLDivElement, CnTagsFieldProps>(function
     transform = "none",
     suggestions,
     autoFocus,
+    skeleton = false,
   },
   ref,
 ) {
@@ -182,6 +186,21 @@ export const CnTagsField = forwardRef<HTMLDivElement, CnTagsFieldProps>(function
           .slice(0, 6)
       : [];
   const tokens = FIELD_SIZE_TOKENS[size];
+
+  if (skeleton) {
+    return (
+      <CnTagsFieldSkeleton
+        size={size}
+        tags={list.length || undefined}
+        maxTags={maxTags}
+        readOnly={readOnly}
+        label={Boolean(label)}
+        helperText={Boolean(control.helperText)}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
 
   return (
     <FormControl

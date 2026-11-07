@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { CSSProperties } from "react";
-import { forwardRef } from "react";
+import { createContext, forwardRef, useContext } from "react";
 
 export type CnSkeletonVariant = "rectangular" | "rounded" | "circular" | "text";
 export type CnSkeletonAnimation = "pulse" | "wave" | "none";
@@ -95,19 +95,24 @@ const animationSx = (animation: CnSkeletonAnimation): Record<string, unknown> =>
   return {};
 };
 
+// El color sigue el tema de Canek (`[data-cn-theme="dark"]` redefine los tokens),
+// no el modo del sistema operativo.
 const baseSx = {
   display: "block",
-  backgroundColor: "var(--cn-color-neutral-150, #e9ecef)",
+  backgroundColor: "var(--cn-skeleton-base, #e4e7eb)",
   flexShrink: 0,
-  "@media (prefers-color-scheme: dark)": {
-    backgroundColor: "var(--cn-color-neutral-800, #222831)",
-  },
 } as const;
+
+/**
+ * Contexto de grupo (lo provee `CnSkeletonGroup`): dentro de un skeleton
+ * compuesto las piezas son decorativas y heredan su animación.
+ */
+export const CnSkeletonPartContext = createContext<{ animation: CnSkeletonAnimation } | null>(null);
 
 export const CnSkeleton = forwardRef<HTMLDivElement, CnSkeletonProps>(function CnSkeleton(
   {
     variant = "rounded",
-    animation = "wave",
+    animation: animationProp,
     width,
     height,
     radius,
@@ -120,15 +125,19 @@ export const CnSkeleton = forwardRef<HTMLDivElement, CnSkeletonProps>(function C
   },
   ref,
 ) {
+  const group = useContext(CnSkeletonPartContext);
+  const animation = animationProp ?? group?.animation ?? "wave";
+  // Pieza decorativa dentro de un grupo: sin rol propio (un solo "status").
+  const a11y = group
+    ? { "aria-hidden": true as const }
+    : { role: "status", "aria-busy": "true" as const, "aria-label": ariaLabel };
   const isText = variant === "text";
 
   if (isText && lines > 1) {
     return (
       <Box
         ref={ref}
-        role="status"
-        aria-busy="true"
-        aria-label={ariaLabel}
+        {...a11y}
         data-cn-skeleton="true"
         data-cn-skeleton-variant={variant}
         data-cn-skeleton-animation={animation}
@@ -171,9 +180,7 @@ export const CnSkeleton = forwardRef<HTMLDivElement, CnSkeletonProps>(function C
   return (
     <Box
       ref={ref}
-      role="status"
-      aria-busy="true"
-      aria-label={ariaLabel}
+      {...a11y}
       data-cn-skeleton="true"
       data-cn-skeleton-variant={variant}
       data-cn-skeleton-animation={animation}

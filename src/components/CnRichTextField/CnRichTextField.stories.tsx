@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnRichTextField } from "./CnRichTextField";
+import { CnRichTextFieldSkeleton } from "./CnRichTextFieldSkeleton";
 
 const meta: Meta<typeof CnRichTextField> = {
   title: "Forms/CnRichTextField",
@@ -49,4 +50,17 @@ export const Controlled: Story = { render: () => <ControlledStory /> };
 
 export const ReadOnly: Story = {
   args: { readOnly: true, defaultValue: "<p>Solo lectura con <em>formato</em>.</p>" },
+};
+
+/** Estado de carga: el skeleton sigue las variantes del editor (`skeleton` o `CnRichTextFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Box sx={{ display: "grid", gap: 4 }}>
+      <CnRichTextField label="Descripción" helperText="Se muestra en la ficha" skeleton />
+      <CnRichTextFieldSkeleton toolbar="basic" minHeight={100} />
+      <CnRichTextFieldSkeleton toolbar="full" showCount maxLength={2000} />
+      <CnRichTextFieldSkeleton toolbar={["bold", "italic", "link"]} minHeight={80} />
+      <CnRichTextFieldSkeleton readOnly lines={3} minHeight={90} />
+    </Box>
+  ),
 };

@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
+import { CnBadgeSkeleton } from "./CnBadgeSkeleton";
 
 export type CnBadgeVariant = "count" | "dot" | "label";
 export type CnBadgeColor =
@@ -28,6 +29,8 @@ export type CnBadgeProps = {
   overlap?: CnBadgeOverlap;
   anchorOrigin?: AnchorOrigin;
   ariaLabel?: string;
+  /** Muestra el skeleton de la insignia (y un marcador del elemento envuelto). */
+  skeleton?: boolean;
   sx?: SxProps<Theme>;
   className?: string;
 };
@@ -139,11 +142,28 @@ export const CnBadge = forwardRef<HTMLDivElement, CnBadgeProps>(function CnBadge
     overlap = "rectangular",
     anchorOrigin = { vertical: "top", horizontal: "right" },
     ariaLabel,
+    skeleton = false,
     sx,
     className,
   },
   ref,
 ) {
+  if (skeleton) {
+    return (
+      <CnBadgeSkeleton
+        variant={variant}
+        size={size}
+        content={typeof content === "string" || typeof content === "number" ? content : true}
+        max={max}
+        child={Boolean(children)}
+        overlap={overlap}
+        anchorOrigin={anchorOrigin}
+        sx={sx}
+        className={className}
+      />
+    );
+  }
+
   const tokens = COLOR_TOKENS[color];
   const sizes = SIZE_TOKENS[size];
   const isInvisible = invisible || isEmpty(variant, content, showZero);

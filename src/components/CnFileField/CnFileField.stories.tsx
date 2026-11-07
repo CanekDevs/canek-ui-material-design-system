@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useCallback, useRef, useState } from "react";
 import type { CnFileStatus, CnFileValue } from "./file-utils";
 import { CnFileField } from "./CnFileField";
+import { CnFileFieldSkeleton } from "./CnFileFieldSkeleton";
 
 const meta: Meta<typeof CnFileField> = {
   title: "Forms/CnFileField",
@@ -177,4 +178,20 @@ export const SizeUnitsAndColumns: Story = {
     gridColumns: 4,
     defaultValue: PHOTOS.slice(0, 3),
   },
+};
+
+/** Estado de carga: el skeleton sigue la variante del campo (`skeleton` o `CnFileFieldSkeleton`). */
+export const Skeleton: Story = {
+  render: () => (
+    <Stack spacing={4} sx={{ maxWidth: 640 }}>
+      <CnFileField label="Documentos" helperText="PDF o imágenes" multiple skeleton />
+      <CnFileFieldSkeleton variant="button" files={1} constraints />
+      <CnFileFieldSkeleton variant="compact" files={3} />
+      <CnFileFieldSkeleton variant="grid" files={5} reorderable showPrimary />
+      <CnFileFieldSkeleton variant="card" files={2} gridColumns={3} />
+      <CnFileFieldSkeleton variant="masonry" files={6} gridColumns={3} />
+      <CnFileFieldSkeleton variant="avatar" constraints />
+      <CnFileFieldSkeleton variant="avatar" files={1} thumbnailSize={88} />
+    </Stack>
+  ),
 };
