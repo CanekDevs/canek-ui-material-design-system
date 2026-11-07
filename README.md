@@ -14,6 +14,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 - [Uso](#uso)
 - [Componentes](#componentes)
 - [Formularios](#formularios)
+- [Retroalimentación y layout](#retroalimentación-y-layout)
 - [Temas](#temas)
 - [Tokens de diseño](#tokens-de-diseño)
 - [Estructura del proyecto](#estructura-del-proyecto)
@@ -497,6 +498,59 @@ como archivos existentes. `componentProps` llega a todos los tipos.
 - Para el FormData de Tb usa `formDataOptions={{ arrayFormat: "json", existingFiles: "omit" }}`.
 
 ---
+
+## Retroalimentación y layout
+
+### Confirmaciones: `CnConfirmDialog` y `useConfirm`
+
+```tsx
+// Una vez en la raíz de la app
+<CnToastProvider>
+  <CnConfirmProvider>
+    <App />
+  </CnConfirmProvider>
+</CnToastProvider>;
+
+const confirm = useConfirm();
+const ok = await confirm({
+  variant: "delete",                 // delete | danger | warning | info | success | update | neutral
+  title: "¿Eliminar a ACME Corp?",
+  message: "Se eliminarán sus contratos.",
+  requireText: "ACME",               // obliga a escribir el texto (acciones irreversibles)
+  onConfirm: () => api.clients.delete(id), // async: muestra carga y, si falla, el error del servidor
+});
+```
+
+`CnConfirmDialog` también se usa controlado (`open`, `onClose`, `onConfirm`). Es un `alertdialog`
+accesible con foco en la acción y presets de texto, ícono y color.
+
+### Notificaciones: `CnToastProvider` y `useToast`
+
+```tsx
+const toast = useToast();
+toast.success("Cliente guardado", { action: { label: "Deshacer", onClick: undo } });
+toast.error(error);  // errores de axios/fetch/Laravel: mensaje + detalles por campo
+await toast.promise(api.export(), { loading: "Generando…", success: "Reporte listo" });
+const id = toast.loading("Subiendo…"); toast.update(id, { severity: "success", message: "Listo" });
+```
+
+Pila con `max` avisos, `position`, pausa al pasar el mouse o enfocar, `aria-live` y duración
+mayor para errores. Para integrarlo con react-query basta con llamar a `toast.error(error)` en el
+`onError` del `MutationCache`.
+
+### `CnPageContainer`
+
+Encabezado de página con breadcrumbs, botón atrás (`back` con ruta, función o `true` para el
+breadcrumb anterior), ícono, título, subtítulo, `actions`, `headerExtra` (filtros o pestañas),
+`stickyHeader`, `maxWidth`, `paper` y `loading`. Es independiente del router: pasa
+`linkComponent` (p. ej. un `Link` de react-router que reciba `href`) y `onNavigate`.
+
+### `CnMetricCard`
+
+Indicadores con `format`, `prefix`/`suffix`, `icon`, `trend` (`upIsGood: false` cuando subir es
+malo, p. ej. costos), `progress` hacia una meta, `sparkline` (línea, área o barras; también
+disponible como `CnSparkline`), `footer`, variantes `outlined` / `elevated` / `filled`, `loading`
+y `onClick`.
 
 ## Temas
 
