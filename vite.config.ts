@@ -16,6 +16,7 @@ const isExternal = (id: string): boolean => {
   if (id.startsWith("@mui/")) return true;
   if (id.startsWith("@emotion/")) return true;
   if (id.startsWith("@tiptap/")) return true;
+  if (id.startsWith("@tanstack/")) return true;
   return false;
 };
 
