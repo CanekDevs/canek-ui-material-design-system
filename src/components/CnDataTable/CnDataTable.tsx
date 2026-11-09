@@ -65,7 +65,7 @@ import { CnEmptyState } from "../CnEmptyState";
 import { getNestedValue } from "../CnForm/CnForm.helpers";
 import { CnIcon } from "../CnIcon";
 import { CnSkeleton } from "../CnSkeleton";
-import { formatCellText, renderTypedCell } from "./cells";
+import { cellSortValue, formatCellText, renderTypedCell } from "./cells";
 import { CnDataTableSkeleton } from "./CnDataTableSkeleton";
 import {
   DEFAULT_COLUMN_WIDTH,
@@ -117,6 +117,9 @@ const KIND_BY_TYPE: Partial<Record<string, CnExportKind>> = {
   date: "date",
   datetime: "datetime",
   bytes: "integer",
+  deadline: "datetime",
+  score: "number",
+  counter: "integer",
 };
 
 const COPY_FORMATS = [
@@ -460,8 +463,19 @@ export const CnDataTable = <T extends CnRow>({
         enablePinning: true,
         enableGrouping: groupable && column.groupable !== false,
         sortingFn: (a, b) => {
-          const va = valueOf(column, a.original);
-          const vb = valueOf(column, b.original);
+          const type = column.type ?? "text";
+          const va = cellSortValue(
+            type,
+            valueOf(column, a.original),
+            a.original,
+            column.cellOptions,
+          );
+          const vb = cellSortValue(
+            type,
+            valueOf(column, b.original),
+            b.original,
+            column.cellOptions,
+          );
           if (va === vb) return 0;
           if (va === null || va === undefined || va === "") return 1;
           if (vb === null || vb === undefined || vb === "") return -1;

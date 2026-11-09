@@ -566,3 +566,117 @@ export const Skeleton: Story = {
     </Box>
   ),
 };
+
+// ─── Campos nuevos ─────────────────────────────────────────────────────
+
+const POSTAL_CODES: Record<string, { colonias: string[]; municipio: string; estado: string }> = {
+  "06700": { colonias: ["Roma Norte"], municipio: "Cuauhtémoc", estado: "Ciudad de México" },
+  "44100": {
+    colonias: ["Centro", "Zona Centro"],
+    municipio: "Guadalajara",
+    estado: "Jalisco",
+  },
+};
+
+const newFields: CnFormField[] = [
+  {
+    name: "address",
+    type: "address",
+    label: "Domicilio",
+    required: true,
+    helperText: "Prueba los códigos postales 06700 o 44100",
+    onPostalCodeLookup: async (cp) => {
+      await wait(500);
+      return POSTAL_CODES[cp] ?? null;
+    },
+  },
+  {
+    name: "search",
+    type: "search",
+    label: "Producto",
+    placeholder: "Buscar producto…",
+    suggestions: ["Laptop", "Monitor", "Teclado", "Mouse", "Audífonos", "Cámara web"],
+    recentSearches: true,
+  },
+  { name: "duration", type: "duration", label: "Duración estimada", required: true, min: 15 },
+  {
+    name: "steps",
+    type: "repeater",
+    label: "Pasos del proceso",
+    itemLabel: "Paso",
+    placeholder: "Describe el paso",
+    minItems: 1,
+    maxItems: 6,
+    required: true,
+  },
+  {
+    name: "days",
+    type: "weekdays",
+    label: "Días de servicio",
+    required: true,
+    defaultValue: [1, 2, 3, 4, 5],
+  },
+  {
+    name: "shift",
+    type: "timerange",
+    label: "Turno",
+    required: true,
+    allowOvernight: true,
+    defaultValue: ["09:00", "18:00"],
+  },
+  {
+    name: "schedule",
+    type: "schedule",
+    label: "Horario de atención",
+    required: true,
+    scheduleDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
+  },
+  {
+    name: "location",
+    type: "location",
+    label: "Ubicación",
+    showAddress: true,
+    defaultValue: { lat: 19.432608, lng: -99.133209 },
+  },
+  {
+    name: "config",
+    type: "code",
+    label: "Configuración (JSON)",
+    language: "json",
+    minRows: 4,
+    defaultValue: '{"notificaciones":true,"limite":10}',
+  },
+];
+
+const NewFieldsStory = () => {
+  const [value, setValue] = useState<CnFormValues>({});
+  const [skeleton, setSkeleton] = useState(false);
+  return (
+    <Box sx={{ maxWidth: 860 }}>
+      <CnButton
+        variant="outlined"
+        size="small"
+        onClick={() => setSkeleton((s) => !s)}
+        sx={{ mb: 2 }}
+      >
+        {skeleton ? "Ver formulario" : "Ver skeleton"}
+      </CnButton>
+      <CnForm
+        title="Alta de sucursal"
+        description="Domicilio, horario, ubicación y otros campos compuestos"
+        fields={newFields}
+        columns={2}
+        value={value}
+        onChange={(patch) => setValue((prev) => ({ ...prev, ...patch }))}
+        onSubmit={async () => {
+          await wait(800);
+        }}
+        skeleton={skeleton}
+      />
+      <Preview value={value} />
+    </Box>
+  );
+};
+
+/** Domicilio, lista repetible, duración, búsqueda, código, horario, ubicación, días y rango de horas. */
+export const NewFields: Story = { render: () => <NewFieldsStory /> };

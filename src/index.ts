@@ -582,3 +582,54 @@ export type { CnTagsFieldSkeletonProps } from "./components/CnTagsField";
 export type { CnToastSkeletonProps } from "./components/CnToast";
 export type { CnTransferListFieldSkeletonProps } from "./components/CnTransferListField";
 export type { CnTreeSelectFieldSkeletonProps } from "./components/CnTreeSelectField";
+
+// Celdas de tabla: utilidades de formato de los tipos de celda.
+export {
+  CnSafeRichText,
+  ageFrom,
+  cellSortValue,
+  compareVersions,
+  computeDelta,
+  describeDeadline,
+  parseIp,
+  parseNumericRange,
+  parseSteps,
+  parseTimeRange,
+  parseVersion,
+  parseWeekdays,
+  resolvePriority,
+  resolveSentiment,
+  stripRichText,
+  truncateMiddle,
+  weekdaysText,
+} from "./components/CnDataTable";
+export type {
+  CnAgeInfo,
+  CnCellThresholds,
+  CnDeadlineInfo,
+  CnDeltaInfo,
+  CnIpInfo,
+  CnPriorityOption,
+  CnReference,
+  CnRichFormat,
+  CnSentimentInfo,
+  CnStageOption,
+  CnStepsInfo,
+  CnTimeRangeInfo,
+  CnVersionInfo,
+} from "./components/CnDataTable";
+
+// Calendario de eventos (agenda, semana, mes, año) con exportación .ics.
+export * from "./components/CnEventCalendar";
+
+// Campos compuestos: dirección, lista repetible, duración, búsqueda, código,
+// horario, ubicación, días de la semana y rango de horas.
+export * from "./components/CnAddressField";
+export * from "./components/CnRepeaterField";
+export * from "./components/CnDurationField";
+export * from "./components/CnSearchField";
+export * from "./components/CnCodeField";
+export * from "./components/CnScheduleField";
+export * from "./components/CnLocationField";
+export * from "./components/CnWeekdaysField";
+export * from "./components/CnTimeRangeField";

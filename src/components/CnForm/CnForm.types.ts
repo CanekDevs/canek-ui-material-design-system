@@ -1,5 +1,11 @@
 import type { GridSize, SxProps, Theme } from "@mui/material";
 import type { ReactNode, Ref } from "react";
+import type { CnAddressPart, CnPostalCodeLookupResult } from "../CnAddressField/CnAddressField";
+import type { CnCodeLanguage } from "../CnCodeField/CnCodeField";
+import type { CnDurationPreset, CnDurationUnit } from "../CnDurationField/CnDurationField";
+import type { CnRepeaterItemContext } from "../CnRepeaterField/CnRepeaterField";
+import type { CnScheduleRange, CnWeekdayKey } from "../CnScheduleField/CnScheduleField";
+import type { CnSearchSuggestion } from "../CnSearchField/CnSearchField";
 import type { BuildFormDataOptions } from "./CnForm.helpers";
 
 export type CnFormValues = Record<string, unknown>;
@@ -43,6 +49,14 @@ export type CnFormFieldType =
   | "transferlist"
   | "treeselect"
   | "keyvalue"
+  | "address"
+  | "repeater"
+  | "duration"
+  | "code"
+  | "schedule"
+  | "location"
+  | "weekdays"
+  | "timerange"
   | "hidden"
   | "display"
   | "custom";
@@ -512,6 +526,57 @@ export type CnFormField = CnFormGridProps & {
   leavesOnly?: boolean;
   /** keyvalue: `array` de pares u `object`. */
   valueFormat?: "array" | "object";
+
+  /** address: partes visibles (por defecto todas excepto `country`). */
+  addressFields?: CnAddressPart[];
+  /** address (`required`): partes obligatorias. */
+  requiredAddressParts?: CnAddressPart[];
+  /** address: busca el código postal y autocompleta municipio, estado y colonias. */
+  onPostalCodeLookup?: (postalCode: string) => Promise<CnPostalCodeLookupResult | null>;
+  /**
+   * repeater: mínimo / máximo de elementos. weekdays: mínimo / máximo de días
+   * elegidos.
+   */
+  minItems?: number;
+  maxItems?: number;
+  /** repeater: contenido propio de cada elemento (por defecto un campo de texto). */
+  renderItem?: (ctx: CnRepeaterItemContext<unknown>) => ReactNode;
+  /** repeater: valor de un elemento nuevo (por defecto `""`). */
+  newItem?: () => unknown;
+  /** repeater: nombre de cada elemento ("Paso 1"…). */
+  itemLabel?: string;
+  /** repeater: texto del botón agregar. */
+  addLabel?: string;
+  /** duration: unidades capturables (por defecto horas y minutos). */
+  durationUnits?: CnDurationUnit[];
+  /** duration: unidad del valor guardado (`minutes` por defecto o `seconds`). */
+  durationValueUnit?: "minutes" | "seconds";
+  /** duration: atajos rápidos (`true` por defecto, `false` o lista propia). */
+  durationPresets?: boolean | CnDurationPreset[];
+  /** search: sugerencias remotas (se cancela la búsqueda anterior). */
+  onSearch?: (
+    query: string,
+    ctx: { signal: AbortSignal },
+  ) => Promise<readonly (string | CnSearchSuggestion)[]> | readonly (string | CnSearchSuggestion)[];
+  /** search: recuerda en memoria las búsquedas enviadas. */
+  recentSearches?: boolean;
+  /** code: lenguaje (activa validación y formato de JSON). */
+  language?: CnCodeLanguage;
+  /** schedule / weekdays: primer día de la semana (1 = lunes, 0 = domingo). */
+  weekStart?: 0 | 1;
+  /** schedule: días visibles (por defecto toda la semana). */
+  scheduleDays?: CnWeekdayKey[];
+  /** schedule: rango con el que se habilita un día. */
+  scheduleDefaultRange?: CnScheduleRange;
+  /** location: vista previa con Google Maps. Por defecto `true`. */
+  showMap?: boolean;
+  /** location: campo de dirección o referencia. */
+  showAddress?: boolean;
+  /** timerange: permite que el fin sea al día siguiente. */
+  allowOvernight?: boolean;
+  /** timerange: duración mínima y máxima en minutos. */
+  minDuration?: number;
+  maxDuration?: number;
 
   /** Tamaño de este campo (por defecto el `size` del formulario). */
   size?: "sm" | "md" | "lg";

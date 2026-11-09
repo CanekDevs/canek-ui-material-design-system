@@ -5,6 +5,14 @@ import {
   parsePhoneValue,
   PHONE_COUNTRIES,
 } from "../../utils/phone-countries";
+import { buildAddressRules } from "../CnAddressField/CnAddressField";
+import { buildCodeRules } from "../CnCodeField/CnCodeField";
+import { buildDurationRules } from "../CnDurationField/CnDurationField";
+import { buildLocationRules } from "../CnLocationField/CnLocationField";
+import { buildRepeaterRules } from "../CnRepeaterField/CnRepeaterField";
+import { buildScheduleRules } from "../CnScheduleField/CnScheduleField";
+import { buildTimeRangeRules } from "../CnTimeRangeField/CnTimeRangeField";
+import { buildWeekdaysRules } from "../CnWeekdaysField/CnWeekdaysField";
 import { buildDateRangeRules } from "../CnDateField/CnDateField";
 import { buildDateRangeValueRules } from "../CnDateField/CnDateRangeField";
 import { COLOR_RULE } from "../CnColorField/CnColorField";
@@ -214,6 +222,19 @@ export const getFieldDefault = (field: CnFormField, values: CnFormValues): unkno
       return field.multiple ? [] : null;
     case "keyvalue":
       return field.valueFormat === "object" ? {} : [];
+    case "address":
+    case "schedule":
+      return {};
+    case "repeater":
+      // Arranca con `minItems` elementos vacíos.
+      return Array.from({ length: field.minItems ?? 0 }, () => field.newItem?.() ?? "");
+    case "weekdays":
+      return [];
+    case "duration":
+    case "location":
+      return null;
+    case "timerange":
+      return ["", ""];
     default:
       return "";
   }
@@ -498,6 +519,57 @@ export const getFieldRules = (
       if (max !== undefined && !has("maxItems")) rules.push({ type: "maxItems", value: max });
       break;
     }
+    case "address":
+      rules.push(
+        ...buildAddressRules({
+          required,
+          requiredParts: field.requiredAddressParts,
+          fields: field.addressFields,
+          validatePostalCode: field.componentProps?.validatePostalCode as boolean | undefined,
+        }),
+      );
+      break;
+    case "repeater":
+      rules.push(
+        ...buildRepeaterRules({ required, minItems: field.minItems, maxItems: field.maxItems }),
+      );
+      break;
+    case "duration":
+      rules.push(
+        ...buildDurationRules({
+          min: evaluate(field.min, values, ctx),
+          max: evaluate(field.max, values, ctx),
+          valueUnit: field.durationValueUnit,
+        }),
+      );
+      break;
+    case "code":
+      rules.push(
+        ...buildCodeRules({
+          language: field.language,
+          validateJson: field.componentProps?.validateJson as boolean | undefined,
+        }),
+      );
+      break;
+    case "schedule":
+      rules.push(...buildScheduleRules({ required }));
+      break;
+    case "location":
+      rules.push(...buildLocationRules({ required }));
+      break;
+    case "weekdays":
+      rules.push(...buildWeekdaysRules({ minDays: field.minItems, maxDays: field.maxItems }));
+      break;
+    case "timerange":
+      rules.push(
+        ...buildTimeRangeRules({
+          required,
+          allowOvernight: field.allowOvernight,
+          minDuration: field.minDuration,
+          maxDuration: field.maxDuration,
+        }),
+      );
+      break;
     default:
       if (field.maxLength !== undefined && !has("maxLength")) {
         rules.push({ type: "maxLength", value: field.maxLength });
@@ -611,6 +683,11 @@ const WIDE_TYPES = new Set([
   "signature",
   "tags",
   "numberrange",
+  "address",
+  "repeater",
+  "code",
+  "schedule",
+  "location",
 ]);
 
 export const getDefaultGrid = (

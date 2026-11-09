@@ -2,9 +2,10 @@ import Box from "@mui/material/Box";
 import Dialog from "@mui/material/Dialog";
 import IconButton from "@mui/material/IconButton";
 import Popover from "@mui/material/Popover";
+import Switch from "@mui/material/Switch";
 import Tooltip from "@mui/material/Tooltip";
 import type { MouseEvent, ReactNode } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, createElement, useCallback, useEffect, useRef, useState } from "react";
 import { formatIsoDisplay } from "../../utils/date-utils";
 import { getInitials } from "../../utils/option-media";
 import { CnCalendar } from "../CnCalendar";
@@ -13,6 +14,37 @@ import { CnFlagIcon } from "../CnFlagIcon";
 import { CnSparkline } from "../CnMetricCard/CnMetricCard";
 import { normalizeDateValue } from "../CnForm/CnForm.engine";
 import { CnIcon } from "../CnIcon";
+import { ICON_ALIASES, ICON_REGISTRY } from "../CnIcon/icons";
+import type {
+  CnCellThresholds,
+  CnPriorityOption,
+  CnRichFormat,
+  CnStageOption,
+} from "./cell-formats";
+import {
+  WEEKDAY_LETTERS,
+  WEEKDAY_NAMES,
+  ageFrom,
+  asReference,
+  compareVersions,
+  computeDelta,
+  describeDeadline,
+  detectRichFormat,
+  isUuid,
+  minutesText,
+  normalizeStages,
+  parseIp,
+  parseNumericRange,
+  parseSteps,
+  parseTimeRange,
+  parseVersion,
+  parseWeekdays,
+  resolvePriority,
+  resolveSentiment,
+  stripRichText,
+  truncateMiddle,
+  weekdaysText,
+} from "./cell-formats";
 
 // ─── Tipos ──────────────────────────────────────────────────────────────
 
@@ -51,7 +83,26 @@ export type CnCellType =
   | "sparkline"
   | "list"
   | "coordinates"
-  | "masked";
+  | "masked"
+  | "delta"
+  | "priority"
+  | "deadline"
+  | "ip"
+  | "uuid"
+  | "version"
+  | "richtext"
+  | "icon"
+  | "toggle"
+  | "steps"
+  | "stage"
+  | "weekdays"
+  | "timerange"
+  | "age"
+  | "range"
+  | "sentiment"
+  | "score"
+  | "reference"
+  | "counter";
 
 export type CnCellTone =
   "primary" | "accent" | "success" | "warning" | "error" | "info" | "neutral";
@@ -144,8 +195,49 @@ export type CnCellOptions = {
   expandAfter?: number;
   /** Desactiva la ficha de detalle al hacer clic (fechas, dinero, RFC…). */
   detail?: boolean;
-  /** Acción al hacer clic en la celda (avatar, contact, tags, text, code, id). */
+  /** Acción al hacer clic en la celda (avatar, contact, tags, text, code, id, reference). */
   onClick?: (value: unknown, row: unknown) => void;
+
+  // ─── Tipos adicionales ───────────────────────────────────────────────
+  /** delta: formato del cambio. Por defecto `percent`. */
+  deltaFormat?: "percent" | "number" | "currency";
+  /** delta: invierte los colores (bajar es bueno: costos, tiempos, errores). */
+  invertTrend?: boolean;
+  /** priority: mapa valor → etiqueta, tono, nivel (1–4) e ícono. */
+  priorityMap?: Record<string, CnPriorityOption>;
+  /** priority: barras de nivel (por defecto), bandera o ícono. */
+  priorityStyle?: "bars" | "flag" | "icon";
+  /**
+   * Umbrales de tono. deadline: horas restantes (`danger` 24, `warning` 72).
+   * score: valores mínimos (`success` 80 % y `warning` 50 % de `max`).
+   */
+  thresholds?: CnCellThresholds;
+  /** deadline: la tarea ya se cumplió (muestra "Cumplido" en lugar de la cuenta). */
+  done?: (row: unknown) => boolean;
+  /** version: última versión disponible (marca "Última" o "Desactualizada"). */
+  latestVersion?: string | ((row: unknown) => string | undefined);
+  /** richtext: formato del contenido. Por defecto lo detecta (`auto`). */
+  richFormat?: CnRichFormat;
+  /** icon: solo el ícono (la etiqueta queda en el tooltip). */
+  iconOnly?: boolean;
+  /** toggle: cambio del interruptor; sin él queda deshabilitado. */
+  onChange?: (row: unknown, next: boolean) => void;
+  /** steps: etiquetas de cada paso (definen el total). */
+  stepLabels?: string[];
+  /** steps: puntos o barra segmentada (por defecto). */
+  stepsStyle?: "dots" | "bar";
+  /** stage: etapas en orden. */
+  stages?: readonly (string | CnStageOption)[];
+  /** stage: flechas (por defecto) o puntos. */
+  stageStyle?: "chevrons" | "dots";
+  /** timerange: muestra la duración bajo el horario. Por defecto `true`. */
+  showDuration?: boolean;
+  /** range: formato de los extremos. Por defecto `number`. */
+  rangeFormat?: "number" | "currency" | "percent";
+  /** sentiment: escala de la puntuación numérica. Por defecto `auto`. */
+  sentimentScale?: "auto" | "unit" | "five";
+  /** counter: no muestra nada cuando el conteo es cero. */
+  hideZero?: boolean;
 };
 
 /** Contacto para celdas `contact` (uno o una lista). */
@@ -623,6 +715,93 @@ export const formatCellText = (
       const visible = options.visibleChars ?? 4;
       return `•••• ${raw.slice(-visible)}`;
     }
+    case "delta": {
+      const n = toNumber(value);
+      if (n === null) return String(value);
+      const format = options.deltaFormat ?? "percent";
+      const raw = format === "percent" && options.percentScale === "fraction" ? n * 100 : n;
+      const { change } = computeDelta(raw, options.previous?.(row), format);
+      const sign = change > 0 ? "+" : change < 0 ? "-" : "";
+      const abs = Math.abs(change);
+      if (format === "percent") {
+        return `${sign}${abs.toLocaleString(locale, { maximumFractionDigits: options.decimals ?? 1 })}%`;
+      }
+      return `${sign}${formatCellText(format, abs, row, { ...options, prefix: undefined, suffix: undefined })}`;
+    }
+    case "priority":
+      return resolvePriority(value, options.priorityMap).label;
+    case "deadline":
+      return formatCellText("datetime", value, row, options);
+    case "ip":
+    case "uuid":
+      return String(value).trim();
+    case "version":
+      return parseVersion(value).text;
+    case "richtext":
+      return stripRichText(value, options.richFormat);
+    case "icon": {
+      if (value && typeof value === "object") {
+        const obj = value as Record<string, unknown>;
+        return String(obj.label ?? obj.name ?? obj.icon ?? "");
+      }
+      const entry = options.statusMap?.[String(value)];
+      return typeof entry?.label === "string" ? entry.label : String(value);
+    }
+    case "toggle":
+      return value
+        ? String(options.trueLabel ?? "Activado")
+        : String(options.falseLabel ?? "Desactivado");
+    case "steps": {
+      const steps = parseSteps(value, options.stepLabels, options.max);
+      return `${steps.current}/${steps.total}`;
+    }
+    case "stage": {
+      const stage = normalizeStages(options.stages).find((s) => s.value === String(value));
+      return stage?.label ?? String(value);
+    }
+    case "weekdays":
+      return weekdaysText(parseWeekdays(value));
+    case "timerange": {
+      const range = parseTimeRange(value);
+      return `${range.start ?? "…"} – ${range.end ?? "…"}`;
+    }
+    case "age": {
+      const n = toNumber(value);
+      if (n !== null && n < 200) return ageFrom(n).text;
+      const birth = toDate(value, "date");
+      return birth ? ageFrom(birth).text : String(value);
+    }
+    case "range": {
+      const [min, max] = parseNumericRange(value);
+      const format = options.rangeFormat ?? "number";
+      const integers = Number.isInteger(min ?? 0) && Number.isInteger(max ?? 0);
+      const part = (n: number | null) =>
+        n === null
+          ? "…"
+          : formatCellText(format, n, row, {
+              ...options,
+              decimals: options.decimals ?? (integers ? 0 : undefined),
+            });
+      return `${part(min)} – ${part(max)}`;
+    }
+    case "sentiment":
+      return resolveSentiment(value, options.sentimentScale)?.label ?? String(value);
+    case "score": {
+      const n = toNumber(value);
+      return n === null
+        ? String(value)
+        : n.toLocaleString(locale, { maximumFractionDigits: options.decimals ?? 0 });
+    }
+    case "reference": {
+      const ref = asReference(value);
+      return ref.id !== undefined && String(ref.id) !== ref.label
+        ? `${ref.label} · ${options.prefix ?? ""}${ref.id}`
+        : ref.label;
+    }
+    case "counter": {
+      const n = toNumber(value);
+      return n === null ? String(value) : String(Math.trunc(n));
+    }
     case "number": {
       const n = toNumber(value);
       if (n === null) return String(value);
@@ -928,6 +1107,17 @@ const EMPTY_BY_TYPE: Partial<Record<CnCellType, { text: string; icon: string; to
     avatar: { text: "Sin asignar", icon: "person_off", tone: "neutral" },
     contact: { text: "Sin contacto", icon: "person_off", tone: "neutral" },
     tags: { text: "Sin etiquetas", icon: "label_off", tone: "neutral" },
+    priority: { text: "Sin prioridad", icon: "low_priority", tone: "neutral" },
+    deadline: { text: "Sin vencimiento", icon: "event_busy", tone: "neutral" },
+    ip: { text: "Sin IP", icon: "wifi_off", tone: "neutral" },
+    version: { text: "Sin versión", icon: "new_releases", tone: "neutral" },
+    richtext: { text: "Sin contenido", icon: "notes", tone: "neutral" },
+    stage: { text: "Sin etapa", icon: "timeline", tone: "neutral" },
+    weekdays: { text: "Sin días", icon: "event_busy", tone: "neutral" },
+    timerange: { text: "Sin horario", icon: "schedule", tone: "neutral" },
+    age: { text: "Sin fecha de nacimiento", icon: "cake", tone: "neutral" },
+    reference: { text: "Sin vincular", icon: "link_off", tone: "neutral" },
+    sentiment: { text: "Sin evaluar", icon: "face", tone: "neutral" },
   };
 
 const EMPTY_CONTEXTS: Record<CnEmptyContext, { text: string; icon: string; tone: CnCellTone }> = {
@@ -1706,6 +1896,1361 @@ const trendOf = (current: number, previous: number | undefined) => {
   return { icon: "trending_flat", tone: "neutral" as const };
 };
 
+// ─── Piezas de los tipos adicionales ────────────────────────────────────
+
+const isRegisteredIcon = (name: string) => Boolean(ICON_REGISTRY[ICON_ALIASES[name] ?? name]);
+
+/** Usa el ícono preferido si ya está registrado; si no, el de respaldo. */
+const pickIcon = (preferred: string, fallback: string) =>
+  isRegisteredIcon(preferred) ? preferred : fallback;
+
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+const longDate = (date: Date, withTime = false) =>
+  capitalize(
+    new Intl.DateTimeFormat("es-MX", {
+      dateStyle: "full",
+      timeStyle: withTime ? "short" : undefined,
+    }).format(date),
+  );
+
+/** Etiqueta pequeña junto a una píldora ("IPv4", "Última", "beta"). */
+const MiniTag = ({ label, tone = "neutral" }: { label: ReactNode; tone?: CnCellTone }) => (
+  <Box
+    component="span"
+    sx={{
+      flexShrink: 0,
+      px: "6px",
+      py: "1px",
+      borderRadius: "999px",
+      fontSize: "0.6rem",
+      fontWeight: 700,
+      letterSpacing: "0.3px",
+      whiteSpace: "nowrap",
+      color: TONE[tone].dark,
+      backgroundColor: `rgba(${TONE[tone].rgb}, 0.1)`,
+      border: `1px solid rgba(${TONE[tone].rgb}, 0.18)`,
+    }}
+  >
+    {label}
+  </Box>
+);
+
+const Inline = ({ children, gap = "6px" }: { children: ReactNode; gap?: string }) => (
+  <Box
+    component="span"
+    sx={{ display: "inline-flex", alignItems: "center", gap, minWidth: 0, maxWidth: "100%" }}
+  >
+    {children}
+  </Box>
+);
+
+/** Barras de nivel (prioridad). */
+const LevelBars = ({
+  level,
+  tone,
+  total = 4,
+}: {
+  level: number;
+  tone: CnCellTone;
+  total?: number;
+}) => (
+  <Box
+    component="span"
+    aria-hidden
+    sx={{ display: "inline-flex", alignItems: "flex-end", gap: "1.5px", height: 12 }}
+  >
+    {Array.from({ length: total }, (_, i) => (
+      <Box
+        key={i}
+        component="span"
+        sx={{
+          width: 3,
+          height: 4 + i * 2.6,
+          borderRadius: "1px",
+          backgroundColor: i < level ? `rgb(${TONE[tone].rgb})` : `rgba(${TONE[tone].rgb}, 0.22)`,
+        }}
+      />
+    ))}
+  </Box>
+);
+
+const stop = (event: { stopPropagation: () => void }) => event.stopPropagation();
+
+/** Interruptor en línea; el clic no llega a la fila. */
+const ToggleCell = ({
+  checked,
+  row,
+  onChange,
+  trueLabel,
+  falseLabel,
+}: {
+  checked: boolean;
+  row: unknown;
+  onChange?: (row: unknown, next: boolean) => void;
+  trueLabel: ReactNode;
+  falseLabel: ReactNode;
+}) => {
+  const [on, setOn] = useState(checked);
+  useEffect(() => setOn(checked), [checked]);
+  const label = on ? trueLabel : falseLabel;
+  return (
+    <Box
+      component="span"
+      onClick={stop}
+      onMouseDown={stop}
+      onKeyDown={stop}
+      sx={{ display: "inline-flex", alignItems: "center", gap: "2px", ml: "-6px" }}
+    >
+      <Switch
+        size="small"
+        checked={on}
+        disabled={!onChange}
+        onChange={(_, next) => {
+          setOn(next);
+          onChange?.(row, next);
+        }}
+        slotProps={{
+          input: { "aria-label": typeof label === "string" ? label : "Cambiar" },
+        }}
+      />
+      <Box
+        component="span"
+        sx={{
+          fontSize: "0.75rem",
+          fontWeight: 600,
+          color: on ? TONE.success.dark : "var(--cn-color-text-muted, #6e7682)",
+          opacity: onChange ? 1 : 0.7,
+        }}
+      >
+        {label}
+      </Box>
+    </Box>
+  );
+};
+
+/** Avance por pasos: barra segmentada o puntos, con las etiquetas en el tooltip. */
+const StepsCell = ({
+  current,
+  total,
+  labels,
+  style,
+}: {
+  current: number;
+  total: number;
+  labels: string[];
+  style: "dots" | "bar";
+}) => {
+  const done = current >= total;
+  const tone: CnCellTone = done ? "success" : current === 0 ? "neutral" : "primary";
+  const tip = labels.length ? (
+    <Box component="ol" sx={{ m: 0, pl: "18px", fontSize: "0.72rem", lineHeight: 1.6 }}>
+      {labels.map((label, i) => (
+        <li key={`${label}-${i}`} style={{ opacity: i < current ? 1 : 0.65 }}>
+          {i < current ? "✓ " : i === current ? "● " : ""}
+          {label}
+        </li>
+      ))}
+    </Box>
+  ) : (
+    `Paso ${current} de ${total}`
+  );
+  return (
+    <Tooltip title={tip} arrow placement="top">
+      <Box
+        component="span"
+        role="img"
+        aria-label={`${current} de ${total} pasos${labels[current - 1] ? `: ${labels[current - 1]}` : ""}`}
+        sx={{ display: "inline-flex", flexDirection: "column", gap: "3px", minWidth: 90 }}
+      >
+        <Box component="span" sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Box
+            component="span"
+            sx={{ display: "flex", gap: style === "dots" ? "4px" : "2px", flex: 1, minWidth: 0 }}
+          >
+            {Array.from({ length: total }, (_, i) => (
+              <Box
+                key={i}
+                component="span"
+                sx={{
+                  flex: style === "dots" ? "0 0 auto" : 1,
+                  width: style === "dots" ? 8 : undefined,
+                  height: style === "dots" ? 8 : 6,
+                  borderRadius: style === "dots" ? "50%" : "2px",
+                  backgroundColor:
+                    i < current ? `rgb(${TONE[tone].rgb})` : `rgba(${TONE[tone].rgb}, 0.18)`,
+                  boxShadow:
+                    i === current && !done
+                      ? `0 0 0 1.5px rgba(${TONE.primary.rgb}, 0.55) inset`
+                      : undefined,
+                }}
+              />
+            ))}
+          </Box>
+          <Box
+            component="span"
+            sx={{ fontFamily: MONO, fontSize: "0.7rem", fontWeight: 700, color: TONE[tone].dark }}
+          >
+            {current}/{total}
+          </Box>
+        </Box>
+        {labels.length > 0 && (
+          <Box
+            component="span"
+            sx={{
+              fontSize: "0.65rem",
+              color: "var(--cn-color-text-muted, #6e7682)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {done ? "Completado" : (labels[current] ?? labels[current - 1])}
+          </Box>
+        )}
+      </Box>
+    </Tooltip>
+  );
+};
+
+/** Etapa actual dentro de un embudo (flechas o puntos). */
+const StageCell = ({
+  stages,
+  index,
+  style,
+}: {
+  stages: { value: string; label: string; tone?: CnCellTone }[];
+  index: number;
+  style: "chevrons" | "dots";
+}) => {
+  const current = stages[index];
+  const tone: CnCellTone =
+    current.tone ?? (index === stages.length - 1 ? "success" : index === 0 ? "neutral" : "primary");
+  return (
+    <Box
+      component="span"
+      role="img"
+      aria-label={`Etapa ${index + 1} de ${stages.length}: ${current.label}`}
+      sx={{ display: "inline-flex", flexDirection: "column", gap: "4px", minWidth: 0 }}
+    >
+      <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
+        {stages.map((stage, i) => (
+          <Tooltip
+            key={stage.value}
+            title={`${i + 1}. ${stage.label}${i === index ? " (actual)" : ""}`}
+            arrow
+          >
+            <Box
+              component="span"
+              sx={{
+                display: "inline-block",
+                width: style === "dots" ? 9 : 20,
+                height: style === "dots" ? 9 : 12,
+                ml: style === "dots" || i === 0 ? 0 : "-3px",
+                borderRadius: style === "dots" ? "50%" : 0,
+                clipPath:
+                  style === "dots"
+                    ? undefined
+                    : i === 0
+                      ? "polygon(0 0, 75% 0, 100% 50%, 75% 100%, 0 100%)"
+                      : "polygon(0 0, 75% 0, 100% 50%, 75% 100%, 0 100%, 25% 50%)",
+                backgroundColor:
+                  i < index
+                    ? `rgba(${TONE[tone].rgb}, 0.55)`
+                    : i === index
+                      ? `rgb(${TONE[tone].rgb})`
+                      : "rgba(110, 118, 130, 0.2)",
+              }}
+            />
+          </Tooltip>
+        ))}
+      </Box>
+      <Box
+        component="span"
+        sx={{
+          fontSize: "0.72rem",
+          fontWeight: 700,
+          color: TONE[tone].dark,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {current.label}
+        <Box component="span" sx={{ fontWeight: 400, opacity: 0.65, ml: "6px" }}>
+          {index + 1}/{stages.length}
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+/** Días de la semana L M M J V S D con los elegidos resaltados. */
+const WeekdaysCell = ({ days, tone }: { days: number[]; tone: CnCellTone }) => (
+  <Box
+    component="span"
+    role="img"
+    aria-label={weekdaysText(days)}
+    sx={{ display: "inline-flex", gap: "3px" }}
+  >
+    {WEEKDAY_LETTERS.map((letter, i) => {
+      const on = days.includes(i + 1);
+      return (
+        <Tooltip key={i} title={`${WEEKDAY_NAMES[i]}${on ? "" : " (no)"}`} arrow>
+          <Box
+            component="span"
+            sx={{
+              width: 20,
+              height: 20,
+              borderRadius: "50%",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "0.6rem",
+              fontWeight: 700,
+              color: on ? "#fff" : "var(--cn-color-text-subtle, #9aa1aa)",
+              backgroundColor: on ? `rgb(${TONE[tone].rgb})` : "rgba(110, 118, 130, 0.1)",
+            }}
+          >
+            {letter}
+          </Box>
+        </Tooltip>
+      );
+    })}
+  </Box>
+);
+
+/** Anillo de puntuación con el valor al centro. */
+const ScoreRing = ({
+  value,
+  max,
+  text,
+  tone,
+  size = 34,
+}: {
+  value: number;
+  max: number;
+  text: string;
+  tone: CnCellTone;
+  size?: number;
+}) => {
+  const stroke = 3.5;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const pct = Math.max(0, Math.min(1, max ? value / max : 0));
+  return (
+    <Box
+      component="span"
+      role="img"
+      aria-label={`Puntuación ${text} de ${max}`}
+      title={`${text} de ${max}`}
+      sx={{
+        position: "relative",
+        display: "inline-flex",
+        width: size,
+        height: size,
+        flexShrink: 0,
+      }}
+    >
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={`rgba(${TONE[tone].rgb}, 0.15)`}
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={`rgb(${TONE[tone].rgb})`}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={`${circumference * pct} ${circumference}`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </svg>
+      <Box
+        component="span"
+        sx={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: MONO,
+          fontSize: text.length > 3 ? "0.55rem" : "0.65rem",
+          fontWeight: 700,
+          color: TONE[tone].dark,
+        }}
+      >
+        {text}
+      </Box>
+    </Box>
+  );
+};
+
+// Contenido enriquecido seguro: nunca se inyecta HTML; se reconstruye con React
+// solo a partir de etiquetas permitidas y sin atributos (salvo enlaces seguros).
+const SAFE_TAGS = new Set([
+  "p",
+  "br",
+  "hr",
+  "strong",
+  "em",
+  "u",
+  "s",
+  "ul",
+  "ol",
+  "li",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "blockquote",
+  "code",
+  "pre",
+  "a",
+]);
+const DROP_TAGS = new Set([
+  "script",
+  "style",
+  "iframe",
+  "object",
+  "embed",
+  "template",
+  "noscript",
+  "svg",
+  "math",
+  "form",
+  "input",
+  "button",
+  "textarea",
+  "select",
+  "link",
+  "meta",
+]);
+const TAG_ALIAS: Record<string, string> = { b: "strong", i: "em", strike: "s", del: "s" };
+
+const htmlNodeToReact = (node: Node, key: number): ReactNode => {
+  if (node.nodeType === 3) return node.textContent;
+  if (node.nodeType !== 1) return null;
+  const element = node as Element;
+  const raw = element.tagName.toLowerCase();
+  if (DROP_TAGS.has(raw)) return null;
+  const tag = TAG_ALIAS[raw] ?? raw;
+  const children = Array.from(element.childNodes).map((child, i) => htmlNodeToReact(child, i));
+  if (!SAFE_TAGS.has(tag)) return <Fragment key={key}>{children}</Fragment>;
+  if (tag === "br" || tag === "hr") return createElement(tag, { key });
+  if (tag === "a") {
+    const href = getSafeUrl(element.getAttribute("href") ?? undefined);
+    return href ? (
+      <a key={key} href={href} target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    ) : (
+      <Fragment key={key}>{children}</Fragment>
+    );
+  }
+  return createElement(tag, { key }, ...children);
+};
+
+const markdownInline = (text: string): ReactNode[] =>
+  text
+    .split(/(\*\*[^*]+\*\*|__[^_]+__|\*[^*\s][^*]*\*|_[^_\s][^_]*_|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g)
+    .filter(Boolean)
+    .map((part, i) => {
+      if (/^(\*\*|__)/.test(part)) return <strong key={i}>{part.slice(2, -2)}</strong>;
+      if (/^`/.test(part)) return <code key={i}>{part.slice(1, -1)}</code>;
+      const link = /^\[([^\]]+)\]\(([^)\s]+)\)$/.exec(part);
+      if (link) {
+        const href = getSafeUrl(link[2]);
+        return href ? (
+          <a key={i} href={href} target="_blank" rel="noopener noreferrer">
+            {link[1]}
+          </a>
+        ) : (
+          link[1]
+        );
+      }
+      if (/^[*_].+[*_]$/.test(part)) return <em key={i}>{part.slice(1, -1)}</em>;
+      return part;
+    });
+
+const markdownToReact = (source: string): ReactNode[] => {
+  const blocks: ReactNode[] = [];
+  const lines = source.replace(/\r\n?/g, "\n").split("\n");
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (/^\s*```/.test(line)) {
+      const code: string[] = [];
+      i += 1;
+      while (i < lines.length && !/^\s*```/.test(lines[i])) code.push(lines[(i += 1) - 1]);
+      blocks.push(
+        <pre key={blocks.length}>
+          <code>{code.join("\n")}</code>
+        </pre>,
+      );
+      i += 1;
+      continue;
+    }
+    const heading = /^\s{0,3}(#{1,6})\s+(.*)$/.exec(line);
+    if (heading) {
+      blocks.push(
+        createElement(
+          `h${Math.min(6, heading[1].length + 2)}`,
+          { key: blocks.length },
+          ...markdownInline(heading[2]),
+        ),
+      );
+      i += 1;
+      continue;
+    }
+    const listMatch = /^\s*([-*+]|\d+[.)])\s+/.exec(line);
+    if (listMatch) {
+      const ordered = /\d/.test(listMatch[1]);
+      const items: ReactNode[] = [];
+      while (i < lines.length && /^\s*([-*+]|\d+[.)])\s+/.test(lines[i])) {
+        items.push(
+          <li key={items.length}>
+            {markdownInline(lines[i].replace(/^\s*([-*+]|\d+[.)])\s+/, ""))}
+          </li>,
+        );
+        i += 1;
+      }
+      blocks.push(createElement(ordered ? "ol" : "ul", { key: blocks.length }, ...items));
+      continue;
+    }
+    if (/^\s{0,3}>/.test(line)) {
+      const quote: string[] = [];
+      while (i < lines.length && /^\s{0,3}>/.test(lines[i])) {
+        quote.push(lines[i].replace(/^\s{0,3}>\s?/, ""));
+        i += 1;
+      }
+      blocks.push(<blockquote key={blocks.length}>{markdownInline(quote.join(" "))}</blockquote>);
+      continue;
+    }
+    if (!line.trim()) {
+      i += 1;
+      continue;
+    }
+    const paragraph: string[] = [];
+    while (
+      i < lines.length &&
+      lines[i].trim() &&
+      !/^\s*([-*+]|\d+[.)])\s+|^\s{0,3}(#{1,6}\s|>|```)/.test(lines[i])
+    ) {
+      paragraph.push(lines[i]);
+      i += 1;
+    }
+    blocks.push(<p key={blocks.length}>{markdownInline(paragraph.join(" "))}</p>);
+  }
+  return blocks;
+};
+
+/** Muestra HTML o Markdown con un subconjunto seguro (sin `dangerouslySetInnerHTML`). */
+export const CnSafeRichText = ({
+  source,
+  format = "auto",
+}: {
+  source: string;
+  format?: CnRichFormat;
+}) => {
+  let content: ReactNode;
+  if (detectRichFormat(source, format) === "html") {
+    if (typeof DOMParser === "undefined") content = stripRichText(source, "html");
+    else {
+      // DOMParser crea un documento inerte: no ejecuta scripts ni carga recursos.
+      const doc = new DOMParser().parseFromString(source, "text/html");
+      content = Array.from(doc.body.childNodes).map((node, i) => htmlNodeToReact(node, i));
+    }
+  } else content = markdownToReact(source);
+  return (
+    <Box
+      data-cn-rich-text
+      sx={{
+        fontSize: "0.82rem",
+        lineHeight: 1.6,
+        overflowWrap: "anywhere",
+        "& > :first-of-type": { mt: 0 },
+        "& p": { my: "6px" },
+        "& h1, & h2, & h3, & h4, & h5, & h6": { my: "8px", lineHeight: 1.3 },
+        "& h3": { fontSize: "1rem" },
+        "& h4": { fontSize: "0.92rem" },
+        "& h5, & h6": { fontSize: "0.85rem" },
+        "& ul, & ol": { my: "6px", pl: "20px" },
+        "& blockquote": {
+          my: "6px",
+          mx: 0,
+          pl: "10px",
+          borderLeft: "3px solid var(--cn-color-border, #dde0e4)",
+          color: "var(--cn-color-text-muted, #6e7682)",
+        },
+        "& code": {
+          fontFamily: MONO,
+          fontSize: "0.75rem",
+          px: "4px",
+          borderRadius: "4px",
+          backgroundColor: "rgba(110, 118, 130, 0.12)",
+        },
+        "& pre": {
+          p: "8px",
+          borderRadius: "8px",
+          overflow: "auto",
+          backgroundColor: "rgba(110, 118, 130, 0.1)",
+        },
+        "& pre code": { p: 0, backgroundColor: "transparent" },
+        "& a": { color: "var(--cn-color-accent-700, #2a3cb8)" },
+      }}
+    >
+      {content}
+    </Box>
+  );
+};
+
+/** Valor ordenable de una celda (prioridad por nivel, versión semver, etapa…). */
+export const cellSortValue = (
+  type: CnCellType,
+  value: unknown,
+  row: unknown,
+  options: CnCellOptions = {},
+): unknown => {
+  if (isEmpty(value)) return value;
+  switch (type) {
+    case "priority":
+      return resolvePriority(value, options.priorityMap).level;
+    case "deadline":
+    case "age": {
+      const n = toNumber(value);
+      if (type === "age" && n !== null && n < 200) return n;
+      const date = toDate(value, "datetime");
+      if (!date) return value;
+      return type === "age" ? ageFrom(date).years + ageFrom(date).months / 12 : date.getTime();
+    }
+    case "delta": {
+      const n = toNumber(value);
+      return n === null
+        ? value
+        : computeDelta(n, options.previous?.(row), options.deltaFormat ?? "percent").change;
+    }
+    case "version": {
+      const v = parseVersion(value);
+      if (!v.valid) return String(value);
+      const pad6 = (n: number) => String(n).padStart(6, "0");
+      return `${pad6(v.major)}.${pad6(v.minor)}.${pad6(v.patch)}${v.prerelease ? `-${v.prerelease}` : "~"}`;
+    }
+    case "ip": {
+      const ip = parseIp(value);
+      return ip.version === 4 && ip.valid
+        ? ip.address
+            .split(".")
+            .map((part) => part.padStart(3, "0"))
+            .join(".")
+        : String(value);
+    }
+    case "steps":
+      return parseSteps(value, options.stepLabels, options.max).current;
+    case "stage": {
+      const index = normalizeStages(options.stages).findIndex((s) => s.value === String(value));
+      return index === -1 ? String(value) : index;
+    }
+    case "weekdays":
+      return parseWeekdays(value).length;
+    case "timerange": {
+      const start = parseTimeRange(value).start;
+      return start ?? String(value);
+    }
+    case "range":
+      return parseNumericRange(value)[0] ?? String(value);
+    case "sentiment":
+      return resolveSentiment(value, options.sentimentScale)?.level ?? String(value);
+    case "reference":
+    case "icon":
+    case "richtext":
+      return formatCellText(type, value, row, options);
+    default:
+      return value;
+  }
+};
+
+const renderExtraCell = (
+  type: CnCellType,
+  value: unknown,
+  row: unknown,
+  options: CnCellOptions,
+  ctx: {
+    text: string;
+    subtitle: ReactNode;
+    copy?: boolean;
+    handleClick?: (event: MouseEvent) => void;
+  },
+): ReactNode => {
+  const { text, subtitle, copy, handleClick } = ctx;
+  switch (type) {
+    case "delta": {
+      const n = toNumber(value);
+      if (n === null) return <CnCellPill label={String(value)} tone="neutral" />;
+      const format = options.deltaFormat ?? "percent";
+      const raw = format === "percent" && options.percentScale === "fraction" ? n * 100 : n;
+      const previous = options.previous?.(row);
+      const info = computeDelta(raw, previous, format);
+      const good = options.invertTrend ? info.direction === "down" : info.direction === "up";
+      const tone: CnCellTone = info.direction === "flat" ? "neutral" : good ? "success" : "error";
+      const icon =
+        info.direction === "up"
+          ? "arrow_upward"
+          : info.direction === "down"
+            ? "arrow_downward"
+            : "trending_flat";
+      const base = format === "currency" ? "currency" : "number";
+      const prevText =
+        previous !== undefined ? formatCellText(base, previous, row, options) : undefined;
+      const pill = {
+        label: text,
+        icon,
+        tone,
+        mono: true,
+        strong: true,
+        subtitle: subtitle ?? (prevText ? `vs. ${prevText}` : undefined),
+        title:
+          info.direction === "flat"
+            ? "Sin cambio"
+            : `${info.direction === "up" ? "Subió" : "Bajó"} ${text}`,
+      };
+      if (previous === undefined || options.detail === false) {
+        return withCopy(<CnCellPill {...pill} />, text, copy ?? false);
+      }
+      const diff = raw - previous;
+      return withCopy(
+        <CnCellDetail
+          pill={pill}
+          title="Variación"
+          icon={icon}
+          tone={tone}
+          rows={[
+            { label: "Actual", value: formatCellText(base, raw, row, options), mono: true },
+            { label: "Anterior", value: prevText, mono: true },
+            {
+              label: "Cambio",
+              value: `${diff > 0 ? "+" : diff < 0 ? "-" : ""}${formatCellText(base, Math.abs(diff), row, options)}`,
+              mono: true,
+            },
+            ...(info.percent !== undefined
+              ? [
+                  {
+                    label: "Cambio %",
+                    value: `${info.percent > 0 ? "+" : ""}${info.percent.toLocaleString("es-MX", { maximumFractionDigits: 1 })}%`,
+                    mono: true,
+                  },
+                ]
+              : []),
+          ]}
+        />,
+        text,
+        copy ?? false,
+      );
+    }
+    case "priority": {
+      const p = resolvePriority(value, options.priorityMap);
+      const style = options.priorityStyle ?? "bars";
+      return (
+        <CnCellPill
+          label={p.label}
+          tone={p.tone}
+          strong
+          subtitle={subtitle}
+          title={`Prioridad ${p.label.toLowerCase()}${p.level ? ` (${p.level} de 4)` : ""}`}
+          icon={
+            style === "bars" ? (
+              <LevelBars level={p.level} tone={p.tone} />
+            ) : style === "flag" ? (
+              "flag"
+            ) : (
+              p.icon
+            )
+          }
+        />
+      );
+    }
+    case "deadline": {
+      const due = toDate(value, "datetime");
+      if (!due) return <CnEmptyCell type={type} text={String(value)} />;
+      const dateText = formatCellText("datetime", value, row, options);
+      if (options.done?.(row)) {
+        return (
+          <CnCellPill
+            label="Cumplido"
+            subtitle={dateText}
+            icon="task_alt"
+            tone="success"
+            strong
+            title={longDate(due, true)}
+          />
+        );
+      }
+      const info = describeDeadline(due, new Date(), options.thresholds);
+      const state = info.overdue
+        ? "Vencido"
+        : info.tone === "error"
+          ? "Urgente"
+          : info.tone === "warning"
+            ? "Próximo a vencer"
+            : "A tiempo";
+      const pill = {
+        label: capitalize(info.label),
+        subtitle: subtitle ?? dateText,
+        icon: info.icon,
+        tone: info.tone,
+        strong: true,
+        title: `${state} · ${longDate(due, true)}`,
+      };
+      if (options.detail === false) return <CnCellPill {...pill} />;
+      const iso = `${due.getFullYear()}-${pad(due.getMonth() + 1)}-${pad(due.getDate())}T${pad(due.getHours())}:${pad(due.getMinutes())}`;
+      return (
+        <CnCellDetail
+          pill={pill}
+          title="Vencimiento"
+          icon={info.icon}
+          tone={info.tone}
+          rows={[
+            { label: "Vence", value: longDate(due, true), copy: dateText },
+            { label: info.overdue ? "Vencido" : "Restante", value: capitalize(info.label) },
+            { label: "Estado", value: state },
+            { label: "ISO", value: iso, copy: iso, mono: true },
+          ]}
+        />
+      );
+    }
+    case "ip": {
+      const ip = parseIp(value);
+      const display = ip.prefix !== undefined ? `${ip.address}/${ip.prefix}` : ip.address;
+      return withCopy(
+        <Inline>
+          <CnCellPill
+            label={display}
+            icon={ip.valid ? (ip.version === 6 ? "public" : "dns") : "error_outline"}
+            tone={ip.valid ? "info" : "warning"}
+            mono
+            subtitle={subtitle}
+            title={
+              ip.valid ? `IPv${ip.version} ${ip.scope ?? ""}`.trim() : "Dirección IP no válida"
+            }
+          />
+          <MiniTag
+            label={ip.valid ? `IPv${ip.version}` : "No válida"}
+            tone={ip.valid ? (ip.scope === "pública" ? "accent" : "neutral") : "warning"}
+          />
+        </Inline>,
+        display,
+        copy ?? true,
+      );
+    }
+    case "uuid": {
+      const full = text;
+      const head = options.visibleChars ?? 8;
+      const uuid = isUuid(full);
+      return withCopy(
+        <Tooltip
+          arrow
+          placement="top"
+          title={
+            <Box sx={{ fontFamily: MONO, fontSize: "0.7rem" }}>
+              {full}
+              {uuid && (
+                <Box component="span" sx={{ display: "block", opacity: 0.75 }}>
+                  UUID v{full[14]}
+                </Box>
+              )}
+            </Box>
+          }
+        >
+          <Box component="span" sx={{ display: "inline-flex", minWidth: 0 }} aria-label={full}>
+            <CnCellPill
+              label={truncateMiddle(full, head, 4)}
+              icon="fingerprint"
+              tone={options.tone ?? "neutral"}
+              mono
+              subtitle={subtitle}
+            />
+          </Box>
+        </Tooltip>,
+        full,
+        copy ?? true,
+      );
+    }
+    case "version": {
+      const v = parseVersion(value);
+      const latestRaw =
+        typeof options.latestVersion === "function"
+          ? options.latestVersion(row)
+          : options.latestVersion;
+      const latest = latestRaw && v.valid ? parseVersion(latestRaw) : undefined;
+      const cmp = latest?.valid ? compareVersions(v.text, latest.text) : undefined;
+      const marker = v.prerelease
+        ? { label: v.prerelease.split(".")[0], tone: "warning" as const }
+        : cmp === undefined
+          ? undefined
+          : cmp >= 0
+            ? { label: "Última", tone: "success" as const }
+            : { label: "Desactualizada", tone: "warning" as const };
+      const tone: CnCellTone = !v.valid
+        ? "neutral"
+        : v.prerelease
+          ? "warning"
+          : cmp !== undefined && cmp >= 0
+            ? "success"
+            : (options.tone ?? "primary");
+      return withCopy(
+        <Inline>
+          <CnCellPill
+            label={v.text}
+            icon={
+              v.prerelease ? "science" : cmp !== undefined && cmp >= 0 ? "new_releases" : "sell"
+            }
+            tone={tone}
+            mono
+            strong
+            subtitle={subtitle}
+            title={
+              latest?.valid && cmp !== undefined && cmp < 0
+                ? `Disponible: ${latest.text}`
+                : v.prerelease
+                  ? "Versión preliminar"
+                  : v.valid
+                    ? `Versión ${v.major}.${v.minor}.${v.patch}`
+                    : "Versión sin formato semver"
+            }
+          />
+          {marker && <MiniTag label={marker.label} tone={marker.tone} />}
+        </Inline>,
+        v.text,
+        copy ?? false,
+      );
+    }
+    case "richtext": {
+      const source = String(value);
+      const lines = options.lines ?? 2;
+      const structured = text !== source.trim();
+      const showMore =
+        options.detail !== false && (text.length > (options.expandAfter ?? 80) || structured);
+      return (
+        <Box component="span" sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <Box
+            component="span"
+            title={text.length > 40 ? text : undefined}
+            sx={{
+              display: "-webkit-box",
+              WebkitLineClamp: lines,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              overflowWrap: "anywhere",
+              whiteSpace: "pre-line",
+              fontSize: "0.8rem",
+            }}
+          >
+            {text}
+          </Box>
+          {showMore && (
+            <Box sx={{ mt: "2px" }}>
+              <CnCellDetail
+                pill={{ label: "Ver completo", tone: "primary", icon: "article" }}
+                title="Contenido"
+                icon="article"
+                width={420}
+                actions={[
+                  {
+                    label: "Copiar texto",
+                    icon: "content_copy",
+                    onClick: () => void navigator.clipboard?.writeText(text),
+                  },
+                ]}
+              >
+                <Box sx={{ pb: "12px", maxHeight: 320, overflow: "auto" }}>
+                  <CnSafeRichText source={source} format={options.richFormat} />
+                </Box>
+              </CnCellDetail>
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    case "icon": {
+      const obj =
+        value && typeof value === "object" ? (value as Record<string, unknown>) : undefined;
+      const key = obj ? String(obj.value ?? obj.icon ?? "") : String(value);
+      const entry = options.statusMap?.[key];
+      const iconName = String(
+        obj?.icon ?? entry?.icon ?? options.icon ?? (isRegisteredIcon(key) ? key : "help_outline"),
+      );
+      const label: ReactNode =
+        (obj?.label as ReactNode) ??
+        entry?.label ??
+        (isRegisteredIcon(key) && !options.icon ? capitalize(key.replace(/_/g, " ")) : key);
+      const tone = ((obj?.tone as CnCellTone) ?? entry?.color ?? options.tone ?? "primary") as
+        CnCellTone | "secondary";
+      const badge = (
+        <Box
+          component="span"
+          aria-hidden={!options.iconOnly}
+          role={options.iconOnly ? "img" : undefined}
+          aria-label={options.iconOnly && typeof label === "string" ? label : undefined}
+          sx={{
+            width: 26,
+            height: 26,
+            flexShrink: 0,
+            borderRadius: "8px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: TONE[tone].dark,
+            backgroundColor: `rgba(${TONE[tone].rgb}, 0.12)`,
+          }}
+        >
+          <CnIcon name={iconName} size={16} />
+        </Box>
+      );
+      if (options.iconOnly) {
+        return (
+          <Tooltip title={label} arrow>
+            {badge}
+          </Tooltip>
+        );
+      }
+      return (
+        <Box
+          component="span"
+          title={entry?.description}
+          sx={{ display: "inline-flex", alignItems: "center", gap: "8px", minWidth: 0 }}
+        >
+          {badge}
+          <Box component="span" sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+            <Box
+              component="span"
+              sx={{
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                color: TONE[tone].dark,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {label}
+            </Box>
+            {subtitle && (
+              <Box
+                component="span"
+                sx={{ fontSize: "0.68rem", color: "var(--cn-color-text-muted, #6e7682)" }}
+              >
+                {subtitle}
+              </Box>
+            )}
+          </Box>
+        </Box>
+      );
+    }
+    case "toggle":
+      return (
+        <ToggleCell
+          checked={Boolean(value)}
+          row={row}
+          onChange={options.onChange}
+          trueLabel={options.trueLabel ?? "Activado"}
+          falseLabel={options.falseLabel ?? "Desactivado"}
+        />
+      );
+    case "steps": {
+      const steps = parseSteps(value, options.stepLabels, options.max);
+      return (
+        <StepsCell
+          current={steps.current}
+          total={steps.total}
+          labels={steps.labels}
+          style={options.stepsStyle ?? "bar"}
+        />
+      );
+    }
+    case "stage": {
+      const stages = normalizeStages(options.stages);
+      const index = stages.findIndex((s) => s.value === String(value));
+      if (index === -1) {
+        return <CnCellPill label={text} icon="timeline" tone={options.tone ?? "neutral"} strong />;
+      }
+      return <StageCell stages={stages} index={index} style={options.stageStyle ?? "chevrons"} />;
+    }
+    case "weekdays": {
+      const days = parseWeekdays(value);
+      if (!days.length) return <CnEmptyCell type={type} text={options.emptyText} />;
+      return (
+        <Box component="span" sx={{ display: "inline-flex", flexDirection: "column", gap: "3px" }}>
+          <WeekdaysCell days={days} tone={options.tone ?? "primary"} />
+          {subtitle !== undefined ? (
+            subtitle
+          ) : (
+            <Box
+              component="span"
+              sx={{ fontSize: "0.65rem", color: "var(--cn-color-text-muted, #6e7682)" }}
+            >
+              {text}
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    case "timerange": {
+      const range = parseTimeRange(value);
+      const duration =
+        options.showDuration !== false && range.minutes !== undefined
+          ? `${minutesText(range.minutes)}${range.overnight ? " · cruza medianoche" : ""}`
+          : undefined;
+      return (
+        <CnCellPill
+          label={text}
+          subtitle={subtitle ?? duration}
+          icon={range.overnight ? pickIcon("bedtime", "schedule") : "schedule"}
+          tone={options.tone ?? "info"}
+          mono
+          strong
+          title={duration ? `Duración: ${duration}` : undefined}
+        />
+      );
+    }
+    case "age": {
+      const n = toNumber(value);
+      if (n !== null && n < 200) {
+        return <CnCellPill label={text} icon="cake" tone={options.tone ?? "neutral"} strong />;
+      }
+      const birth = toDate(value, "date");
+      if (!birth) return <CnEmptyCell type={type} text={String(value)} />;
+      const age = ageFrom(birth);
+      const today = age.nextBirthdayIn === 0;
+      const pill = {
+        label: text,
+        subtitle: subtitle ?? (today ? "¡Hoy cumple años!" : formatCellText("date", value, row)),
+        icon: "cake",
+        tone: (today ? "accent" : (options.tone ?? "neutral")) as CnCellTone,
+        strong: true,
+        title: longDate(birth),
+      };
+      if (options.detail === false) return <CnCellPill {...pill} />;
+      const exact =
+        age.years >= 1
+          ? `${age.years} ${age.years === 1 ? "año" : "años"}${age.months ? ` y ${age.months} ${age.months === 1 ? "mes" : "meses"}` : ""}`
+          : `${age.months} ${age.months === 1 ? "mes" : "meses"}`;
+      return (
+        <CnCellDetail
+          pill={pill}
+          title="Edad"
+          icon="cake"
+          tone={pill.tone}
+          rows={[
+            { label: "Nacimiento", value: longDate(birth) },
+            { label: "Edad exacta", value: exact },
+            {
+              label: "Cumpleaños",
+              value: today
+                ? "¡Hoy!"
+                : `En ${age.nextBirthdayIn} ${age.nextBirthdayIn === 1 ? "día" : "días"} (cumplirá ${age.years + 1})`,
+            },
+          ]}
+        />
+      );
+    }
+    case "range": {
+      const [min, max] = parseNumericRange(value);
+      const domain = options.max;
+      const pill = (
+        <CnCellPill
+          label={text}
+          icon={options.rangeFormat === "currency" ? "attach_money" : "sync_alt"}
+          tone={options.tone ?? "primary"}
+          mono
+          strong
+          subtitle={subtitle}
+          title={
+            min !== null && max !== null
+              ? `Amplitud: ${formatCellText(options.rangeFormat ?? "number", max - min, row, options)}`
+              : undefined
+          }
+        />
+      );
+      if (!options.bar || !domain || min === null || max === null) {
+        return withCopy(pill, text, copy ?? false);
+      }
+      const left = Math.max(0, Math.min(100, (min / domain) * 100));
+      const right = Math.max(left, Math.min(100, (max / domain) * 100));
+      const tone = options.tone ?? "primary";
+      return (
+        <Box sx={{ display: "inline-flex", flexDirection: "column", gap: "4px", minWidth: 0 }}>
+          {pill}
+          <Box
+            role="img"
+            aria-label={`Rango ${text} sobre ${formatCellText(options.rangeFormat ?? "number", domain, row, options)}`}
+            sx={{
+              position: "relative",
+              height: 5,
+              mx: "6px",
+              borderRadius: 4,
+              backgroundColor: `rgba(${TONE[tone].rgb}, 0.12)`,
+            }}
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: `${left}%`,
+                width: `${Math.max(2, right - left)}%`,
+                borderRadius: 4,
+                backgroundColor: `rgb(${TONE[tone].rgb})`,
+              }}
+            />
+          </Box>
+        </Box>
+      );
+    }
+    case "sentiment": {
+      const info = resolveSentiment(value, options.sentimentScale);
+      if (!info) return <CnCellPill label={text} icon="help_outline" tone="neutral" />;
+      const preferred = {
+        2: "sentiment_very_satisfied",
+        1: "sentiment_satisfied",
+        0: "sentiment_neutral",
+        [-1]: "sentiment_dissatisfied",
+        [-2]: "sentiment_very_dissatisfied",
+      }[info.level];
+      return (
+        <CnCellPill
+          label={info.label}
+          icon={pickIcon(preferred, "face")}
+          tone={info.tone}
+          strong
+          subtitle={subtitle}
+          title={
+            info.score !== undefined
+              ? `Puntuación: ${info.score.toLocaleString("es-MX", { maximumFractionDigits: 2 })}`
+              : info.label
+          }
+        />
+      );
+    }
+    case "score": {
+      const n = toNumber(value);
+      if (n === null) return <CnCellPill label={text} tone="neutral" />;
+      const max = options.max ?? 100;
+      const success = options.thresholds?.success ?? max * 0.8;
+      const warning = options.thresholds?.warning ?? max * 0.5;
+      const tone: CnCellTone = n >= success ? "success" : n >= warning ? "warning" : "error";
+      return (
+        <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+          <ScoreRing value={n} max={max} text={text} tone={tone} />
+          {subtitle && (
+            <Box
+              component="span"
+              sx={{ fontSize: "0.72rem", color: "var(--cn-color-text-muted, #6e7682)" }}
+            >
+              {subtitle}
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    case "reference": {
+      const ref = asReference(value);
+      const href = getSafeUrl(options.href?.(row) ?? ref.href);
+      const idText = ref.id !== undefined ? `${options.prefix ?? "#"}${ref.id}` : undefined;
+      const sub = [idText !== ref.label ? idText : undefined, ref.subtitle]
+        .filter(Boolean)
+        .join(" · ");
+      return withCopy(
+        <CnCellPill
+          label={
+            <Box
+              component="span"
+              sx={{
+                textDecoration: "underline",
+                textDecorationColor: "rgba(61, 90, 254, 0.35)",
+                textUnderlineOffset: "2px",
+              }}
+            >
+              {ref.label}
+            </Box>
+          }
+          subtitle={subtitle ?? (sub || undefined)}
+          icon={options.icon ?? "link"}
+          tone={options.tone ?? "accent"}
+          href={handleClick ? undefined : href}
+          onClick={handleClick}
+          chevron={Boolean(handleClick || href)}
+          title={href ?? ref.label}
+        />,
+        idText ?? "",
+        copy ?? Boolean(idText),
+      );
+    }
+    case "counter": {
+      const n = Math.trunc(toNumber(value) ?? 0);
+      if (n === 0 && options.hideZero) return null;
+      const label =
+        options.max !== undefined && n > options.max
+          ? `${options.max}+`
+          : n.toLocaleString("es-MX");
+      const tone: CnCellTone = n === 0 ? "neutral" : (options.tone ?? "error");
+      const badge = (
+        <Box
+          component="span"
+          role="status"
+          aria-label={`${n.toLocaleString("es-MX")}`}
+          title={n.toLocaleString("es-MX")}
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxSizing: "border-box",
+            minWidth: options.icon ? 18 : 24,
+            height: options.icon ? 18 : 24,
+            px: options.icon ? "5px" : "8px",
+            borderRadius: "999px",
+            fontFamily: MONO,
+            fontSize: options.icon ? "0.6rem" : "0.72rem",
+            fontWeight: 700,
+            fontVariantNumeric: "tabular-nums",
+            color: n === 0 ? TONE.neutral.dark : "#fff",
+            backgroundColor: n === 0 ? `rgba(${TONE.neutral.rgb}, 0.1)` : `rgb(${TONE[tone].rgb})`,
+            boxShadow: options.icon ? "0 0 0 2px var(--cn-color-surface, #fff)" : undefined,
+          }}
+        >
+          {label}
+        </Box>
+      );
+      if (!options.icon) return badge;
+      return (
+        <Box
+          component="span"
+          sx={{ position: "relative", display: "inline-flex", pr: "10px", pt: "6px" }}
+        >
+          <CnIcon
+            name={options.icon}
+            size={22}
+            sx={{ color: "var(--cn-color-neutral-600, #4e5660)" }}
+          />
+          <Box component="span" sx={{ position: "absolute", top: -2, left: 12 }}>
+            {badge}
+          </Box>
+        </Box>
+      );
+    }
+    default:
+      return null;
+  }
+};
+
 /** Contenido visual de una celda tipada. */
 export const renderTypedCell = (
   type: CnCellType,
@@ -1713,7 +3258,7 @@ export const renderTypedCell = (
   row: unknown,
   options: CnCellOptions = {},
 ): ReactNode => {
-  if (isEmpty(value) && type !== "boolean" && type !== "rating") {
+  if (isEmpty(value) && type !== "boolean" && type !== "rating" && type !== "toggle") {
     return <CnEmptyCell type={type} text={options.emptyText} context={options.emptyContext} />;
   }
   const handleClick = options.onClick
@@ -2886,6 +4431,26 @@ export const renderTypedCell = (
         </Box>
       );
     }
+    case "delta":
+    case "priority":
+    case "deadline":
+    case "ip":
+    case "uuid":
+    case "version":
+    case "richtext":
+    case "icon":
+    case "toggle":
+    case "steps":
+    case "stage":
+    case "weekdays":
+    case "timerange":
+    case "age":
+    case "range":
+    case "sentiment":
+    case "score":
+    case "reference":
+    case "counter":
+      return renderExtraCell(type, value, row, options, { text, subtitle, copy, handleClick });
     case "masked": {
       const raw = String(value);
       return <MaskedValue raw={raw} masked={text} copyEnabled={copy ?? true} />;

@@ -16,6 +16,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 - [Formularios](#formularios)
 - [Retroalimentación y layout](#retroalimentación-y-layout)
 - [Tabla de datos](#tabla-de-datos)
+- [Calendario de eventos](#calendario-de-eventos)
 - [Gráficas](#gráficas)
 - [Estados de carga](#estados-de-carga)
 - [Temas](#temas)
@@ -342,6 +343,15 @@ Las pestañas y los pasos aceptan `fields` **y** `sections`.
 | `transferlist`   | `CnTransferListField`| Lista doble con búsqueda (permisos, integrantes); `max`.               |
 | `treeselect`     | `CnTreeSelectField`  | Árbol con búsqueda; `multiple` + `cascade`, `treeValueMode`, `leavesOnly`. |
 | `keyvalue`       | `CnKeyValueField`    | Pares clave–valor; `valueFormat` `array`/`object`; detecta repetidas.  |
+| `address`        | `CnAddressField`     | Dirección MX; `onPostalCodeLookup` autocompleta colonia, municipio y estado. |
+| `repeater`       | `CnRepeaterField`    | Lista repetible; `minItems`/`maxItems`, `renderItem`, reordenar.       |
+| `duration`       | `CnDurationField`    | Días/horas/minutos; valor en minutos o segundos; presets.              |
+| `search`         | `CnSearchField`      | Sugerencias estáticas o `onSearch` asíncrono, recientes, teclado.      |
+| `code`           | `CnCodeField`        | Editor con números de línea; valida y formatea JSON.                   |
+| `schedule`       | `CnScheduleField`    | Horario semanal con rangos por día; detecta traslapes.                 |
+| `location`       | `CnLocationField`    | Latitud/longitud, "usar mi ubicación" y mapa.                          |
+| `weekdays`       | `CnWeekdaysField`    | Días de la semana con presets (laborables, fin de semana).             |
+| `timerange`      | `CnTimeRangeField`   | Hora inicial y final; duración y turnos nocturnos.                     |
 | `hidden`         | —                    | Valor que viaja en el payload sin pintarse.                            |
 | `display`        | —                    | Valor de solo lectura con `format`; ideal con `compute`.               |
 
@@ -611,6 +621,18 @@ const columns: CnColumn<Contract>[] = [
 | `bytes`, `sparkline` | "2.4 MB" y mini gráfica de tendencia | `decimals`, `tone` |
 | `coordinates` | Lat/long con mapa en el detalle | `mapPreview` (también `location`) |
 | `masked` | Valor oculto (tarjeta, CLABE) con mostrar/ocultar | `visibleChars` |
+| `delta`, `range` | Variación con flecha y color; rango mín–máx con barra | `previous`, `deltaFormat`, `invertTrend`, `rangeFormat` |
+| `priority`, `stage`, `steps` | Prioridad con barras, etapa de un flujo, avance por pasos | `priorityMap`, `stages`, `stepLabels` |
+| `deadline` | "Vence en 3 h" / "Vencido hace 2 d" por urgencia | `thresholds`, `done` |
+| `ip`, `uuid`, `version` | IP con tipo y alcance; hash recortado; versión semver | `visibleChars`, `latestVersion` |
+| `richtext` | Vista previa de HTML/Markdown; completo y saneado en el detalle | `richFormat`, `lines` |
+| `icon`, `toggle`, `counter` | Ícono con texto; interruptor editable; contador | `onChange`, `hideZero`, `max` |
+| `weekdays`, `timerange`, `age` | L M M J V S D; "09:00 – 18:00"; edad desde la fecha | `showDuration` |
+| `sentiment`, `score`, `reference` | Cara por sentimiento; anillo de puntuación; registro enlazado | `sentimentScale`, `thresholds`, `href` |
+
+Cada tipo de celda tiene su historia con sus variantes en Storybook ("Data Display/Cells"), y se
+puede usar suelto con `<CnCell type="…" value={…} />`. La pantalla completa de la tabla se monta en
+un portal: funciona aunque la tabla viva dentro de un diálogo o un panel con `transform`.
 
 **Detalle al hacer clic** (`detail: false` lo desactiva): fechas abren una tarjeta con fecha completa,
 hora, relativo, semana/trimestre, ISO y calendario; montos con variación y cantidad en letra
@@ -649,6 +671,35 @@ se usa para buscar, ordenar y exportar.
 | `mrtProps.manualPagination` + `rowCount` | `serverSide` |
 | `<TbTableStatusCell config={STATUS_CONFIGS.x}>` | `type: "status", cellOptions: { statusMap: CN_STATUS_PRESETS.x }` |
 | `<TbTableEmptyCell context="pending">` | `cellOptions: { emptyContext: "pending" }` |
+
+## Calendario de eventos
+
+`CnEventCalendar` muestra eventos en vistas de mes, semana, día, agenda, trimestre y año:
+
+```tsx
+<CnEventCalendar
+  title="Agenda del equipo"
+  events={events}
+  categories={[{ id: "meeting", label: "Reuniones", color: "accent" }]}
+  holidays={[{ date: "2026-11-16", label: "Día de la Revolución" }]}
+  editable
+  onEventChange={({ event, start, end }) => save(event.id, start, end)}
+  onSlotClick={({ start, end }) => openNewEvent(start, end)}
+  onRangeChange={(range) => fetchEvents(range)}
+  searchable
+  exportable
+/>;
+```
+
+- Eventos de todo el día y de varios días en barras; "+N más" cuando un día tiene muchos eventos.
+- En semana y día, los eventos que se traslapan se acomodan en columnas, con línea de la hora actual
+  y horario laboral sombreado.
+- Recurrencia diaria, semanal, mensual y anual (intervalo, fin, número de repeticiones, excepciones).
+- Arrastrar para mover o cambiar la duración (`editable`), seleccionar un rango de horas
+  (`onSlotClick`), y filtrar desde la leyenda de categorías y la búsqueda.
+- Días festivos y bloqueados, `minDate`/`maxDate`, semana desde lunes, es-MX.
+- Exporta a `.ics` (Google Calendar, Outlook), imprime, y tiene pantalla completa, skeleton por vista
+  y diseño compacto en móvil.
 
 ## Gráficas
 
@@ -697,6 +748,8 @@ import { CnBarChart, CnDonutChart } from "@canek-ui/material-design-system/chart
 | `CnCandlestickChart` | Propia | Velas OHLC, volumen, medias móviles, retícula |
 | `CnRadialBarChart`, `CnRadialLineChart` | Propia | Anillos de avance; líneas polares para ciclos |
 | `CnTreemap` | Propia | Jerárquico con navegación por niveles |
+
+Las imágenes PNG y SVG incluyen título, subtítulo y leyenda.
 
 Las marcadas como "Propia" cubren lo que en MUI X es Pro o Premium (heatmap, embudo, sankey, velas,
 radiales, zoom y exportación) sin licencia ni marca de agua, con el mismo tema, tooltip y leyenda.

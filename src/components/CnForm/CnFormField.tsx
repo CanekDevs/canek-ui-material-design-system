@@ -5,6 +5,19 @@ import type { KeyboardEvent, ReactNode } from "react";
 import { isValidElement, memo, useMemo, useRef } from "react";
 import { useAsyncOptions } from "../../utils/use-async-options";
 import type { CnFieldSize } from "../../utils/field-styles";
+import { CnAddressField } from "../CnAddressField";
+import type { CnAddressValue } from "../CnAddressField";
+import { CnCodeField } from "../CnCodeField";
+import { CnDurationField } from "../CnDurationField";
+import { CnLocationField } from "../CnLocationField";
+import type { CnLocationValue } from "../CnLocationField";
+import { CnRepeaterField } from "../CnRepeaterField";
+import { CnScheduleField } from "../CnScheduleField";
+import type { CnScheduleValue } from "../CnScheduleField";
+import { CnSearchField } from "../CnSearchField";
+import { CnTimeRangeField } from "../CnTimeRangeField";
+import type { CnTimeRangeValue } from "../CnTimeRangeField";
+import { CnWeekdaysField } from "../CnWeekdaysField";
 import { CnChoiceCardsField } from "../CnChoiceCardsField";
 import type { CnChoiceCardsValue } from "../CnChoiceCardsField";
 import { CnColorField } from "../CnColorField";
@@ -124,7 +137,6 @@ const TEXT_TYPES: Record<string, CnTextFieldType> = {
   email: "email",
   tel: "tel",
   url: "url",
-  search: "search",
   textarea: "textarea",
 };
 
@@ -755,6 +767,139 @@ const FieldContent = ({
           {...field.componentProps}
           valueFormat={field.valueFormat}
           value={(value ?? (field.valueFormat === "object" ? {} : [])) as CnKeyValueValue}
+          onChange={onChange}
+        />
+      );
+    case "address":
+      return (
+        <CnAddressField
+          {...common}
+          fields={field.addressFields}
+          requiredParts={field.requiredAddressParts}
+          onPostalCodeLookup={field.onPostalCodeLookup}
+          reserveHelperSpace
+          {...field.componentProps}
+          value={(value && typeof value === "object" ? value : {}) as CnAddressValue}
+          onChange={onChange}
+        />
+      );
+    case "repeater":
+      return (
+        <CnRepeaterField<unknown>
+          {...common}
+          placeholder={placeholder}
+          minItems={field.minItems}
+          maxItems={field.maxItems}
+          renderItem={field.renderItem}
+          newItem={field.newItem}
+          itemLabel={field.itemLabel}
+          addLabel={field.addLabel}
+          reserveHelperSpace
+          {...field.componentProps}
+          value={Array.isArray(value) ? value : []}
+          onChange={onChange}
+        />
+      );
+    case "duration":
+      return (
+        <CnDurationField
+          {...common}
+          units={field.durationUnits}
+          valueUnit={field.durationValueUnit}
+          presets={field.durationPresets}
+          min={min}
+          max={max}
+          reserveHelperSpace
+          {...field.componentProps}
+          value={typeof value === "number" && Number.isFinite(value) ? value : null}
+          onChange={onChange}
+        />
+      );
+    case "search":
+      return (
+        <CnSearchField
+          {...common}
+          placeholder={placeholder}
+          suggestions={field.suggestions}
+          onSearch={field.onSearch}
+          recentSearches={field.recentSearches}
+          clearable={field.clearable}
+          autoFocus={field.autoFocus}
+          searchDelay={field.searchDebounceMs}
+          minChars={field.minSearchLength}
+          reserveHelperSpace
+          {...field.componentProps}
+          value={stringValue}
+          onChange={onChange}
+        />
+      );
+    case "code":
+      return (
+        <CnCodeField
+          {...common}
+          placeholder={placeholder}
+          language={field.language}
+          minRows={minRowsValue ?? rowsValue}
+          maxRows={maxRowsValue}
+          autoFocus={field.autoFocus}
+          reserveHelperSpace
+          {...field.componentProps}
+          value={stringValue}
+          onChange={onChange}
+        />
+      );
+    case "schedule":
+      return (
+        <CnScheduleField
+          {...common}
+          weekStart={field.weekStart}
+          days={field.scheduleDays}
+          defaultRange={field.scheduleDefaultRange}
+          minutesStep={evaluate(field.minutesStep, formValues, ctx)}
+          reserveHelperSpace
+          {...field.componentProps}
+          value={(value && typeof value === "object" ? value : {}) as CnScheduleValue}
+          onChange={onChange}
+        />
+      );
+    case "location":
+      return (
+        <CnLocationField
+          {...common}
+          showMap={field.showMap}
+          showAddress={field.showAddress}
+          reserveHelperSpace
+          {...field.componentProps}
+          value={(value && typeof value === "object" ? value : null) as CnLocationValue | null}
+          onChange={onChange}
+        />
+      );
+    case "weekdays":
+      return (
+        <CnWeekdaysField
+          {...common}
+          weekStart={field.weekStart}
+          disabledDays={field.disabledDays}
+          minDays={field.minItems}
+          maxDays={field.maxItems}
+          presets={field.presets}
+          reserveHelperSpace
+          {...field.componentProps}
+          value={Array.isArray(value) ? (value as number[]) : []}
+          onChange={onChange}
+        />
+      );
+    case "timerange":
+      return (
+        <CnTimeRangeField
+          {...common}
+          allowOvernight={field.allowOvernight}
+          minDuration={field.minDuration}
+          maxDuration={field.maxDuration}
+          minutesStep={evaluate(field.minutesStep, formValues, ctx)}
+          reserveHelperSpace
+          {...field.componentProps}
+          value={(Array.isArray(value) ? value : ["", ""]) as CnTimeRangeValue}
           onChange={onChange}
         />
       );

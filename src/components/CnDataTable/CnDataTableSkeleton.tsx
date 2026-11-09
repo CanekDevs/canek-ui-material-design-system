@@ -72,7 +72,22 @@ export type CnDataTableSkeletonProps = CnSkeletonCommonProps & {
 type SkColumn = CnDataTableSkeletonColumn & { kind: CellKind };
 
 type CellKind =
-  "text" | "avatar" | "pill" | "tags" | "number" | "date" | "bar" | "image" | "rating" | "color";
+  | "text"
+  | "avatar"
+  | "pill"
+  | "tags"
+  | "number"
+  | "date"
+  | "bar"
+  | "image"
+  | "rating"
+  | "color"
+  | "icon"
+  | "toggle"
+  | "steps"
+  | "weekdays"
+  | "ring"
+  | "counter";
 
 const KIND_BY_TYPE: Partial<Record<CnCellType, CellKind>> = {
   avatar: "avatar",
@@ -94,6 +109,24 @@ const KIND_BY_TYPE: Partial<Record<CnCellType, CellKind>> = {
   image: "image",
   rating: "rating",
   color: "color",
+  delta: "pill",
+  priority: "pill",
+  deadline: "date",
+  ip: "pill",
+  uuid: "pill",
+  version: "pill",
+  icon: "icon",
+  toggle: "toggle",
+  steps: "steps",
+  stage: "steps",
+  weekdays: "weekdays",
+  timerange: "pill",
+  age: "pill",
+  range: "pill",
+  sentiment: "pill",
+  score: "ring",
+  reference: "pill",
+  counter: "counter",
 };
 
 /** Tipos para columnas genéricas (cuando solo se da el número). */
@@ -177,6 +210,40 @@ const CellShape = ({ column, row }: { column: SkColumn; row: number }) => {
           <SkText width="50%" size={12} />
         </Box>
       );
+    case "icon":
+      return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: "8px", width: "100%" }}>
+          <SkBlock width={24} height={24} radius={7} />
+          <SkText width={`${40 + seed * 6}%`} size={12} />
+        </Box>
+      );
+    case "toggle":
+      return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: "8px", width: "100%" }}>
+          <SkBlock width={30} height={16} radius={999} />
+          <SkText width={`${30 + seed * 5}%`} size={11} />
+        </Box>
+      );
+    case "steps":
+      return (
+        <Box sx={{ display: "flex", gap: "2px", width: "70%" }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <SkBlock key={i} width="20%" height={6} radius={2} />
+          ))}
+        </Box>
+      );
+    case "weekdays":
+      return (
+        <Box sx={{ display: "flex", gap: "3px" }}>
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+            <SkBlock key={i} circle width={18} />
+          ))}
+        </Box>
+      );
+    case "ring":
+      return <SkBlock circle width={32} />;
+    case "counter":
+      return <SkBlock width={26} height={22} radius={999} />;
     default:
       return <SkText width={`${50 + seed * 9}%`} size={13} />;
   }
