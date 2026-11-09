@@ -153,6 +153,9 @@ export const CnChartLegend = ({
     {items.map((item) => (
       <ButtonBase
         key={item.id}
+        data-cn-legend-item
+        data-color={item.color}
+        data-hidden={item.hidden || undefined}
         disabled={!onToggle}
         onClick={() => onToggle?.(item.id)}
         aria-pressed={onToggle ? !item.hidden : undefined}
