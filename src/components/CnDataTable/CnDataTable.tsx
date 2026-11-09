@@ -25,6 +25,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
+import Portal from "@mui/material/Portal";
 import MenuItem from "@mui/material/MenuItem";
 import Snackbar from "@mui/material/Snackbar";
 import TablePagination from "@mui/material/TablePagination";
@@ -396,10 +397,13 @@ export const CnDataTable = <T extends CnRow>({
   // página no se bloquea tocando <body> (chocaría con los modales de MUI);
   // el contenedor fijo usa overscroll-behavior: contain.
   const fullscreenButtonRef = useRef<HTMLButtonElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const placeholderHeight = useRef(0);
+  // Al salir, el botón se vuelve a montar (portal): se enfoca el nuevo.
+  const wasFullscreen = useRef(false);
   useEffect(() => {
-    if (!fullscreen) return;
-    const trigger = fullscreenButtonRef.current;
-    return () => trigger?.focus();
+    if (wasFullscreen.current && !fullscreen) fullscreenButtonRef.current?.focus();
+    wasFullscreen.current = fullscreen;
   }, [fullscreen]);
 
   useEffect(() => {
@@ -409,7 +413,7 @@ export const CnDataTable = <T extends CnRow>({
       // Si hay un menú, diálogo o visor abierto, Escape solo cierra ese.
       if (
         document.querySelector(
-          '[role="menu"], [role="dialog"], [role="alertdialog"], [role="presentation"].MuiPopover-root',
+          '[role="menu"], [role="dialog"]:not([data-cn-data-table]), [role="alertdialog"], [role="presentation"].MuiPopover-root',
         )
       )
         return;
@@ -1264,7 +1268,11 @@ export const CnDataTable = <T extends CnRow>({
               ref={fullscreenButtonRef}
               aria-label="Pantalla completa"
               aria-pressed={fullscreen}
-              onClick={() => setFullscreen((prev) => !prev)}
+              onClick={() => {
+                // Conserva el alto en su lugar para que la página no salte.
+                if (!fullscreen) placeholderHeight.current = rootRef.current?.offsetHeight ?? 0;
+                setFullscreen((prev) => !prev);
+              }}
               sx={toolbarIconSx}
             >
               {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
@@ -2380,556 +2388,590 @@ export const CnDataTable = <T extends CnRow>({
     );
   }
 
+  // En pantalla completa la tabla se monta en un portal sobre <body>: un
+  // ancestro con `transform`, `filter` o `contain` (diálogos, paneles animados,
+  // Storybook Docs) encerraría al `position: fixed` y no cubriría la ventana.
   return (
-    <Box
-      className={className}
-      data-cn-data-table
-      sx={mergeSx(
-        { minWidth: 0, fontFamily: "var(--cn-font-sans, system-ui, sans-serif)", ...wrapperSx },
-        sx,
+    <>
+      {fullscreen && (
+        <Box aria-hidden sx={{ height: placeholderHeight.current }} className={className} />
       )}
-    >
-      {caption}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-          borderRadius: "12px",
-          border: "1px solid var(--cn-color-border, #dde0e4)",
-          backgroundColor: "var(--cn-color-surface, #ffffff)",
-          overflow: "hidden",
-          ...(fullscreen && {
-            flex: 1,
-            minHeight: 0,
-            boxShadow: "0 12px 40px rgba(17, 20, 24, 0.12)",
-          }),
-        }}
-      >
-        {toolbar}
-        {grouping.length > 0 && (
-          <Box
-            role="region"
-            aria-label="Agrupación"
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: "6px",
-              px: "14px",
-              py: "8px",
-              borderBottom: "1px solid var(--cn-color-border-subtle, #eceef1)",
-              backgroundColor: "rgba(37, 77, 135, 0.03)",
-              fontSize: "0.75rem",
-            }}
-          >
-            <CnIcon
-              name="account_tree"
-              size="sm"
-              sx={{ color: "var(--cn-color-brand-600, #254d87)" }}
-            />
-            <Box
-              component="span"
-              sx={{ fontWeight: 600, color: "var(--cn-color-text-muted, #6e7682)" }}
-            >
-              Agrupado por
-            </Box>
-            {grouping.map((id, i) => {
-              const column = columnsById.get(id);
-              return (
-                <Fragment key={id}>
-                  {i > 0 && (
-                    <ChevronRightIcon
-                      sx={{ fontSize: 14, color: "var(--cn-color-neutral-400, #9aa1aa)" }}
-                    />
-                  )}
-                  <Box
-                    component="span"
-                    sx={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "2px",
-                      pl: "10px",
-                      pr: "2px",
-                      py: "1px",
-                      borderRadius: "999px",
-                      fontWeight: 700,
-                      color: "var(--cn-color-brand-700, #1c3d6d)",
-                      backgroundColor: "rgba(37, 77, 135, 0.1)",
-                    }}
-                  >
-                    {column ? headerText(column) : id}
-                    <IconButton
-                      size="small"
-                      aria-label={`Quitar agrupación por ${column ? headerText(column) : id}`}
-                      onClick={() => setGrouping((prev) => prev.filter((g) => g !== id))}
-                      sx={{ p: "2px" }}
-                    >
-                      <ClearIcon sx={{ fontSize: 14 }} />
-                    </IconButton>
-                  </Box>
-                </Fragment>
-              );
-            })}
-            <Box sx={{ flex: 1 }} />
-            <CnButton
-              size="small"
-              variant="text"
-              color="neutral"
-              onClick={() => table.toggleAllRowsExpanded(true)}
-            >
-              Expandir todo
-            </CnButton>
-            <CnButton size="small" variant="text" color="neutral" onClick={() => setExpanded({})}>
-              Contraer todo
-            </CnButton>
-            <CnButton size="small" variant="text" onClick={() => setGrouping([])}>
-              Quitar agrupación
-            </CnButton>
-          </Box>
-        )}
-        {error && (
-          <Box
-            role="alert"
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              px: "16px",
-              py: "10px",
-              color: "var(--cn-color-error-700, #922626)",
-              backgroundColor: "rgba(214, 60, 60, 0.07)",
-              fontSize: "0.8rem",
-              borderBottom: "1px solid rgba(214, 60, 60, 0.2)",
-            }}
-          >
-            <CnIcon name="error_outline" size="sm" />
-            {error}
-          </Box>
-        )}
-        {cardsMode ? cardsView : tableView}
-        {pagination && !isEmptyResult && (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: "8px",
-              pl: "16px",
-              borderTop: "1px solid var(--cn-color-border-subtle, #eceef1)",
-            }}
-          >
-            <Box sx={{ fontSize: "0.72rem", color: "var(--cn-color-text-muted, #6e7682)" }}>
-              {selectionCount > 0
-                ? `${selectionCount} de ${totalCount.toLocaleString("es-MX")} seleccionados`
-                : null}
-            </Box>
-            <TablePagination
-              component="div"
-              count={totalCount}
-              page={Math.min(
-                table.getState().pagination.pageIndex,
-                Math.max(0, Math.ceil(totalCount / table.getState().pagination.pageSize) - 1),
-              )}
-              rowsPerPage={table.getState().pagination.pageSize}
-              rowsPerPageOptions={pageSizeOptions}
-              onPageChange={(_, page) => table.setPageIndex(page)}
-              onRowsPerPageChange={(event) => {
-                table.setPageSize(Number(event.target.value));
-                table.setPageIndex(0);
-              }}
-              labelRowsPerPage={isMobile ? "Filas" : "Filas por página"}
-              labelDisplayedRows={({ from, to, count }) =>
-                `${from}-${to} de ${count.toLocaleString("es-MX")}`
-              }
-              getItemAriaLabel={(type) =>
-                type === "first"
-                  ? "Primera página"
-                  : type === "last"
-                    ? "Última página"
-                    : type === "next"
-                      ? "Página siguiente"
-                      : "Página anterior"
-              }
-              showFirstButton={!isMobile && pageCount > 3}
-              showLastButton={!isMobile && pageCount > 3}
-              sx={{
-                border: 0,
-                "& .MuiTablePagination-toolbar": { minHeight: 52 },
-                "& .MuiTablePagination-displayedRows, & .MuiTablePagination-selectLabel": {
-                  fontSize: "0.82rem",
-                },
-              }}
-            />
-          </Box>
-        )}
-      </Box>
-
-      {/* Descargar */}
-      <Menu
-        open={menu?.kind === "export"}
-        anchorEl={menu?.anchor}
-        onClose={closeMenu}
-        slotProps={{ paper: { sx: menuPaperSx } }}
-      >
-        {(exportFormats || []).map((format) => (
-          <MenuItem
-            key={format}
-            {...submenuTriggerProps(
-              `Descargar ${FORMATS[format].label}`,
-              (scope) => void runExport(format, scope),
-            )}
-          >
-            <ListItemIcon>
-              <CnIcon name={FORMATS[format].icon} size="sm" />
-            </ListItemIcon>
-            <ListItemText
-              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 700 }}
-              secondaryTypographyProps={{ fontSize: "0.72rem" }}
-              secondary={FORMATS[format].description}
-            >
-              {FORMATS[format].label}
-            </ListItemText>
-            <ChevronRightIcon
-              sx={{ fontSize: 18, ml: "8px", color: "var(--cn-color-neutral-400, #9aa1aa)" }}
-            />
-          </MenuItem>
-        ))}
-      </Menu>
-
-      {/* Copiar */}
-      <Menu
-        open={menu?.kind === "copy"}
-        anchorEl={menu?.anchor}
-        onClose={closeMenu}
-        slotProps={{ paper: { sx: menuPaperSx } }}
-      >
-        {COPY_FORMATS.map((format) => (
-          <MenuItem
-            key={format.id}
-            {...submenuTriggerProps(
-              `Copiar como ${format.label}`,
-              (scope) => void runCopy(format.id, scope),
-            )}
-          >
-            <ListItemIcon>
-              <CnIcon name={format.icon} size="sm" />
-            </ListItemIcon>
-            <ListItemText
-              primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 700 }}
-              secondaryTypographyProps={{ fontSize: "0.72rem" }}
-              secondary={format.description}
-            >
-              {format.label}
-            </ListItemText>
-            <ChevronRightIcon
-              sx={{ fontSize: 18, ml: "8px", color: "var(--cn-color-neutral-400, #9aa1aa)" }}
-            />
-          </MenuItem>
-        ))}
-      </Menu>
-
-      {/* Alcance (todos / página / selección) */}
-      <Menu
-        open={scopeOpen && Boolean(scopeMenu)}
-        anchorEl={scopeMenu?.anchor}
-        // Escape o clic fuera cierran solo el submenú; el de formatos sigue abierto.
-        onClose={closeScopeMenu}
-        onKeyDown={(event) => {
-          if (event.key === "ArrowLeft" && scopeMenu?.placement === "side") {
-            event.stopPropagation();
-            closeScopeMenu();
-          }
-        }}
-        anchorOrigin={
-          scopeMenu?.placement === "below"
-            ? { vertical: "bottom", horizontal: "left" }
-            : { vertical: "top", horizontal: "right" }
-        }
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{
-          paper: {
-            sx: {
-              ...menuPaperSx,
-              ...(scopeMenu?.placement === "side" && { ml: "4px", mt: "-6px" }),
-            },
-          },
-        }}
-      >
-        {scopeMenu && [
-          <Box
-            key="title"
-            sx={{
-              px: "16px",
-              pt: "6px",
-              pb: "4px",
-              fontSize: "0.68rem",
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: "var(--cn-color-text-muted, #6e7682)",
-            }}
-          >
-            {scopeMenu.title}
-          </Box>,
-          ...scopeItems(scopeMenu.action),
-        ]}
-      </Menu>
-
-      {/* Columnas */}
-      <Menu
-        open={menu?.kind === "columns"}
-        anchorEl={menu?.anchor}
-        onClose={closeMenu}
-        slotProps={{ paper: { sx: { ...menuPaperSx, maxHeight: 420 } } }}
-      >
+      <Portal disablePortal={!fullscreen}>
         <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: "8px",
-            px: "12px",
-            pb: "6px",
-          }}
+          ref={rootRef}
+          className={fullscreen ? undefined : className}
+          data-cn-data-table
+          data-fullscreen={fullscreen || undefined}
+          role={fullscreen ? "dialog" : undefined}
+          aria-modal={fullscreen || undefined}
+          aria-label={
+            fullscreen
+              ? typeof title === "string"
+                ? title
+                : "Tabla en pantalla completa"
+              : undefined
+          }
+          sx={
+            fullscreen
+              ? {
+                  minWidth: 0,
+                  fontFamily: "var(--cn-font-sans, system-ui, sans-serif)",
+                  ...wrapperSx,
+                }
+              : mergeSx(
+                  { minWidth: 0, fontFamily: "var(--cn-font-sans, system-ui, sans-serif)" },
+                  sx,
+                )
+          }
         >
-          <CnButton size="small" variant="text" onClick={() => setVisibility({})}>
-            Mostrar todas
-          </CnButton>
-          <CnButton size="small" variant="text" color="neutral" onClick={resetLayout}>
-            Restablecer
-          </CnButton>
-        </Box>
-        <Divider sx={{ mb: "4px" }} />
-        {table.getAllLeafColumns().map((tableColumn) => {
-          const column = columnsById.get(tableColumn.id) as CnColumn<T>;
-          const pinned = pinnedLeftIds.has(column.id);
-          return (
-            <MenuItem
-              key={column.id}
-              disabled={column.hideable === false}
-              onClick={() =>
-                setVisibility((prev) => ({ ...prev, [column.id]: prev[column.id] === false }))
-              }
-            >
-              <Checkbox
-                size="small"
-                sx={{ p: "2px", mr: "8px" }}
-                checked={visibility[column.id] !== false}
-                tabIndex={-1}
-              />
-              <ListItemText primaryTypographyProps={{ fontSize: "0.82rem" }}>
-                {column.header}
-              </ListItemText>
-              <Tooltip title={pinned ? "Desfijar" : "Fijar a la izquierda"} arrow>
-                <IconButton
-                  size="small"
-                  aria-label={
-                    pinned ? `Desfijar ${headerText(column)}` : `Fijar ${headerText(column)}`
-                  }
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    tableColumn.pin(pinned ? false : "left");
-                  }}
-                  sx={{
-                    ml: "8px",
-                    color: pinned
-                      ? "var(--cn-color-brand-600, #254d87)"
-                      : "var(--cn-color-neutral-400, #9aa1aa)",
-                  }}
-                >
-                  <PushPinOutlinedIcon
-                    sx={{ fontSize: 16, transform: pinned ? "rotate(45deg)" : "none" }}
-                  />
-                </IconButton>
-              </Tooltip>
-            </MenuItem>
-          );
-        })}
-      </Menu>
-
-      {/* Menú de columna */}
-      <Menu
-        open={menu?.kind === "column"}
-        anchorEl={menu?.anchor}
-        onClose={closeMenu}
-        slotProps={{ paper: { sx: menuPaperSx } }}
-      >
-        {menuColumn &&
-          menuTableColumn && [
-            menuTableColumn.getCanSort() && (
-              <MenuItem
-                key="asc"
-                onClick={() => {
-                  menuTableColumn.toggleSorting(false);
-                  closeMenu();
-                }}
-              >
-                <ListItemIcon>
-                  <ArrowUpwardIcon fontSize="small" />
-                </ListItemIcon>
-                Ordenar ascendente
-              </MenuItem>
-            ),
-            menuTableColumn.getCanSort() && (
-              <MenuItem
-                key="desc"
-                onClick={() => {
-                  menuTableColumn.toggleSorting(true);
-                  closeMenu();
-                }}
-              >
-                <ListItemIcon>
-                  <ArrowDownwardIcon fontSize="small" />
-                </ListItemIcon>
-                Ordenar descendente
-              </MenuItem>
-            ),
-            menuTableColumn.getIsSorted() && (
-              <MenuItem
-                key="clear"
-                onClick={() => {
-                  menuTableColumn.clearSorting();
-                  closeMenu();
-                }}
-              >
-                <ListItemIcon>
-                  <SwapVertIcon fontSize="small" />
-                </ListItemIcon>
-                Quitar orden
-              </MenuItem>
-            ),
-            <Divider key="d1" />,
-            menuTableColumn.getCanGroup() && (
-              <MenuItem
-                key="group"
-                onClick={() => {
-                  menuTableColumn.toggleGrouping();
-                  closeMenu();
-                }}
-              >
-                <ListItemIcon>
-                  <CnIcon name="account_tree" size="sm" />
-                </ListItemIcon>
-                {menuTableColumn.getIsGrouped()
-                  ? "Desagrupar"
-                  : `Agrupar por ${headerText(menuColumn)}`}
-              </MenuItem>
-            ),
-            menuColumn.filterable !== false && (
-              <MenuItem
-                key="filter"
-                onClick={() => {
-                  closeMenu();
-                  setShowFilters(true);
-                  setTimeout(() => filterInputs.current[menuColumn.id]?.focus(), 50);
-                }}
-              >
-                <ListItemIcon>
-                  <FilterListIcon fontSize="small" />
-                </ListItemIcon>
-                Filtrar por {headerText(menuColumn)}
-              </MenuItem>
-            ),
-            <MenuItem
-              key="pin"
-              onClick={() => {
-                menuTableColumn.pin(pinnedLeftIds.has(menuColumn.id) ? false : "left");
-                closeMenu();
-              }}
-            >
-              <ListItemIcon>
-                <PushPinOutlinedIcon fontSize="small" />
-              </ListItemIcon>
-              {pinnedLeftIds.has(menuColumn.id) ? "Desfijar columna" : "Fijar a la izquierda"}
-            </MenuItem>,
-            menuTableColumn.getCanResize() && (
-              <MenuItem
-                key="size"
-                onClick={() => {
-                  menuTableColumn.resetSize();
-                  closeMenu();
-                }}
-              >
-                <ListItemIcon>
-                  <CnIcon name="width_normal" size="sm" />
-                </ListItemIcon>
-                Restablecer ancho
-              </MenuItem>
-            ),
-            menuColumn.hideable !== false && (
-              <MenuItem
-                key="hide"
-                onClick={() => {
-                  menuTableColumn.toggleVisibility(false);
-                  closeMenu();
-                }}
-              >
-                <ListItemIcon>
-                  <CnIcon name="visibility_off" size="sm" />
-                </ListItemIcon>
-                Ocultar columna
-              </MenuItem>
-            ),
-          ]}
-      </Menu>
-
-      {/* Acciones de fila */}
-      <Menu
-        open={menu?.kind === "row"}
-        anchorEl={menu?.anchor}
-        onClose={closeMenu}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ paper: { sx: { ...menuPaperSx, minWidth: 180 } } }}
-      >
-        {menu?.kind === "row" &&
-          actionsFor(menu.row)
-            .filter((action) => !action.inline)
-            .map((action) => (
-              <MenuItem
-                key={action.id}
-                disabled={action.disabled?.(menu.row)}
-                onClick={() => {
-                  const row = menu.row;
-                  closeMenu();
-                  runRowAction(action, row);
-                }}
+          {caption}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              minWidth: 0,
+              borderRadius: "12px",
+              border: "1px solid var(--cn-color-border, #dde0e4)",
+              backgroundColor: "var(--cn-color-surface, #ffffff)",
+              overflow: "hidden",
+              ...(fullscreen && {
+                flex: 1,
+                minHeight: 0,
+                boxShadow: "0 12px 40px rgba(17, 20, 24, 0.12)",
+              }),
+            }}
+          >
+            {toolbar}
+            {grouping.length > 0 && (
+              <Box
+                role="region"
+                aria-label="Agrupación"
                 sx={{
-                  color:
-                    action.color === "error" ? "var(--cn-color-error-600, #b52f2f)" : undefined,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: "6px",
+                  px: "14px",
+                  py: "8px",
+                  borderBottom: "1px solid var(--cn-color-border-subtle, #eceef1)",
+                  backgroundColor: "rgba(37, 77, 135, 0.03)",
+                  fontSize: "0.75rem",
                 }}
               >
-                {action.icon && (
-                  <ListItemIcon
-                    sx={{ color: action.color === "error" ? "inherit !important" : undefined }}
-                  >
-                    <CnIcon name={action.icon} size="sm" />
-                  </ListItemIcon>
+                <CnIcon
+                  name="account_tree"
+                  size="sm"
+                  sx={{ color: "var(--cn-color-brand-600, #254d87)" }}
+                />
+                <Box
+                  component="span"
+                  sx={{ fontWeight: 600, color: "var(--cn-color-text-muted, #6e7682)" }}
+                >
+                  Agrupado por
+                </Box>
+                {grouping.map((id, i) => {
+                  const column = columnsById.get(id);
+                  return (
+                    <Fragment key={id}>
+                      {i > 0 && (
+                        <ChevronRightIcon
+                          sx={{ fontSize: 14, color: "var(--cn-color-neutral-400, #9aa1aa)" }}
+                        />
+                      )}
+                      <Box
+                        component="span"
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "2px",
+                          pl: "10px",
+                          pr: "2px",
+                          py: "1px",
+                          borderRadius: "999px",
+                          fontWeight: 700,
+                          color: "var(--cn-color-brand-700, #1c3d6d)",
+                          backgroundColor: "rgba(37, 77, 135, 0.1)",
+                        }}
+                      >
+                        {column ? headerText(column) : id}
+                        <IconButton
+                          size="small"
+                          aria-label={`Quitar agrupación por ${column ? headerText(column) : id}`}
+                          onClick={() => setGrouping((prev) => prev.filter((g) => g !== id))}
+                          sx={{ p: "2px" }}
+                        >
+                          <ClearIcon sx={{ fontSize: 14 }} />
+                        </IconButton>
+                      </Box>
+                    </Fragment>
+                  );
+                })}
+                <Box sx={{ flex: 1 }} />
+                <CnButton
+                  size="small"
+                  variant="text"
+                  color="neutral"
+                  onClick={() => table.toggleAllRowsExpanded(true)}
+                >
+                  Expandir todo
+                </CnButton>
+                <CnButton
+                  size="small"
+                  variant="text"
+                  color="neutral"
+                  onClick={() => setExpanded({})}
+                >
+                  Contraer todo
+                </CnButton>
+                <CnButton size="small" variant="text" onClick={() => setGrouping([])}>
+                  Quitar agrupación
+                </CnButton>
+              </Box>
+            )}
+            {error && (
+              <Box
+                role="alert"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  px: "16px",
+                  py: "10px",
+                  color: "var(--cn-color-error-700, #922626)",
+                  backgroundColor: "rgba(214, 60, 60, 0.07)",
+                  fontSize: "0.8rem",
+                  borderBottom: "1px solid rgba(214, 60, 60, 0.2)",
+                }}
+              >
+                <CnIcon name="error_outline" size="sm" />
+                {error}
+              </Box>
+            )}
+            {cardsMode ? cardsView : tableView}
+            {pagination && !isEmptyResult && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                  pl: "16px",
+                  borderTop: "1px solid var(--cn-color-border-subtle, #eceef1)",
+                }}
+              >
+                <Box sx={{ fontSize: "0.72rem", color: "var(--cn-color-text-muted, #6e7682)" }}>
+                  {selectionCount > 0
+                    ? `${selectionCount} de ${totalCount.toLocaleString("es-MX")} seleccionados`
+                    : null}
+                </Box>
+                <TablePagination
+                  component="div"
+                  count={totalCount}
+                  page={Math.min(
+                    table.getState().pagination.pageIndex,
+                    Math.max(0, Math.ceil(totalCount / table.getState().pagination.pageSize) - 1),
+                  )}
+                  rowsPerPage={table.getState().pagination.pageSize}
+                  rowsPerPageOptions={pageSizeOptions}
+                  onPageChange={(_, page) => table.setPageIndex(page)}
+                  onRowsPerPageChange={(event) => {
+                    table.setPageSize(Number(event.target.value));
+                    table.setPageIndex(0);
+                  }}
+                  labelRowsPerPage={isMobile ? "Filas" : "Filas por página"}
+                  labelDisplayedRows={({ from, to, count }) =>
+                    `${from}-${to} de ${count.toLocaleString("es-MX")}`
+                  }
+                  getItemAriaLabel={(type) =>
+                    type === "first"
+                      ? "Primera página"
+                      : type === "last"
+                        ? "Última página"
+                        : type === "next"
+                          ? "Página siguiente"
+                          : "Página anterior"
+                  }
+                  showFirstButton={!isMobile && pageCount > 3}
+                  showLastButton={!isMobile && pageCount > 3}
+                  sx={{
+                    border: 0,
+                    "& .MuiTablePagination-toolbar": { minHeight: 52 },
+                    "& .MuiTablePagination-displayedRows, & .MuiTablePagination-selectLabel": {
+                      fontSize: "0.82rem",
+                    },
+                  }}
+                />
+              </Box>
+            )}
+          </Box>
+
+          {/* Descargar */}
+          <Menu
+            open={menu?.kind === "export"}
+            anchorEl={menu?.anchor}
+            onClose={closeMenu}
+            slotProps={{ paper: { sx: menuPaperSx } }}
+          >
+            {(exportFormats || []).map((format) => (
+              <MenuItem
+                key={format}
+                {...submenuTriggerProps(
+                  `Descargar ${FORMATS[format].label}`,
+                  (scope) => void runExport(format, scope),
                 )}
-                <ListItemText primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 500 }}>
-                  {action.label}
+              >
+                <ListItemIcon>
+                  <CnIcon name={FORMATS[format].icon} size="sm" />
+                </ListItemIcon>
+                <ListItemText
+                  primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 700 }}
+                  secondaryTypographyProps={{ fontSize: "0.72rem" }}
+                  secondary={FORMATS[format].description}
+                >
+                  {FORMATS[format].label}
                 </ListItemText>
+                <ChevronRightIcon
+                  sx={{ fontSize: 18, ml: "8px", color: "var(--cn-color-neutral-400, #9aa1aa)" }}
+                />
               </MenuItem>
             ))}
-      </Menu>
+          </Menu>
 
-      <CnConfirmDialog
-        {...(confirmState?.options ?? {})}
-        open={Boolean(confirmState)}
-        onClose={() => setConfirmState(null)}
-        onConfirm={async () => {
-          await confirmState?.options.onConfirm?.();
-          await confirmState?.run();
-        }}
-      />
-      <Snackbar
-        open={Boolean(notice)}
-        autoHideDuration={2500}
-        onClose={() => setNotice(null)}
-        message={notice}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      />
-    </Box>
+          {/* Copiar */}
+          <Menu
+            open={menu?.kind === "copy"}
+            anchorEl={menu?.anchor}
+            onClose={closeMenu}
+            slotProps={{ paper: { sx: menuPaperSx } }}
+          >
+            {COPY_FORMATS.map((format) => (
+              <MenuItem
+                key={format.id}
+                {...submenuTriggerProps(
+                  `Copiar como ${format.label}`,
+                  (scope) => void runCopy(format.id, scope),
+                )}
+              >
+                <ListItemIcon>
+                  <CnIcon name={format.icon} size="sm" />
+                </ListItemIcon>
+                <ListItemText
+                  primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 700 }}
+                  secondaryTypographyProps={{ fontSize: "0.72rem" }}
+                  secondary={format.description}
+                >
+                  {format.label}
+                </ListItemText>
+                <ChevronRightIcon
+                  sx={{ fontSize: 18, ml: "8px", color: "var(--cn-color-neutral-400, #9aa1aa)" }}
+                />
+              </MenuItem>
+            ))}
+          </Menu>
+
+          {/* Alcance (todos / página / selección) */}
+          <Menu
+            open={scopeOpen && Boolean(scopeMenu)}
+            anchorEl={scopeMenu?.anchor}
+            // Escape o clic fuera cierran solo el submenú; el de formatos sigue abierto.
+            onClose={closeScopeMenu}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowLeft" && scopeMenu?.placement === "side") {
+                event.stopPropagation();
+                closeScopeMenu();
+              }
+            }}
+            anchorOrigin={
+              scopeMenu?.placement === "below"
+                ? { vertical: "bottom", horizontal: "left" }
+                : { vertical: "top", horizontal: "right" }
+            }
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+            slotProps={{
+              paper: {
+                sx: {
+                  ...menuPaperSx,
+                  ...(scopeMenu?.placement === "side" && { ml: "4px", mt: "-6px" }),
+                },
+              },
+            }}
+          >
+            {scopeMenu && [
+              <Box
+                key="title"
+                sx={{
+                  px: "16px",
+                  pt: "6px",
+                  pb: "4px",
+                  fontSize: "0.68rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "var(--cn-color-text-muted, #6e7682)",
+                }}
+              >
+                {scopeMenu.title}
+              </Box>,
+              ...scopeItems(scopeMenu.action),
+            ]}
+          </Menu>
+
+          {/* Columnas */}
+          <Menu
+            open={menu?.kind === "columns"}
+            anchorEl={menu?.anchor}
+            onClose={closeMenu}
+            slotProps={{ paper: { sx: { ...menuPaperSx, maxHeight: 420 } } }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "8px",
+                px: "12px",
+                pb: "6px",
+              }}
+            >
+              <CnButton size="small" variant="text" onClick={() => setVisibility({})}>
+                Mostrar todas
+              </CnButton>
+              <CnButton size="small" variant="text" color="neutral" onClick={resetLayout}>
+                Restablecer
+              </CnButton>
+            </Box>
+            <Divider sx={{ mb: "4px" }} />
+            {table.getAllLeafColumns().map((tableColumn) => {
+              const column = columnsById.get(tableColumn.id) as CnColumn<T>;
+              const pinned = pinnedLeftIds.has(column.id);
+              return (
+                <MenuItem
+                  key={column.id}
+                  disabled={column.hideable === false}
+                  onClick={() =>
+                    setVisibility((prev) => ({ ...prev, [column.id]: prev[column.id] === false }))
+                  }
+                >
+                  <Checkbox
+                    size="small"
+                    sx={{ p: "2px", mr: "8px" }}
+                    checked={visibility[column.id] !== false}
+                    tabIndex={-1}
+                  />
+                  <ListItemText primaryTypographyProps={{ fontSize: "0.82rem" }}>
+                    {column.header}
+                  </ListItemText>
+                  <Tooltip title={pinned ? "Desfijar" : "Fijar a la izquierda"} arrow>
+                    <IconButton
+                      size="small"
+                      aria-label={
+                        pinned ? `Desfijar ${headerText(column)}` : `Fijar ${headerText(column)}`
+                      }
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        tableColumn.pin(pinned ? false : "left");
+                      }}
+                      sx={{
+                        ml: "8px",
+                        color: pinned
+                          ? "var(--cn-color-brand-600, #254d87)"
+                          : "var(--cn-color-neutral-400, #9aa1aa)",
+                      }}
+                    >
+                      <PushPinOutlinedIcon
+                        sx={{ fontSize: 16, transform: pinned ? "rotate(45deg)" : "none" }}
+                      />
+                    </IconButton>
+                  </Tooltip>
+                </MenuItem>
+              );
+            })}
+          </Menu>
+
+          {/* Menú de columna */}
+          <Menu
+            open={menu?.kind === "column"}
+            anchorEl={menu?.anchor}
+            onClose={closeMenu}
+            slotProps={{ paper: { sx: menuPaperSx } }}
+          >
+            {menuColumn &&
+              menuTableColumn && [
+                menuTableColumn.getCanSort() && (
+                  <MenuItem
+                    key="asc"
+                    onClick={() => {
+                      menuTableColumn.toggleSorting(false);
+                      closeMenu();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <ArrowUpwardIcon fontSize="small" />
+                    </ListItemIcon>
+                    Ordenar ascendente
+                  </MenuItem>
+                ),
+                menuTableColumn.getCanSort() && (
+                  <MenuItem
+                    key="desc"
+                    onClick={() => {
+                      menuTableColumn.toggleSorting(true);
+                      closeMenu();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <ArrowDownwardIcon fontSize="small" />
+                    </ListItemIcon>
+                    Ordenar descendente
+                  </MenuItem>
+                ),
+                menuTableColumn.getIsSorted() && (
+                  <MenuItem
+                    key="clear"
+                    onClick={() => {
+                      menuTableColumn.clearSorting();
+                      closeMenu();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <SwapVertIcon fontSize="small" />
+                    </ListItemIcon>
+                    Quitar orden
+                  </MenuItem>
+                ),
+                <Divider key="d1" />,
+                menuTableColumn.getCanGroup() && (
+                  <MenuItem
+                    key="group"
+                    onClick={() => {
+                      menuTableColumn.toggleGrouping();
+                      closeMenu();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <CnIcon name="account_tree" size="sm" />
+                    </ListItemIcon>
+                    {menuTableColumn.getIsGrouped()
+                      ? "Desagrupar"
+                      : `Agrupar por ${headerText(menuColumn)}`}
+                  </MenuItem>
+                ),
+                menuColumn.filterable !== false && (
+                  <MenuItem
+                    key="filter"
+                    onClick={() => {
+                      closeMenu();
+                      setShowFilters(true);
+                      setTimeout(() => filterInputs.current[menuColumn.id]?.focus(), 50);
+                    }}
+                  >
+                    <ListItemIcon>
+                      <FilterListIcon fontSize="small" />
+                    </ListItemIcon>
+                    Filtrar por {headerText(menuColumn)}
+                  </MenuItem>
+                ),
+                <MenuItem
+                  key="pin"
+                  onClick={() => {
+                    menuTableColumn.pin(pinnedLeftIds.has(menuColumn.id) ? false : "left");
+                    closeMenu();
+                  }}
+                >
+                  <ListItemIcon>
+                    <PushPinOutlinedIcon fontSize="small" />
+                  </ListItemIcon>
+                  {pinnedLeftIds.has(menuColumn.id) ? "Desfijar columna" : "Fijar a la izquierda"}
+                </MenuItem>,
+                menuTableColumn.getCanResize() && (
+                  <MenuItem
+                    key="size"
+                    onClick={() => {
+                      menuTableColumn.resetSize();
+                      closeMenu();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <CnIcon name="width_normal" size="sm" />
+                    </ListItemIcon>
+                    Restablecer ancho
+                  </MenuItem>
+                ),
+                menuColumn.hideable !== false && (
+                  <MenuItem
+                    key="hide"
+                    onClick={() => {
+                      menuTableColumn.toggleVisibility(false);
+                      closeMenu();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <CnIcon name="visibility_off" size="sm" />
+                    </ListItemIcon>
+                    Ocultar columna
+                  </MenuItem>
+                ),
+              ]}
+          </Menu>
+
+          {/* Acciones de fila */}
+          <Menu
+            open={menu?.kind === "row"}
+            anchorEl={menu?.anchor}
+            onClose={closeMenu}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+            slotProps={{ paper: { sx: { ...menuPaperSx, minWidth: 180 } } }}
+          >
+            {menu?.kind === "row" &&
+              actionsFor(menu.row)
+                .filter((action) => !action.inline)
+                .map((action) => (
+                  <MenuItem
+                    key={action.id}
+                    disabled={action.disabled?.(menu.row)}
+                    onClick={() => {
+                      const row = menu.row;
+                      closeMenu();
+                      runRowAction(action, row);
+                    }}
+                    sx={{
+                      color:
+                        action.color === "error" ? "var(--cn-color-error-600, #b52f2f)" : undefined,
+                    }}
+                  >
+                    {action.icon && (
+                      <ListItemIcon
+                        sx={{ color: action.color === "error" ? "inherit !important" : undefined }}
+                      >
+                        <CnIcon name={action.icon} size="sm" />
+                      </ListItemIcon>
+                    )}
+                    <ListItemText primaryTypographyProps={{ fontSize: "0.85rem", fontWeight: 500 }}>
+                      {action.label}
+                    </ListItemText>
+                  </MenuItem>
+                ))}
+          </Menu>
+
+          <CnConfirmDialog
+            {...(confirmState?.options ?? {})}
+            open={Boolean(confirmState)}
+            onClose={() => setConfirmState(null)}
+            onConfirm={async () => {
+              await confirmState?.options.onConfirm?.();
+              await confirmState?.run();
+            }}
+          />
+          <Snackbar
+            open={Boolean(notice)}
+            autoHideDuration={2500}
+            onClose={() => setNotice(null)}
+            message={notice}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          />
+        </Box>
+      </Portal>
+    </>
   );
 };

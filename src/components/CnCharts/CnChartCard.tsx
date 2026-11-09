@@ -20,7 +20,7 @@ import { CnEmptyState } from "../CnEmptyState";
 import { CnIcon } from "../CnIcon";
 import type { CnExportColumn, CnExportRow } from "../CnDataTable/export";
 import { copyRows, exportRows } from "../CnDataTable/export";
-import { downloadPng, downloadSvg, findChartSvg, toFilename } from "./chart-export";
+import { downloadChartPng, downloadChartSvg, toFilename } from "./chart-export";
 
 // ─── Tipos ────────────────────────────────────────────────────────────
 
@@ -257,16 +257,16 @@ export const CnChartCard = ({
     setExportAnchor(null);
     const container = fullscreen ? fullscreenBodyRef.current : bodyRef.current;
     if (format === "png" || format === "svg") {
-      const svg = findChartSvg(container);
-      if (!svg) {
-        setNotice("No se encontró la gráfica para exportar");
-        return;
-      }
-      if (format === "svg") downloadSvg(svg, filename);
-      else {
-        const ok = await downloadPng(svg, filename);
-        if (!ok) setNotice("No se pudo generar la imagen");
-      }
+      if (!container) return;
+      const imageOptions = {
+        title: typeof title === "string" ? title : undefined,
+        subtitle: typeof subtitle === "string" ? subtitle : undefined,
+      };
+      const ok =
+        format === "svg"
+          ? downloadChartSvg(container, filename, imageOptions)
+          : await downloadChartPng(container, filename, imageOptions);
+      if (!ok) setNotice("No se pudo generar la imagen de la gráfica");
       return;
     }
     const payload = resolveData();
