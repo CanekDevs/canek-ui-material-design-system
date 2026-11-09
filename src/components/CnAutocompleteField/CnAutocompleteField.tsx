@@ -1,15 +1,30 @@
-import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
+import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import TextField from "@mui/material/TextField";
 import type { ReactNode } from "react";
-import { forwardRef, useMemo, useState } from "react";
+import { forwardRef, useMemo, useRef, useState } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { getOutlinedFieldSx, mergeSx, MUI_FIELD_SIZE } from "../../utils/field-styles";
+import type { CnFilterOptions } from "../../utils/option-filter";
+import {
+  filterOptionsFast,
+  normalizeSearchText,
+  optionValueKey,
+  precomputeOptionSearchText,
+} from "../../utils/option-filter";
 import { hasOptionMedia, OptionContent, OptionMedia } from "../../utils/option-media";
-import type { CnLoadOptions } from "../../utils/use-async-options";
+import type { CnLoadOptions, CnResolveOptions } from "../../utils/use-async-options";
 import { useAsyncOptions, useOptionMemory } from "../../utils/use-async-options";
+import { useResolvedOptions } from "../../utils/use-resolved-options";
+import type { CnVirtualGroupParams, CnVirtualListboxConfig } from "../../utils/virtual-listbox";
+import {
+  CnListStatus,
+  CnVirtualListbox,
+  CnVirtualListboxContext,
+  shouldVirtualize,
+} from "../../utils/virtual-listbox";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
 import { CnAutocompleteFieldSkeleton } from "./CnAutocompleteFieldSkeleton";
 
@@ -32,8 +47,10 @@ export type CnAutocompleteFieldProps = CnFieldBaseProps<CnAutocompleteValue> & {
   renderOption?: (option: CnFieldOption) => ReactNode;
   autoFocus?: boolean;
   /**
-   * Búsqueda remota: recibe el texto escrito y una `signal` para cancelar.
-   * Las opciones devueltas reemplazan a `options` y no se filtran localmente.
+   * Búsqueda remota: recibe el texto escrito, la página y una `signal` para
+   * cancelar. Puede devolver todas las opciones (arreglo) o una página
+   * `{ options, hasMore, total? }` para scroll infinito. Las opciones devueltas
+   * reemplazan a `options` y no se filtran localmente.
    */
   loadOptions?: CnLoadOptions;
   /** Recarga `loadOptions` cuando cambian estos valores (selects en cascada). */
@@ -56,17 +73,32 @@ export type CnAutocompleteFieldProps = CnFieldBaseProps<CnAutocompleteValue> & {
   typeToSearchText?: string;
   /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
   skeleton?: boolean;
+  /**
+   * Virtualiza la lista: `true`, `false` o el número de opciones a partir del
+   * cual se activa. Por defecto se activa con más de 100 opciones o con un
+   * `loadOptions` paginado.
+   */
+  virtualize?: boolean | number;
+  /** Tamaño de página para `loadOptions` paginado. Por defecto 50. */
+  pageSize?: number;
+  /**
+   * Opciones de valores seleccionados que no están en la página cargada (al
+   * editar un registro). Se llama una vez por lote de valores desconocidos.
+   */
+  resolveOptions?: CnResolveOptions;
+  /** Etiqueta de respaldo para un valor sin opción conocida (por defecto el valor). */
+  getValueLabel?: (value: string | number) => string;
+  /** Máximo de coincidencias pintadas con opciones locales ("N más, refina tu búsqueda"). */
+  maxResults?: number;
+  /** Filtro local propio (reemplaza el filtro sin acentos). */
+  filterOptions?: CnFilterOptions;
+  /** Comparte la caché de `loadOptions`/`resolveOptions` entre campos con la misma clave. */
+  cacheKey?: string;
 };
 
 type CreateOption = CnFieldOption & { __create?: string };
 
-/** Normaliza para buscar sin importar acentos ni mayúsculas. */
-export const normalizeSearchText = (value: string): string =>
-  value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-
-const filter = createFilterOptions<CnFieldOption>({
-  stringify: (option) => normalizeSearchText(`${option.label} ${option.searchText ?? ""}`),
-});
+export { normalizeSearchText };
 
 const EMPTY: readonly CnFieldOption[] = [];
 
@@ -117,6 +149,13 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
       createOptionLabel = (input) => `Crear "${input}"`,
       typeToSearchText,
       skeleton = false,
+      virtualize,
+      pageSize,
+      resolveOptions,
+      getValueLabel,
+      maxResults,
+      filterOptions: filterOptionsProp,
+      cacheKey,
     },
     ref,
   ) {
@@ -153,6 +192,8 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
       minSearchLength,
       // Sin búsqueda mínima se carga al abrir; con búsqueda mínima, al escribir.
       disabled: !loadOptions || (!open && inputText === ""),
+      pageSize,
+      cacheKey,
     });
     const baseOptions = loadOptions ? remote.options : options;
     const remember = useOptionMemory(baseOptions, [
@@ -160,21 +201,44 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
       ...created,
       ...options,
     ]);
-    const isLoading = loading || remote.loading || creating;
 
     const allOptions = useMemo(() => {
       const extra = created.filter(
         (item) => !baseOptions.some((option) => option.value === item.value),
       );
-      const list = [...baseOptions, ...extra];
+      const list = extra.length ? [...baseOptions, ...extra] : baseOptions;
       return list.some((option) => option.group)
         ? [...list].sort((a, b) => (a.group ?? "").localeCompare(b.group ?? ""))
         : list;
     }, [baseOptions, created]);
 
+    // Búsqueda O(1) por valor y texto normalizado listo para filtrar.
+    const byKey = useMemo(() => {
+      const map = new Map<string, CnFieldOption>();
+      for (const option of allOptions) map.set(optionValueKey(option.value), option);
+      return map;
+    }, [allOptions]);
+    useMemo(() => {
+      if (!loadOptions && !filterOptionsProp) precomputeOptionSearchText(allOptions);
+    }, [allOptions, filterOptionsProp, loadOptions]);
+
+    const currentValues: Array<string | number> = Array.isArray(current)
+      ? current
+      : current === null || current === undefined || current === ""
+        ? []
+        : [current];
+    const resolver = useResolvedOptions({
+      values: currentValues,
+      isKnown: (item) => byKey.has(optionValueKey(item)) || Boolean(remember(item)),
+      resolveOptions,
+      cacheKey,
+    });
+    const isLoading = loading || remote.loading || creating;
+
     const toOption = (item: string | number): CnFieldOption =>
-      allOptions.find((option) => option.value === item) ??
-      remember(item) ?? { value: item, label: String(item) };
+      byKey.get(optionValueKey(item)) ??
+      remember(item) ??
+      resolver.get(item) ?? { value: item, label: getValueLabel?.(item) ?? String(item) };
 
     const selected = (() => {
       if (multiple) return Array.isArray(current) ? current.map(toOption) : [];
@@ -183,6 +247,41 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
       }
       return toOption(current);
     })();
+
+    // Las opciones seleccionadas que no están en la lista se pasan a MUI (así no
+    // avisa de un valor inválido) pero se ocultan al filtrar.
+    const hiddenKeys = new Set<string>();
+    const selectedList = Array.isArray(selected) ? selected : selected ? [selected] : [];
+    const missingSelected = selectedList.filter((option) => {
+      const key = optionValueKey(option.value);
+      if (byKey.has(key)) return false;
+      hiddenKeys.add(key);
+      return true;
+    });
+    const muiOptions = missingSelected.length ? [...allOptions, ...missingSelected] : allOptions;
+
+    const virtual =
+      remote.paginated || remote.hasMore || shouldVirtualize(virtualize, allOptions.length);
+    // Lo escribe `filterOptions` en el mismo render en que se pinta el listbox.
+    const truncatedRef = useRef(0);
+
+    const listboxConfig: CnVirtualListboxConfig = {
+      scrollToSelected: !multiple,
+      setSize: remote.total,
+      onEndReached: () => {
+        if (remote.hasMore && !remote.loadingMore && !remote.loadMoreError) remote.loadMore();
+      },
+      renderFooter: () => (
+        <CnListStatus
+          loadingMore={remote.loadingMore}
+          loadMoreError={remote.loadMoreError}
+          onRetry={remote.retry}
+          truncated={truncatedRef.current}
+          shown={baseOptions.length}
+          total={remote.total}
+        />
+      ),
+    };
 
     const handleCreate = async (text: string) => {
       if (!onCreateOption) return;
@@ -256,13 +355,13 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
       );
     }
 
-    return (
+    const autocomplete: ReactNode = (
       <Autocomplete<CnFieldOption, boolean, false, boolean>
         ref={ref}
         id={control.id}
         className={className}
         data-cn-autocomplete-field
-        options={allOptions}
+        options={muiOptions}
         multiple={multiple}
         freeSolo={freeSolo}
         value={selected as CnFieldOption | CnFieldOption[] | null}
@@ -305,11 +404,27 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
         groupBy={
           allOptions.some((option) => option.group) ? (option) => option.group ?? "" : undefined
         }
+        renderGroup={
+          virtual ? (params) => params as CnVirtualGroupParams as unknown as ReactNode : undefined
+        }
+        slotProps={virtual ? { listbox: { component: CnVirtualListbox } } : undefined}
         filterOptions={(items, state) => {
-          const result =
-            disableFiltering || loadOptions
-              ? items
-              : filter(items, { ...state, inputValue: normalizeSearchText(state.inputValue) });
+          const visible = hiddenKeys.size
+            ? items.filter((option) => !hiddenKeys.has(optionValueKey(option.value)))
+            : items;
+          let result: CnFieldOption[];
+          truncatedRef.current = 0;
+          if (disableFiltering || loadOptions) {
+            result = visible;
+          } else if (filterOptionsProp) {
+            result = [...filterOptionsProp(visible, state.inputValue)];
+          } else {
+            result = filterOptionsFast(visible, state.inputValue).options;
+          }
+          if (maxResults && maxResults > 0 && result.length > maxResults) {
+            truncatedRef.current = result.length - maxResults;
+            result = result.slice(0, maxResults);
+          }
           const text = state.inputValue.trim();
           if (!onCreateOption || !text || isLoading) return result;
           const norm = normalizeSearchText(text);
@@ -333,6 +448,7 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
               component="li"
               key={key}
               {...rest}
+              data-cn-tall={option.description ? true : undefined}
               sx={{
                 fontSize: "var(--cn-font-size-base, 13px)",
                 ...((option as CreateOption).__create && {
@@ -375,7 +491,9 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
                   ),
                 endAdornment: (
                   <>
-                    {isLoading && <CircularProgress size={16} aria-label="Cargando" />}
+                    {(isLoading || resolver.resolving) && (
+                      <CircularProgress size={16} aria-label="Cargando" />
+                    )}
                     {params.InputProps.endAdornment}
                   </>
                 ),
@@ -386,6 +504,13 @@ export const CnAutocompleteField = forwardRef<HTMLDivElement, CnAutocompleteFiel
         )}
         sx={mergeSx(getOutlinedFieldSx(size), sx)}
       />
+    );
+
+    // El proveedor siempre envuelve: activar la virtualización no remonta el campo.
+    return (
+      <CnVirtualListboxContext.Provider value={listboxConfig}>
+        {autocomplete}
+      </CnVirtualListboxContext.Provider>
     );
   },
 );

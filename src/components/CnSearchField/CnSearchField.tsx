@@ -14,6 +14,8 @@ import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { getOutlinedFieldSx, mergeSx, MUI_FIELD_SIZE } from "../../utils/field-styles";
+import { getVirtualSlots, useVirtualList } from "../../utils/use-virtual-list";
+import { CnListStatus, shouldVirtualize } from "../../utils/virtual-listbox";
 import { CnSearchFieldSkeleton } from "./CnSearchFieldSkeleton";
 
 export type CnSearchSuggestion = {
@@ -58,6 +60,11 @@ export type CnSearchFieldProps = CnFieldBaseProps<string> & {
   noResultsText?: string;
   /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
   skeleton?: boolean;
+  /**
+   * Virtualiza las sugerencias: `true`, `false` o el número a partir del cual
+   * se activa (por defecto más de 100, útil con `maxSuggestions` alto).
+   */
+  virtualize?: boolean | number;
 };
 
 const recentStore = new Map<string, string[]>();
@@ -84,6 +91,25 @@ export const filterSuggestions = (
     .map(toSuggestion)
     .filter((item) => !needle || normalize(item.label ?? item.value).includes(needle))
     .slice(0, limit);
+};
+
+type IndexedSuggestion = { item: CnSearchSuggestion; text: string };
+
+/** Filtra sobre texto ya normalizado y cuenta las coincidencias que no caben. */
+const filterIndexed = (
+  index: readonly IndexedSuggestion[],
+  query: string,
+  limit: number,
+): { items: CnSearchSuggestion[]; truncated: number } => {
+  const needle = normalize(query.trim());
+  const items: CnSearchSuggestion[] = [];
+  let total = 0;
+  for (const entry of index) {
+    if (needle && !entry.text.includes(needle)) continue;
+    total += 1;
+    if (items.length < limit) items.push(entry.item);
+  }
+  return { items, truncated: total - items.length };
 };
 
 const highlight = (text: string, query: string): ReactNode => {
@@ -144,6 +170,7 @@ export const CnSearchField = forwardRef<HTMLDivElement, CnSearchFieldProps>(func
     loading: loadingProp = false,
     noResultsText = "Sin resultados",
     skeleton = false,
+    virtualize,
   },
   ref,
 ) {
@@ -204,13 +231,50 @@ export const CnSearchField = forwardRef<HTMLDivElement, CnSearchFieldProps>(func
     };
   }, [hasRemote, open, enoughChars, trimmed, searchDelay, maxSuggestions]);
 
+  // Texto normalizado de las sugerencias fijas, calculado una vez por lista.
+  const indexed = useMemo<IndexedSuggestion[]>(
+    () =>
+      (suggestions ?? []).map((input) => {
+        const item = toSuggestion(input);
+        return { item, text: normalize(item.label ?? item.value) };
+      }),
+    [suggestions],
+  );
   const showRecent = recentSearches && !trimmed && recent.length > 0;
-  const items: CnSearchSuggestion[] = useMemo(() => {
-    if (showRecent) return recent.map((text) => ({ value: text }));
-    if (!enoughChars) return [];
-    if (hasRemote) return remote;
-    return suggestions ? filterSuggestions(suggestions, trimmed, maxSuggestions) : [];
-  }, [showRecent, recent, enoughChars, hasRemote, remote, suggestions, trimmed, maxSuggestions]);
+  const { items, truncated } = useMemo((): {
+    items: CnSearchSuggestion[];
+    truncated: number;
+  } => {
+    if (showRecent) return { items: recent.map((text) => ({ value: text })), truncated: 0 };
+    if (!enoughChars) return { items: [], truncated: 0 };
+    if (hasRemote) return { items: remote, truncated: 0 };
+    return suggestions
+      ? filterIndexed(indexed, trimmed, maxSuggestions)
+      : { items: [], truncated: 0 };
+  }, [
+    showRecent,
+    recent,
+    enoughChars,
+    hasRemote,
+    remote,
+    suggestions,
+    indexed,
+    trimmed,
+    maxSuggestions,
+  ]);
+
+  const virtual = useVirtualList({
+    count: items.length,
+    estimateSize: 34,
+    getItemKey: (index) => `${items[index]?.value}-${index}`,
+    overscan: 6,
+    paddingStart: showRecent ? 36 : 4,
+    enabled: shouldVirtualize(virtualize, items.length),
+  });
+  const { scrollToIndex } = virtual;
+  useEffect(() => {
+    if (active >= 0) scrollToIndex(active);
+  }, [active, scrollToIndex]);
 
   const loading = loadingProp || searching;
   const canSuggest = Boolean(suggestions || hasRemote || recentSearches);
@@ -383,6 +447,7 @@ export const CnSearchField = forwardRef<HTMLDivElement, CnSearchFieldProps>(func
         style={{ zIndex: 1400, width: anchorRef.current?.offsetWidth || undefined }}
       >
         <Paper
+          ref={virtual.scrollRef}
           elevation={6}
           sx={{
             mt: "4px",
@@ -428,46 +493,65 @@ export const CnSearchField = forwardRef<HTMLDivElement, CnSearchFieldProps>(func
             aria-label={showRecent ? "Búsquedas recientes" : "Sugerencias"}
             sx={{ listStyle: "none", m: 0, p: "4px 0" }}
           >
-            {items.map((item, index) => (
-              <Box
-                component="li"
-                key={`${item.value}-${index}`}
-                id={`${control.id}-option-${index}`}
-                role="option"
-                aria-selected={index === active}
-                onMouseDown={(event) => event.preventDefault()}
-                onMouseEnter={() => setActive(index)}
-                onClick={() => choose(item)}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  px: "12px",
-                  py: "7px",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  backgroundColor:
-                    index === active ? "var(--cn-color-neutral-100, #f4f5f7)" : "transparent",
-                }}
-              >
-                {showRecent && (
-                  <HistoryIcon
-                    fontSize="small"
-                    sx={{ color: "var(--cn-color-text-subtle, #9aa1aa)" }}
+            {getVirtualSlots(virtual.items, virtual.totalSize).map((slot) => {
+              if (slot.type === "spacer") {
+                return (
+                  <Box
+                    component="li"
+                    key={slot.key}
+                    role="presentation"
+                    aria-hidden
+                    sx={{ height: `${slot.size}px` }}
                   />
-                )}
-                <Box sx={{ minWidth: 0 }}>
-                  <Box sx={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {highlight(item.label ?? item.value, showRecent ? "" : trimmed)}
-                  </Box>
-                  {item.description && (
-                    <Box sx={{ fontSize: 11, color: "var(--cn-color-text-muted, #6e7682)" }}>
-                      {item.description}
-                    </Box>
+                );
+              }
+              const index = slot.item.index;
+              const item = items[index];
+              return (
+                <Box
+                  component="li"
+                  key={`${item.value}-${index}`}
+                  id={`${control.id}-option-${index}`}
+                  role="option"
+                  aria-selected={index === active}
+                  aria-setsize={items.length}
+                  aria-posinset={index + 1}
+                  data-index={index}
+                  ref={virtual.measureElement}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onMouseEnter={() => setActive(index)}
+                  onClick={() => choose(item)}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    px: "12px",
+                    py: "7px",
+                    cursor: "pointer",
+                    fontSize: 13,
+                    backgroundColor:
+                      index === active ? "var(--cn-color-neutral-100, #f4f5f7)" : "transparent",
+                  }}
+                >
+                  {showRecent && (
+                    <HistoryIcon
+                      fontSize="small"
+                      sx={{ color: "var(--cn-color-text-subtle, #9aa1aa)" }}
+                    />
                   )}
+                  <Box sx={{ minWidth: 0 }}>
+                    <Box sx={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {highlight(item.label ?? item.value, showRecent ? "" : trimmed)}
+                    </Box>
+                    {item.description && (
+                      <Box sx={{ fontSize: 11, color: "var(--cn-color-text-muted, #6e7682)" }}>
+                        {item.description}
+                      </Box>
+                    )}
+                  </Box>
                 </Box>
-              </Box>
-            ))}
+              );
+            })}
             {items.length === 0 && (
               <Box
                 component="li"
@@ -482,6 +566,7 @@ export const CnSearchField = forwardRef<HTMLDivElement, CnSearchFieldProps>(func
                 {loading ? "Buscando…" : noResultsText}
               </Box>
             )}
+            <CnListStatus truncated={truncated} />
           </Box>
         </Paper>
       </Popper>

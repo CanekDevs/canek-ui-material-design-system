@@ -101,6 +101,15 @@ export type CnFormSelectOption = {
 /** Alias para usar las opciones fuera de `CnForm`. */
 export type CnFieldOption = CnFormSelectOption;
 
+/** Página de opciones de un `loadOptions` paginado (scroll infinito). */
+export type CnFormOptionsPage = {
+  options: readonly CnFormSelectOption[];
+  /** Quedan más páginas por cargar. */
+  hasMore: boolean;
+  /** Total de registros (opcional): muestra "Mostrando 50 de 12,340". */
+  total?: number;
+};
+
 export type CnPhoneCountryCode =
   | "MX"
   | "US"
@@ -317,7 +326,34 @@ export type CnFormField = CnFormGridProps & {
     signal: AbortSignal;
     formValues: CnFormValues;
     sectionContext?: CnFormSectionContext;
-  }) => Promise<readonly CnFormSelectOption[]>;
+    /** Página solicitada (desde 0) y tamaño sugerido, para loaders paginados. */
+    page: number;
+    pageSize: number;
+  }) => Promise<readonly CnFormSelectOption[] | CnFormOptionsPage>;
+  /**
+   * select / autocomplete / transferlist con `loadOptions`: opciones de los
+   * valores seleccionados que no están en la página cargada (formularios de
+   * edición). Se llama una vez por lote de valores desconocidos.
+   */
+  resolveOptions?: (
+    values: Array<string | number>,
+    ctx: { signal: AbortSignal; formValues: CnFormValues },
+  ) => Promise<readonly CnFormSelectOption[]>;
+  /**
+   * Tamaño de página de `loadOptions` paginado. En select y transferlist,
+   * definirlo (o `resolveOptions`) hace que el campo busque y pagine en el
+   * servidor en lugar de cargar todo al montar.
+   */
+  pageSize?: number;
+  /**
+   * select / autocomplete / country / treeselect / transferlist / search:
+   * virtualiza la lista (`true`, `false` o umbral). Por defecto con más de 100.
+   */
+  virtualize?: boolean | number;
+  /** select / autocomplete / country / search: máximo de coincidencias pintadas. */
+  maxResults?: number;
+  /** Comparte la caché de opciones remotas entre campos con la misma clave. */
+  optionsCacheKey?: string;
   /**
    * Campos de los que depende (rutas; dentro de una sección repetible son
    * relativas al elemento). Al cambiar se recargan las opciones y el valor se

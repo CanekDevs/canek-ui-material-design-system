@@ -5,26 +5,32 @@ import KeyboardDoubleArrowRightIcon from "@mui/icons-material/KeyboardDoubleArro
 import SearchIcon from "@mui/icons-material/Search";
 import Box from "@mui/material/Box";
 import Checkbox from "@mui/material/Checkbox";
+import CircularProgress from "@mui/material/CircularProgress";
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from "@mui/material/FormHelperText";
 import FormLabel from "@mui/material/FormLabel";
 import IconButton from "@mui/material/IconButton";
 import InputBase from "@mui/material/InputBase";
 import Tooltip from "@mui/material/Tooltip";
-import type { ReactNode } from "react";
-import { forwardRef, useMemo, useState } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
+import { filterOptionsFast, formatCount, optionValueKey } from "../../utils/option-filter";
 import { OptionContent } from "../../utils/option-media";
-import { normalizeSearchText } from "../CnAutocompleteField";
+import type { CnLoadOptions, CnResolveOptions } from "../../utils/use-async-options";
+import { useAsyncOptions, useOptionMemory } from "../../utils/use-async-options";
+import { useResolvedOptions } from "../../utils/use-resolved-options";
+import { getVirtualSlots, useVirtualList } from "../../utils/use-virtual-list";
+import { CnListStatus, shouldVirtualize } from "../../utils/virtual-listbox";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
 import { CnTransferListFieldSkeleton } from "./CnTransferListFieldSkeleton";
 
 export type CnTransferListValue = Array<string | number>;
 
 export type CnTransferListFieldProps = CnFieldBaseProps<CnTransferListValue> & {
-  options: readonly CnFieldOption[];
+  options?: readonly CnFieldOption[];
   /** Títulos de las listas. */
   availableTitle?: string;
   selectedTitle?: string;
@@ -38,9 +44,35 @@ export type CnTransferListFieldProps = CnFieldBaseProps<CnTransferListValue> & {
   emptyText?: string;
   /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
   skeleton?: boolean;
+  /**
+   * Virtualiza ambas listas: `true`, `false` o el número de elementos a partir
+   * del cual se activa. Por defecto con más de 100.
+   */
+  virtualize?: boolean | number;
+  /**
+   * Disponibles desde el servidor (arreglo o páginas `{ options, hasMore,
+   * total? }`): el buscador de "Disponibles" consulta al servidor y la lista
+   * carga más al llegar al final. "Mover todos" mueve solo lo cargado.
+   */
+  loadOptions?: CnLoadOptions;
+  loadOptionsDeps?: readonly unknown[];
+  /** Tamaño de página para `loadOptions`. Por defecto 50. */
+  pageSize?: number;
+  /** Caracteres mínimos para buscar en el servidor. */
+  minSearchLength?: number;
+  searchDebounceMs?: number;
+  /** Opciones de valores seleccionados que no están cargados (edición). */
+  resolveOptions?: CnResolveOptions;
+  /** Opciones ya seleccionadas, para mostrar su etiqueta sin buscarlas. */
+  selectedOptions?: readonly CnFieldOption[];
+  /** Etiqueta de respaldo para un valor sin opción conocida. */
+  getValueLabel?: (value: string | number) => string;
+  /** Comparte la caché de opciones remotas entre campos con la misma clave. */
+  cacheKey?: string;
 };
 
-const keyOf = (value: string | number) => `${typeof value}:${value}`;
+const keyOf = optionValueKey;
+const ROW_HEIGHT = 34;
 
 type PaneProps = {
   title: string;
@@ -55,6 +87,15 @@ type PaneProps = {
   emptyText: string;
   renderOption?: (option: CnFieldOption) => ReactNode;
   idPrefix: string;
+  virtualize?: boolean | number;
+  /** Búsqueda controlada (remota): la lista ya llega filtrada. */
+  query?: string;
+  onQueryChange?: (query: string) => void;
+  /** Total a mostrar en el encabezado (p. ej. el del servidor). */
+  total?: number;
+  loading?: boolean;
+  footer?: ReactNode;
+  onEndReached?: () => void;
 };
 
 const Pane = ({
@@ -70,20 +111,111 @@ const Pane = ({
   emptyText,
   renderOption,
   idPrefix,
+  virtualize,
+  query: controlledQuery,
+  onQueryChange,
+  total,
+  loading = false,
+  footer,
+  onEndReached,
 }: PaneProps) => {
-  const [query, setQuery] = useState("");
-  const visible = useMemo(() => {
-    const q = normalizeSearchText(query);
-    if (!q) return items;
-    return items.filter((option) =>
-      normalizeSearchText(`${option.label} ${option.searchText ?? ""}`).includes(q),
-    );
-  }, [items, query]);
+  const [localQuery, setLocalQuery] = useState("");
+  const remote = onQueryChange !== undefined;
+  const query = remote ? (controlledQuery ?? "") : localQuery;
+  const visible = useMemo(
+    () => (remote || !query.trim() ? items : filterOptionsFast(items, query).options),
+    [items, query, remote],
+  );
   const selectable = visible.filter((option) => !option.disabled).map((o) => keyOf(o.value));
   const checkedVisible = selectable.filter((key) => checked.has(key));
   const all = selectable.length > 0 && checkedVisible.length === selectable.length;
   const some = checkedVisible.length > 0 && !all;
   const titleId = `${idPrefix}-title`;
+
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const virtual = useVirtualList({
+    count: visible.length,
+    estimateSize: ROW_HEIGHT,
+    getItemKey: (index) => (visible[index] ? keyOf(visible[index].value) : index),
+    overscan: 8,
+    paddingStart: 4,
+    defaultViewportHeight: height,
+    enabled: shouldVirtualize(virtualize, visible.length),
+    onEndReached,
+  });
+
+  const { scrollRef } = virtual;
+  const setListRef = useCallback(
+    (element: HTMLDivElement | null) => {
+      listRef.current = element;
+      scrollRef(element);
+    },
+    [scrollRef],
+  );
+
+  // Foco "itinerante": solo una fila es tabulable; las flechas mueven el foco.
+  const [focusIndex, setFocusIndex] = useState(0);
+  const pendingFocusRef = useRef<number | null>(null);
+  const [focusTick, setFocusTick] = useState(0);
+  useEffect(() => {
+    const index = pendingFocusRef.current;
+    if (index === null) return;
+    const row = listRef.current?.querySelector<HTMLElement>(`[data-index="${index}"]`);
+    if (row) {
+      pendingFocusRef.current = null;
+      row.focus();
+    }
+  });
+  const focusRow = (index: number) => {
+    if (visible.length === 0) return;
+    const target = Math.max(0, Math.min(index, visible.length - 1));
+    setFocusIndex(target);
+    pendingFocusRef.current = target;
+    virtual.scrollToIndex(target);
+    setFocusTick(focusTick + 1);
+  };
+  const tabbable = Math.min(focusIndex, Math.max(0, visible.length - 1));
+
+  const onRowKey = (event: KeyboardEvent<HTMLElement>, key: string, index: number) => {
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        focusRow(index + 1);
+        return;
+      case "ArrowUp":
+        event.preventDefault();
+        focusRow(index - 1);
+        return;
+      case "PageDown":
+        event.preventDefault();
+        focusRow(index + 10);
+        return;
+      case "PageUp":
+        event.preventDefault();
+        focusRow(index - 10);
+        return;
+      case "Home":
+        event.preventDefault();
+        focusRow(0);
+        return;
+      case "End":
+        event.preventDefault();
+        focusRow(visible.length - 1);
+        return;
+      default:
+    }
+    const option = visible[index];
+    if (disabled || option?.disabled) return;
+    if (event.key === " ") {
+      event.preventDefault();
+      onToggle(key);
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      onActivate(key);
+    }
+  };
+
+  const count = total ?? items.length;
 
   return (
     <Box
@@ -123,6 +255,7 @@ const Pane = ({
         >
           {title}
         </Box>
+        {loading && <CircularProgress size={12} aria-label="Cargando" />}
         <Box
           sx={{
             fontSize: "var(--cn-font-size-xs, 11px)",
@@ -130,7 +263,9 @@ const Pane = ({
             pr: "6px",
           }}
         >
-          {checked.size > 0 ? `${checked.size}/${items.length}` : items.length}
+          {checked.size > 0
+            ? `${formatCount(checked.size)}/${formatCount(count)}`
+            : formatCount(count)}
         </Box>
       </Box>
       {searchable && (
@@ -146,7 +281,17 @@ const Pane = ({
           <SearchIcon sx={{ fontSize: 16, color: "var(--cn-color-neutral-400, #9aa1aa)" }} />
           <InputBase
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              if (remote) onQueryChange?.(event.target.value);
+              else setLocalQuery(event.target.value);
+              setFocusIndex(0);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                focusRow(0);
+              }
+            }}
             placeholder="Buscar…"
             disabled={disabled}
             inputProps={{ "aria-label": `Buscar en ${title}` }}
@@ -155,10 +300,12 @@ const Pane = ({
         </Box>
       )}
       <Box
+        ref={setListRef}
         role="listbox"
         aria-labelledby={titleId}
         aria-multiselectable
-        sx={{ height, overflowY: "auto", py: "4px" }}
+        aria-busy={loading || undefined}
+        sx={{ height, overflowY: "auto", py: "4px", position: "relative" }}
       >
         {visible.length === 0 ? (
           <Box
@@ -169,10 +316,15 @@ const Pane = ({
               color: "var(--cn-color-text-muted, #6e7682)",
             }}
           >
-            {emptyText}
+            {loading ? "Cargando…" : emptyText}
           </Box>
         ) : (
-          visible.map((option) => {
+          getVirtualSlots(virtual.items, virtual.totalSize).map((slot) => {
+            if (slot.type === "spacer") {
+              return <Box key={slot.key} aria-hidden sx={{ height: `${slot.size}px` }} />;
+            }
+            const index = slot.item.index;
+            const option = visible[index];
             const key = keyOf(option.value);
             const isChecked = checked.has(key);
             const isDisabled = disabled || Boolean(option.disabled);
@@ -182,25 +334,21 @@ const Pane = ({
                 role="option"
                 aria-selected={isChecked}
                 aria-disabled={isDisabled || undefined}
-                tabIndex={isDisabled ? -1 : 0}
+                aria-setsize={visible.length}
+                aria-posinset={index + 1}
+                data-index={index}
+                ref={virtual.measureElement}
+                tabIndex={index === tabbable ? 0 : -1}
+                onFocus={() => focusIndex !== index && setFocusIndex(index)}
                 onClick={() => !isDisabled && onToggle(key)}
                 onDoubleClick={() => !isDisabled && onActivate(key)}
-                onKeyDown={(event) => {
-                  if (isDisabled) return;
-                  if (event.key === " ") {
-                    event.preventDefault();
-                    onToggle(key);
-                  } else if (event.key === "Enter") {
-                    event.preventDefault();
-                    onActivate(key);
-                  }
-                }}
+                onKeyDown={(event) => onRowKey(event, key, index)}
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   gap: "4px",
                   px: "6px",
-                  minHeight: 34,
+                  minHeight: ROW_HEIGHT,
                   cursor: isDisabled ? "not-allowed" : "pointer",
                   opacity: isDisabled ? 0.5 : 1,
                   fontSize: "var(--cn-font-size-base, 13px)",
@@ -227,15 +375,19 @@ const Pane = ({
             );
           })
         )}
+        {visible.length > 0 && footer}
       </Box>
     </Box>
   );
 };
 
+const EMPTY: readonly CnFieldOption[] = [];
+
 /**
  * Lista doble para asignar elementos (permisos, usuarios a un grupo,
  * columnas visibles…). El valor es el arreglo de valores seleccionados en el
- * orden de las opciones. Doble clic o Enter mueve un elemento.
+ * orden de las opciones (con `loadOptions`, en el orden en que se agregan).
+ * Doble clic o Enter mueve un elemento.
  */
 export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferListFieldProps>(
   function CnTransferListField(
@@ -262,7 +414,7 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
       reserveHelperSpace,
       sx,
       className,
-      options,
+      options: staticOptions = EMPTY,
       availableTitle = "Disponibles",
       selectedTitle = "Seleccionados",
       searchable = true,
@@ -271,6 +423,16 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
       renderOption,
       emptyText = "Sin elementos",
       skeleton = false,
+      virtualize,
+      loadOptions,
+      loadOptionsDeps,
+      pageSize,
+      minSearchLength = 0,
+      searchDebounceMs = 300,
+      resolveOptions,
+      selectedOptions,
+      getValueLabel,
+      cacheKey,
     },
     ref,
   ) {
@@ -294,33 +456,74 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
       reserveHelperSpace,
     });
     const [checked, setChecked] = useState<Set<string>>(new Set());
+    const [availableQuery, setAvailableQuery] = useState("");
     const locked = Boolean(disabled || readOnly);
+    const isRemote = Boolean(loadOptions);
 
-    const selectedSet = useMemo(
-      () => new Set((Array.isArray(current) ? current : []).map(keyOf)),
-      [current],
+    const remote = useAsyncOptions({
+      loadOptions,
+      deps: loadOptionsDeps,
+      input: availableQuery,
+      debounceMs: searchDebounceMs,
+      minSearchLength,
+      disabled: !loadOptions,
+      pageSize,
+      cacheKey,
+    });
+    const options = isRemote ? remote.options : staticOptions;
+    const remember = useOptionMemory(options, selectedOptions);
+
+    const values = useMemo(() => (Array.isArray(current) ? current : []), [current]);
+    const selectedSet = useMemo(() => new Set(values.map(keyOf)), [values]);
+    const byKey = useMemo(() => {
+      const map = new Map<string, CnFieldOption>();
+      for (const option of options) map.set(keyOf(option.value), option);
+      return map;
+    }, [options]);
+    const resolver = useResolvedOptions({
+      values,
+      isKnown: (item) => byKey.has(keyOf(item)) || Boolean(remember(item)),
+      resolveOptions,
+      cacheKey,
+    });
+
+    const left = useMemo(
+      () => options.filter((option) => !selectedSet.has(keyOf(option.value))),
+      [options, selectedSet],
     );
-    const left = options.filter((option) => !selectedSet.has(keyOf(option.value)));
-    const right = options.filter((option) => selectedSet.has(keyOf(option.value)));
+    const right = isRemote
+      ? values.map(
+          (item) =>
+            byKey.get(keyOf(item)) ??
+            remember(item) ??
+            resolver.get(item) ?? { value: item, label: getValueLabel?.(item) ?? String(item) },
+        )
+      : staticOptions.filter((option) => selectedSet.has(keyOf(option.value)));
     const leftChecked = new Set(left.map((o) => keyOf(o.value)).filter((k) => checked.has(k)));
     const rightChecked = new Set(right.map((o) => keyOf(o.value)).filter((k) => checked.has(k)));
     const room = max === undefined ? Infinity : Math.max(0, max - right.length);
 
-    const commit = (nextSelected: Set<string>) => {
+    const commit = (nextValues: Array<string | number>) => {
       control.markChanged();
-      setCurrent(options.filter((o) => nextSelected.has(keyOf(o.value))).map((o) => o.value));
+      if (isRemote) {
+        setCurrent(nextValues);
+      } else {
+        const nextSet = new Set(nextValues.map(keyOf));
+        setCurrent(staticOptions.filter((o) => nextSet.has(keyOf(o.value))).map((o) => o.value));
+      }
       setChecked(new Set());
     };
 
     const moveRight = (keys: string[]) => {
-      const next = new Set(selectedSet);
-      keys.slice(0, room).forEach((key) => next.add(key));
-      commit(next);
+      const added = keys
+        .slice(0, room)
+        .map((key) => byKey.get(key)?.value)
+        .filter((item): item is string | number => item !== undefined);
+      commit([...values, ...added]);
     };
     const moveLeft = (keys: string[]) => {
-      const next = new Set(selectedSet);
-      keys.forEach((key) => next.delete(key));
-      commit(next);
+      const remove = new Set(keys);
+      commit(values.filter((item) => !remove.has(keyOf(item))));
     };
 
     const toggle = (key: string) =>
@@ -330,7 +533,7 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
         else next.add(key);
         return next;
       });
-    const toggleAll = (pool: CnFieldOption[]) => (keys: string[]) =>
+    const toggleAll = (pool: readonly CnFieldOption[]) => (keys: string[]) =>
       setChecked((prev) => {
         const next = new Set(prev);
         pool.forEach((o) => next.delete(keyOf(o.value)));
@@ -338,7 +541,7 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
         return next;
       });
 
-    const enabledKeys = (list: CnFieldOption[]) =>
+    const enabledKeys = (list: readonly CnFieldOption[]) =>
       list.filter((o) => !o.disabled).map((o) => keyOf(o.value));
 
     const buttons: Array<{
@@ -389,6 +592,14 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
       );
     }
 
+    const remoteEmpty = remote.error
+      ? remote.error
+      : remote.belowMinLength
+        ? `Escribe al menos ${minSearchLength} caracteres`
+        : availableQuery
+          ? "Sin resultados"
+          : emptyText;
+
     return (
       <FormControl
         ref={ref}
@@ -432,9 +643,34 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
             searchable={searchable}
             height={listHeight}
             disabled={locked}
-            emptyText={emptyText}
+            emptyText={isRemote ? remoteEmpty : emptyText}
             renderOption={renderOption}
             idPrefix={`${control.id}-available`}
+            virtualize={isRemote ? true : virtualize}
+            {...(isRemote && {
+              query: availableQuery,
+              onQueryChange: setAvailableQuery,
+              total:
+                remote.total !== undefined
+                  ? Math.max(0, remote.total - (options.length - left.length))
+                  : undefined,
+              loading: remote.loading,
+              onEndReached: () => {
+                if (remote.hasMore && !remote.loadingMore && !remote.loadMoreError) {
+                  remote.loadMore();
+                }
+              },
+              footer: (
+                <CnListStatus
+                  component="div"
+                  loadingMore={remote.loadingMore}
+                  loadMoreError={remote.loadMoreError}
+                  onRetry={remote.retry}
+                  shown={options.length}
+                  total={remote.total}
+                />
+              ),
+            })}
           />
           <Box
             sx={{
@@ -477,6 +713,8 @@ export const CnTransferListField = forwardRef<HTMLFieldSetElement, CnTransferLis
             emptyText={emptyText}
             renderOption={renderOption}
             idPrefix={`${control.id}-selected`}
+            virtualize={virtualize}
+            loading={resolver.resolving}
           />
         </Box>
         {name && <input type="hidden" name={name} value={(current ?? []).join(",")} />}

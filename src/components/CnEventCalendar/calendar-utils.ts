@@ -10,6 +10,7 @@ import {
   toIsoDate,
 } from "../../utils/date-utils";
 import type {
+  CnBusinessHours,
   CnCalendarDateRange,
   CnCalendarEvent,
   CnCalendarHoliday,
@@ -19,6 +20,7 @@ import type {
   CnEventOccurrence,
   CnEventRecurrence,
   CnEventTone,
+  CnWorkingHours,
 } from "./CnEventCalendar.types";
 
 export { addDays, addMonths, isSameDay, pad2, startOfMonth, startOfWeek, toIsoDate };
@@ -106,15 +108,33 @@ export const formatOccurrenceTime = (
 export const startOfQuarter = (date: Date): Date =>
   new Date(date.getFullYear(), Math.floor(date.getMonth() / 3) * 3, 1);
 
+/** Opciones de rango de las vistas "multiMonth" y "timeline". */
+export type CnRangeOptions = {
+  multiMonthCount?: number;
+  timelineRange?: "day" | "week";
+};
+
 /** Rango visible (fin exclusivo) de una vista. */
 export const getVisibleRange = (
   view: CnEventCalendarView,
   date: Date,
   weekStart: CnWeekday = 1,
   agendaRange: "month" | number = "month",
+  options: CnRangeOptions = {},
 ): CnCalendarDateRange => {
   const day = startOfDay(date);
   switch (view) {
+    case "multiMonth": {
+      const start = startOfMonth(day);
+      return { start, end: addMonths(start, Math.max(1, options.multiMonthCount ?? 3)) };
+    }
+    case "timeline": {
+      if (options.timelineRange === "week") {
+        const start = startOfWeek(day, weekStart);
+        return { start, end: addDays(start, 7) };
+      }
+      return { start: day, end: addDays(day, 1) };
+    }
     case "month": {
       const first = startOfWeek(startOfMonth(day), weekStart);
       const nextMonth = addMonths(startOfMonth(day), 1);
@@ -148,8 +168,13 @@ export const shiftDate = (
   date: Date,
   direction: 1 | -1,
   agendaRange: "month" | number = "month",
+  options: CnRangeOptions = {},
 ): Date => {
   switch (view) {
+    case "multiMonth":
+      return addMonths(date, Math.max(1, options.multiMonthCount ?? 3) * direction);
+    case "timeline":
+      return addDays(date, (options.timelineRange === "week" ? 7 : 1) * direction);
     case "month":
       return addMonths(date, direction);
     case "week":
@@ -174,9 +199,23 @@ export const getViewTitle = (
   locale = "es-MX",
   weekStart: CnWeekday = 1,
   agendaRange: "month" | number = "month",
+  options: CnRangeOptions = {},
 ): string => {
   const monthYear = (d: Date) => `${capitalize(monthName(d, locale))} ${d.getFullYear()}`;
   switch (view) {
+    case "multiMonth": {
+      const count = Math.max(1, options.multiMonthCount ?? 3);
+      const first = startOfMonth(date);
+      const last = addMonths(first, count - 1);
+      const short = (d: Date) => capitalize(monthName(d, locale, "short"));
+      return first.getFullYear() === last.getFullYear()
+        ? `${short(first)} – ${short(last)} ${last.getFullYear()}`
+        : `${short(first)} ${first.getFullYear()} – ${short(last)} ${last.getFullYear()}`;
+    }
+    case "timeline":
+      return options.timelineRange === "week"
+        ? getViewTitle("week", date, locale, weekStart)
+        : formatDayLong(date, locale);
     case "month":
       return monthYear(date);
     case "week":
@@ -210,6 +249,8 @@ export const VIEW_LABELS: Record<CnEventCalendarView, string> = {
   agenda: "Agenda",
   quarter: "Trimestre",
   year: "Año",
+  multiMonth: "Meses",
+  timeline: "Recursos",
 };
 
 // ─── Colores ──────────────────────────────────────────────────────────
@@ -271,6 +312,39 @@ export const normalizeSpan = (
 
 const MAX_ITERATIONS = 5000;
 
+/**
+ * Días (1-31) de un mes que cumplen `byMonthDay` / `byNthWeekday`
+ * (los negativos cuentan desde el final del mes).
+ */
+export const monthlyRuleDays = (
+  year: number,
+  month: number,
+  rule: Pick<CnEventRecurrence, "byMonthDay" | "byNthWeekday">,
+): number[] => {
+  const dim = new Date(year, month + 1, 0).getDate();
+  const days = new Set<number>();
+  for (const md of rule.byMonthDay ?? []) {
+    const d = md > 0 ? md : dim + md + 1;
+    if (md !== 0 && d >= 1 && d <= dim) days.add(d);
+  }
+  for (const { weekday, nth } of rule.byNthWeekday ?? []) {
+    if (nth > 0) {
+      const firstWd = new Date(year, month, 1).getDay();
+      const d = 1 + ((weekday - firstWd + 7) % 7) + (nth - 1) * 7;
+      if (d <= dim) days.add(d);
+    } else if (nth < 0) {
+      const lastWd = new Date(year, month, dim).getDay();
+      const d = dim - ((lastWd - weekday + 7) % 7) + (nth + 1) * 7;
+      if (d >= 1) days.add(d);
+    } else {
+      for (let d = 1; d <= dim; d += 1) {
+        if (new Date(year, month, d).getDay() === weekday) days.add(d);
+      }
+    }
+  }
+  return [...days].sort((a, b) => a - b);
+};
+
 /** Fechas de inicio de una regla de repetición que caen antes de `rangeEnd`. */
 export const recurrenceStarts = (first: Date, rule: CnEventRecurrence, rangeEnd: Date): Date[] => {
   const interval = Math.max(1, Math.floor(rule.interval ?? 1));
@@ -314,6 +388,23 @@ export const recurrenceStarts = (first: Date, rule: CnEventRecurrence, rangeEnd:
       for (const wd of days) {
         const d = addDays(weekBase, wd);
         if (!accept(at(d.getFullYear(), d.getMonth(), d.getDate()))) {
+          stop = true;
+          break;
+        }
+      }
+      if (stop) break;
+    } else if (
+      (rule.freq === "monthly" || rule.freq === "yearly") &&
+      (rule.byMonthDay?.length || rule.byNthWeekday?.length)
+    ) {
+      // Mensual: cada `interval` meses; anual: el mes de la primera fecha cada `interval` años.
+      const base =
+        rule.freq === "monthly"
+          ? new Date(first.getFullYear(), first.getMonth() + i * interval, 1)
+          : new Date(first.getFullYear() + i * interval, first.getMonth(), 1);
+      let stop = false;
+      for (const d of monthlyRuleDays(base.getFullYear(), base.getMonth(), rule)) {
+        if (!accept(at(base.getFullYear(), base.getMonth(), d))) {
           stop = true;
           break;
         }
@@ -467,3 +558,71 @@ export const getTimeGridDays = (
     (d) => showWeekends || (d.getDay() !== 0 && d.getDay() !== 6),
   );
 };
+
+// ─── Semanas, región y horario laboral ───────────────────────────────
+
+/** Número de semana ISO 8601 (la semana 1 contiene el primer jueves del año). */
+export const isoWeek = (date: Date): number => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = Date.UTC(d.getUTCFullYear(), 0, 1);
+  return Math.ceil(((d.getTime() - yearStart) / DAY_MS + 1) / 7);
+};
+
+const SUNDAY_REGIONS = new Set(
+  "US CA MX BR JP KR IL PH TW HK IN CO PE VE GT HN NI PA SV DO PR ZA BO PY SA ID TH KE".split(" "),
+);
+const SATURDAY_REGIONS = new Set("AE AF BH DZ EG IQ IR JO KW LY OM QA SD SY".split(" "));
+
+/** Primer día de la semana según la región (`Intl.Locale#getWeekInfo` o tabla CLDR reducida). */
+export const localeWeekStart = (locale: string): CnWeekday => {
+  try {
+    const loc = new Intl.Locale(locale) as Intl.Locale & {
+      getWeekInfo?: () => { firstDay: number };
+      weekInfo?: { firstDay: number };
+    };
+    const info = typeof loc.getWeekInfo === "function" ? loc.getWeekInfo() : loc.weekInfo;
+    if (info && info.firstDay >= 1 && info.firstDay <= 7) return (info.firstDay % 7) as CnWeekday;
+  } catch {
+    // Locale inválido: se usa la tabla.
+  }
+  const region = locale.split(/[-_]/)[1]?.toUpperCase();
+  if (region && SUNDAY_REGIONS.has(region)) return 0;
+  if (region && SATURDAY_REGIONS.has(region)) return 6;
+  return 1;
+};
+
+/** Intervalos laborales `[inicio, fin]` en minutos para un día de la semana. */
+export const businessIntervals = (
+  hours: CnWorkingHours | CnBusinessHours[] | false | undefined,
+  weekday: number,
+): [number, number][] => {
+  if (!hours) return [];
+  const list: CnBusinessHours[] = Array.isArray(hours)
+    ? hours
+    : [{ days: hours.days ?? [1, 2, 3, 4, 5], start: hours.start, end: hours.end }];
+  return list
+    .filter((b) => b.days.includes(weekday as CnWeekday) && b.end > b.start)
+    .map((b): [number, number] => [Math.round(b.start * 60), Math.round(b.end * 60)])
+    .sort((a, b) => a[0] - b[0]);
+};
+
+/** Ids de recurso de un evento como arreglo. */
+export const eventResourceIds = (event: Pick<CnCalendarEvent, "resourceId">): string[] =>
+  event.resourceId === undefined
+    ? []
+    : Array.isArray(event.resourceId)
+      ? event.resourceId
+      : [event.resourceId];
+
+/** Desplaza una fecha `days` días conservando la hora local. */
+export const shiftDays = (date: Date, days: number): Date =>
+  new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate() + days,
+    date.getHours(),
+    date.getMinutes(),
+    date.getSeconds(),
+  );

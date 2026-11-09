@@ -11,12 +11,14 @@ import InputBase from "@mui/material/InputBase";
 import Popover from "@mui/material/Popover";
 import TextField from "@mui/material/TextField";
 import type { KeyboardEvent, ReactNode } from "react";
-import { forwardRef, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CnFieldBaseProps } from "../../utils/field-control";
 import { useControllableValue, useFieldControl } from "../../utils/field-control";
 import { getOutlinedFieldSx, mergeSx, MUI_FIELD_SIZE } from "../../utils/field-styles";
+import { normalizeSearchText } from "../../utils/option-filter";
 import { OptionContent } from "../../utils/option-media";
-import { normalizeSearchText } from "../CnAutocompleteField";
+import { getVirtualSlots, useVirtualList } from "../../utils/use-virtual-list";
+import { shouldVirtualize } from "../../utils/virtual-listbox";
 import type { CnFieldOption } from "../CnForm/CnForm.types";
 import { CnTreeSelectFieldSkeleton } from "./CnTreeSelectFieldSkeleton";
 
@@ -52,6 +54,11 @@ export type CnTreeSelectFieldProps = CnFieldBaseProps<CnTreeSelectValue> & {
   autoFocus?: boolean;
   /** Muestra el skeleton del campo (mismas variantes) en lugar del campo. */
   skeleton?: boolean;
+  /**
+   * Virtualiza el árbol visible: `true`, `false` o el número de filas a partir
+   * del cual se activa. Por defecto con más de 100 filas visibles.
+   */
+  virtualize?: boolean | number;
 };
 
 type FlatNode = {
@@ -61,6 +68,8 @@ type FlatNode = {
   parentKey?: string;
   path: string[];
   descendants: string[];
+  /** Texto normalizado para buscar (se calcula una vez). */
+  search: string;
 };
 
 const keyOf = (value: string | number) => `${typeof value}:${value}`;
@@ -78,6 +87,7 @@ const flatten = (options: readonly CnTreeOption[]): Map<string, FlatNode> => {
         parentKey: parent?.key,
         path: [...(parent?.path ?? []), option.label],
         descendants: [],
+        search: normalizeSearchText(`${option.label} ${option.searchText ?? ""}`),
       };
       map.set(key, node);
       keys.push(key);
@@ -139,6 +149,7 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
       renderOption,
       autoFocus,
       skeleton = false,
+      virtualize,
     },
     ref,
   ) {
@@ -255,8 +266,7 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
       if (q) {
         const keep = new Set<string>();
         for (const node of all) {
-          const text = normalizeSearchText(`${node.option.label} ${node.option.searchText ?? ""}`);
-          if (!text.includes(q)) continue;
+          if (!node.search.includes(q)) continue;
           keep.add(node.key);
           let parentKey = node.parentKey;
           while (parentKey) {
@@ -301,9 +311,41 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
     const displayKeys = [...selectedKeys];
     const summary = multiple ? "" : displayKeys[0] ? labelFor(displayKeys[0]) : "";
 
+    const virtual = useVirtualList({
+      count: visibleNodes.length,
+      estimateSize: 34,
+      getItemKey: (index) => visibleNodes[index]?.key ?? index,
+      overscan: 8,
+      paddingStart: 4,
+      enabled: shouldVirtualize(virtualize, visibleNodes.length),
+    });
+    const { scrollRef } = virtual;
+    const setListRef = useCallback(
+      (element: HTMLDivElement | null) => {
+        listRef.current = element;
+        scrollRef(element);
+      },
+      [scrollRef],
+    );
+
+    // El foco espera a que la fila exista (puede estar fuera de la ventana).
+    const pendingFocusRef = useRef<number | null>(null);
+    const [focusTick, setFocusTick] = useState(0);
+    useEffect(() => {
+      const index = pendingFocusRef.current;
+      if (index === null) return;
+      const row = listRef.current?.querySelector<HTMLElement>(`[data-index="${index}"]`);
+      if (row) {
+        pendingFocusRef.current = null;
+        row.focus();
+      }
+    });
     const focusRow = (index: number) => {
-      const rows = listRef.current?.querySelectorAll<HTMLElement>("[role='treeitem']");
-      rows?.[Math.max(0, Math.min(index, rows.length - 1))]?.focus();
+      if (visibleNodes.length === 0) return;
+      const target = Math.max(0, Math.min(index, visibleNodes.length - 1));
+      pendingFocusRef.current = target;
+      virtual.scrollToIndex(target);
+      setFocusTick(focusTick + 1);
     };
 
     const handleRowKey = (event: KeyboardEvent<HTMLElement>, node: FlatNode, index: number) => {
@@ -317,6 +359,22 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
           event.preventDefault();
           if (index === 0) listRef.current?.parentElement?.querySelector("input")?.focus();
           else focusRow(index - 1);
+          break;
+        case "PageDown":
+          event.preventDefault();
+          focusRow(index + 10);
+          break;
+        case "PageUp":
+          event.preventDefault();
+          focusRow(index - 10);
+          break;
+        case "Home":
+          event.preventDefault();
+          focusRow(0);
+          break;
+        case "End":
+          event.preventDefault();
+          focusRow(visibleNodes.length - 1);
           break;
         case "ArrowRight":
           event.preventDefault();
@@ -480,6 +538,7 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
                 maxHeight: 380,
                 display: "flex",
                 flexDirection: "column",
+                overflow: "hidden",
                 borderRadius: "var(--cn-radius-md, 8px)",
               },
             },
@@ -513,11 +572,11 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
             </Box>
           )}
           <Box
-            ref={listRef}
+            ref={setListRef}
             role="tree"
             aria-label={label ?? "Opciones"}
             aria-multiselectable={multiple || undefined}
-            sx={{ overflowY: "auto", py: "4px" }}
+            sx={{ overflowY: "auto", py: "4px", flex: 1, minHeight: 0 }}
           >
             {visibleNodes.length === 0 && (
               <Box
@@ -531,7 +590,12 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
                 Sin resultados
               </Box>
             )}
-            {visibleNodes.map((node, index) => {
+            {getVirtualSlots(virtual.items, virtual.totalSize).map((slot) => {
+              if (slot.type === "spacer") {
+                return <Box key={slot.key} aria-hidden sx={{ height: `${slot.size}px` }} />;
+              }
+              const index = slot.item.index;
+              const node = visibleNodes[index];
               const hasChildren = node.descendants.length > 0;
               const isChecked = effectiveChecked.has(node.key);
               const partial =
@@ -549,6 +613,8 @@ export const CnTreeSelectField = forwardRef<HTMLDivElement, CnTreeSelectFieldPro
                   aria-selected={isChecked}
                   aria-disabled={node.option.disabled || undefined}
                   tabIndex={-1}
+                  data-index={index}
+                  ref={virtual.measureElement}
                   autoFocus={!searchable && index === 0}
                   onClick={() => toggleNode(node)}
                   onKeyDown={(event) => handleRowKey(event, node, index)}

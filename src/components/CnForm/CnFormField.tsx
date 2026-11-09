@@ -4,6 +4,7 @@ import type { GridSize } from "@mui/material";
 import type { KeyboardEvent, ReactNode } from "react";
 import { isValidElement, memo, useMemo, useRef } from "react";
 import { useAsyncOptions } from "../../utils/use-async-options";
+import type { CnLoadOptionsContext, CnResolveOptions } from "../../utils/use-async-options";
 import type { CnFieldSize } from "../../utils/field-styles";
 import { CnAddressField } from "../CnAddressField";
 import type { CnAddressValue } from "../CnAddressField";
@@ -170,19 +171,56 @@ const FieldContent = ({
   const boundLoader = useMemo(
     () =>
       loader
-        ? (args: { input: string; signal: AbortSignal }) =>
+        ? (args: CnLoadOptionsContext) =>
             loader({ ...args, formValues: formValuesRef.current, sectionContext: ctx })
         : undefined,
     // `ctx` cambia de identidad en cada render; basta con su índice.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [loader, ctx?.sectionId, ctx?.index],
   );
-  const isSearchField = field.type === "autocomplete";
+  const resolver = field.resolveOptions;
+  const boundResolve = useMemo<CnResolveOptions | undefined>(
+    () =>
+      resolver
+        ? (values, { signal }) => resolver(values, { signal, formValues: formValuesRef.current })
+        : undefined,
+    [resolver],
+  );
+  const optionLabel = field.getOptionLabel;
+  const getValueLabel = useMemo(
+    () =>
+      optionLabel
+        ? (item: string | number) => optionLabel({ value: item, label: String(item) })
+        : undefined,
+    [optionLabel],
+  );
+  // Listas grandes: select y transferlist buscan y paginan en el servidor
+  // cuando se pide (`pageSize`/`resolveOptions`) o cuando el loader devuelve
+  // páginas; autocomplete siempre busca por su cuenta.
+  const serverSideCapable = field.type === "select" || field.type === "transferlist";
+  const forcedServerSide =
+    serverSideCapable && (field.pageSize !== undefined || Boolean(field.resolveOptions));
+  const isSearchField = field.type === "autocomplete" || forcedServerSide;
   const remote = useAsyncOptions({
     loadOptions: isSearchField ? undefined : boundLoader,
     deps: depValues,
     disabled: depsMissing,
+    cacheKey: field.optionsCacheKey,
   });
+  const serverSide =
+    Boolean(boundLoader) && (forcedServerSide || (serverSideCapable && remote.paginated));
+  const serverProps = serverSide
+    ? {
+        loadOptions: boundLoader,
+        loadOptionsDeps: depValues,
+        pageSize: field.pageSize,
+        minSearchLength: field.minSearchLength,
+        searchDebounceMs: field.searchDebounceMs,
+        resolveOptions: boundResolve,
+        selectedOptions: field.selectedOptions,
+        cacheKey: field.optionsCacheKey,
+      }
+    : {};
 
   const label = evaluate(field.label, formValues, ctx);
   const placeholder = evaluate(field.placeholder, formValues, ctx);
@@ -196,7 +234,7 @@ const FieldContent = ({
   const isReadOnly =
     readOnly || Boolean(field.compute) || Boolean(evaluate(field.readOnly, formValues, ctx));
   const staticOptions = evaluate(field.options, formValues, ctx) ?? EMPTY_OPTIONS;
-  const rawOptions = boundLoader && !isSearchField ? remote.options : staticOptions;
+  const rawOptions = boundLoader && !isSearchField && !serverSide ? remote.options : staticOptions;
   const getOptionLabel = field.getOptionLabel;
   const options = useMemo(
     () =>
@@ -384,6 +422,10 @@ const FieldContent = ({
           emptyText={optionsLoading ? "Cargando…" : (remote.error ?? undefined)}
           renderOption={field.renderOption}
           renderValue={field.renderValue}
+          virtualize={field.virtualize}
+          maxResults={field.maxResults}
+          getValueLabel={getValueLabel}
+          {...serverProps}
           startAdornment={startAdornmentNode}
           value={(value ?? (field.multiple ? [] : "")) as CnSelectValue}
           onChange={onChange}
@@ -406,6 +448,12 @@ const FieldContent = ({
           minSearchLength={field.minSearchLength}
           searchDebounceMs={field.searchDebounceMs}
           selectedOptions={field.selectedOptions}
+          pageSize={field.pageSize}
+          resolveOptions={boundResolve}
+          getValueLabel={getValueLabel}
+          virtualize={field.virtualize}
+          maxResults={field.maxResults}
+          cacheKey={field.optionsCacheKey}
           renderOption={field.renderOption}
           onCreateOption={
             field.onCreateOption
@@ -692,6 +740,8 @@ const FieldContent = ({
           placeholder={placeholder}
           multiple={field.multiple}
           priority={field.priorityCountries}
+          virtualize={field.virtualize}
+          maxResults={field.maxResults}
           value={(value ?? (field.multiple ? [] : null)) as string | null | string[]}
           onChange={onChange}
           autoFocus={field.autoFocus}
@@ -737,6 +787,9 @@ const FieldContent = ({
           options={options}
           max={max}
           renderOption={field.renderOption}
+          virtualize={field.virtualize}
+          getValueLabel={getValueLabel}
+          {...serverProps}
           value={Array.isArray(value) ? (value as Array<string | number>) : []}
           onChange={onChange}
         />
@@ -753,6 +806,7 @@ const FieldContent = ({
           valueMode={field.treeValueMode}
           leavesOnly={field.leavesOnly}
           clearable={field.clearable}
+          virtualize={field.virtualize}
           renderOption={field.renderOption}
           autoFocus={field.autoFocus}
           value={(value ?? (field.multiple ? [] : null)) as CnTreeSelectValue}
@@ -827,6 +881,8 @@ const FieldContent = ({
           autoFocus={field.autoFocus}
           searchDelay={field.searchDebounceMs}
           minChars={field.minSearchLength}
+          maxSuggestions={field.maxResults}
+          virtualize={field.virtualize}
           reserveHelperSpace
           {...field.componentProps}
           value={stringValue}

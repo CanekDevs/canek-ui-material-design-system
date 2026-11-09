@@ -21,6 +21,12 @@ export type CnEventCalendarSkeletonProps = CnSkeletonCommonProps & {
   frame?: "card" | "outlined" | "plain";
   /** Alto del área horaria (semana/día). */
   height?: number;
+  /** Barra lateral (mini mes, calendarios y próximos). */
+  sidebar?: boolean;
+  /** Meses de la vista "multiMonth". */
+  multiMonthCount?: number;
+  /** Filas de recursos de la vista "timeline". */
+  rows?: number;
 };
 
 const border = "1px solid var(--cn-color-border, #dde0e4)";
@@ -63,7 +69,10 @@ const WEEK_BLOCKS: [number, number, number][] = [
   [6, 2, 1],
 ];
 
-/** Skeleton de `CnEventCalendar` por vista: mes con barras, semana con bloques, agenda o año. */
+/**
+ * Skeleton de `CnEventCalendar` por vista: mes con barras, semana con bloques,
+ * agenda, año, varios meses, recursos (filas con barras) y barra lateral.
+ */
 export const CnEventCalendarSkeleton = ({
   view = "month",
   toolbar = true,
@@ -74,6 +83,9 @@ export const CnEventCalendarSkeleton = ({
   bodyOnly = false,
   frame = "card",
   height = 420,
+  sidebar = false,
+  multiMonthCount = 3,
+  rows = 5,
   animation,
   ariaLabel = "Cargando calendario",
   sx,
@@ -348,6 +360,163 @@ export const CnEventCalendarSkeleton = ({
     </Box>
   );
 
+  const timeline = (
+    <Box
+      data-cn-event-calendar-skeleton="timeline"
+      sx={{ border, borderRadius: "10px", overflow: "hidden" }}
+    >
+      <Box sx={{ display: "flex", borderBottom: border, height: 44 }}>
+        <Box sx={{ width: 180, flexShrink: 0, borderRight: border, p: "14px 12px" }}>
+          <SkText width={60} size={11} />
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            alignItems: "flex-end",
+            gap: "6%",
+            px: "10px",
+            pb: "8px",
+          }}
+        >
+          {Array.from({ length: 8 }, (_, i) => (
+            <SkText key={i} width={28} size={10} />
+          ))}
+        </Box>
+      </Box>
+      {Array.from({ length: rows }, (_, r) => (
+        <Box
+          key={r}
+          data-cn-event-calendar-skeleton-resource
+          sx={{ display: "flex", height: 48, borderBottom: r < rows - 1 ? border : 0 }}
+        >
+          <Box
+            sx={{
+              width: 180,
+              flexShrink: 0,
+              borderRight: border,
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              px: "12px",
+            }}
+          >
+            <SkBlock circle width={30} />
+            <Box sx={{ flex: 1 }}>
+              <SkText width={varyWidth(r, 60, 30)} size={12} />
+              <SkText width={40} size={9} sx={{ mt: "5px" }} />
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              position: "relative",
+              flex: 1,
+              backgroundImage:
+                "linear-gradient(to right, var(--cn-color-border-subtle, #eceef1) 1px, transparent 1px)",
+              backgroundSize: "12.5% 100%",
+            }}
+          >
+            {[0, 1].map((k) => (
+              <Box
+                key={k}
+                data-cn-event-calendar-skeleton-bar
+                sx={{
+                  position: "absolute",
+                  top: 9,
+                  left: `${((r * 17 + k * 41) % 60) + 4}%`,
+                  width: `${12 + ((r * 7 + k * 5) % 14)}%`,
+                }}
+              >
+                <SkBlock width="100%" height={30} radius={6} />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  );
+
+  const multiMonth = (
+    <Box
+      data-cn-event-calendar-skeleton="multiMonth"
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: multiMonthCount >= 4 ? "repeat(2, 1fr)" : "1fr",
+          md: `repeat(${Math.min(multiMonthCount, multiMonthCount >= 6 ? 3 : multiMonthCount === 4 ? 2 : multiMonthCount)}, 1fr)`,
+          lg: `repeat(${Math.min(multiMonthCount, 4)}, 1fr)`,
+        },
+        gap: "14px",
+      }}
+    >
+      {Array.from({ length: multiMonthCount }, (_, m) => (
+        <Box
+          key={m}
+          data-cn-event-calendar-skeleton-month
+          sx={{ p: "10px", border, borderRadius: "12px" }}
+        >
+          <SkText width={110} size={13} sx={{ mb: "8px" }} />
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "3px" }}>
+            {Array.from({ length: 35 }, (_, d) => (
+              <Box
+                key={d}
+                sx={{
+                  height: 44,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "3px",
+                  alignItems: "center",
+                  pt: "4px",
+                }}
+              >
+                <SkText width={12} size={9} />
+                {(m + d) % 3 === 0 && <SkBlock width="90%" height={9} radius={3} />}
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  );
+
+  const sidebarBlock = (
+    <Box
+      data-cn-event-calendar-skeleton-sidebar
+      sx={{
+        width: 236,
+        flexShrink: 0,
+        display: { xs: "none", md: "flex" },
+        flexDirection: "column",
+        gap: "18px",
+      }}
+    >
+      <Box>
+        <SkText width={110} size={13} sx={{ mb: "10px" }} />
+        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}>
+          {Array.from({ length: 35 }, (_, d) => (
+            <SkBlock key={d} circle width={20} />
+          ))}
+        </Box>
+      </Box>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        <SkText width={80} size={10} />
+        {Array.from({ length: 3 }, (_, i) => (
+          <Box key={i} sx={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <SkBlock width={14} height={14} radius={4} />
+            <SkText width={varyWidth(i, 70, 40)} size={12} />
+          </Box>
+        ))}
+      </Box>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <SkText width={70} size={10} />
+        {Array.from({ length: 3 }, (_, i) => (
+          <SkBlock key={i} width="100%" height={38} radius={8} />
+        ))}
+      </Box>
+    </Box>
+  );
+
   const body =
     view === "month"
       ? month
@@ -355,7 +524,11 @@ export const CnEventCalendarSkeleton = ({
         ? timeGrid
         : view === "agenda"
           ? agenda
-          : year;
+          : view === "timeline"
+            ? timeline
+            : view === "multiMonth"
+              ? multiMonth
+              : year;
 
   return (
     <CnSkeletonGroup
@@ -381,7 +554,14 @@ export const CnEventCalendarSkeleton = ({
     >
       {!bodyOnly && toolbar && toolbarBlock}
       {!bodyOnly && legend && legendBlock}
-      {body}
+      {sidebar && !bodyOnly ? (
+        <Box sx={{ display: "flex", gap: "18px", alignItems: "flex-start" }}>
+          {sidebarBlock}
+          <Box sx={{ flex: 1, minWidth: 0 }}>{body}</Box>
+        </Box>
+      ) : (
+        body
+      )}
     </CnSkeletonGroup>
   );
 };
