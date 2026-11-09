@@ -1,6 +1,14 @@
 import { downloadText } from "../CnDataTable/export";
-import { normalizeSpan, pad2, toDate } from "./calendar-utils";
-import type { CnCalendarEvent, CnEventCategory, CnEventStatus } from "./CnEventCalendar.types";
+import { addDays, normalizeSpan, normalizeText, pad2, toDate, toIsoDate } from "./calendar-utils";
+import type {
+  CnCalendarEvent,
+  CnEventAttendee,
+  CnEventCategory,
+  CnEventRecurrence,
+  CnEventStatus,
+  CnWeekday,
+} from "./CnEventCalendar.types";
+import { fromZonedWallTime, isValidTimeZone } from "./timezone";
 
 /*
  * Constructor mínimo de iCalendar (RFC 5545): VCALENDAR con un VEVENT por
@@ -58,7 +66,8 @@ const STATUS: Partial<Record<CnEventStatus, string>> = {
   cancelled: "CANCELLED",
 };
 
-const buildRrule = (event: CnCalendarEvent, allDay: boolean): string | null => {
+/** Línea `RRULE:` de la repetición del evento (o `null`). */
+export const buildRrule = (event: CnCalendarEvent, allDay: boolean): string | null => {
   const rule = event.recurrence;
   if (!rule) return null;
   const parts = [`FREQ=${rule.freq.toUpperCase()}`];
@@ -70,6 +79,17 @@ const buildRrule = (event: CnCalendarEvent, allDay: boolean): string | null => {
         .map((d) => WEEKDAYS[d])
         .join(",")}`,
     );
+  }
+  if (rule.freq === "monthly" || rule.freq === "yearly") {
+    const hasBy = Boolean(rule.byNthWeekday?.length || rule.byMonthDay?.length);
+    const first = toDate(event.start);
+    if (hasBy && rule.freq === "yearly" && first) parts.push(`BYMONTH=${first.getMonth() + 1}`);
+    if (rule.byNthWeekday?.length) {
+      parts.push(
+        `BYDAY=${rule.byNthWeekday.map((n) => `${n.nth || ""}${WEEKDAYS[n.weekday]}`).join(",")}`,
+      );
+    }
+    if (rule.byMonthDay?.length) parts.push(`BYMONTHDAY=${rule.byMonthDay.join(",")}`);
   }
   if (rule.count) parts.push(`COUNT=${rule.count}`);
   else {
@@ -141,10 +161,41 @@ export const buildIcs = (events: CnCalendarEvent[], options: CnIcsOptions = {}):
       const cn = attendee.name.replace(/["\\]/g, "");
       lines.push(`ATTENDEE;CN="${cn}":mailto:${attendee.email}`);
     }
+    if (event.url) lines.push(`URL:${event.url}`);
+    if (event.meetingUrl) lines.push(`X-CN-MEETING-URL:${event.meetingUrl}`);
+    for (const minutes of event.reminders ?? []) {
+      lines.push(
+        "BEGIN:VALARM",
+        "ACTION:DISPLAY",
+        `DESCRIPTION:${escapeIcsText(event.title)}`,
+        `TRIGGER:${formatIcsDuration(-minutes)}`,
+        "END:VALARM",
+      );
+    }
     lines.push("END:VEVENT");
   }
   lines.push("END:VCALENDAR");
   return `${lines.map(foldIcsLine).join("\r\n")}\r\n`;
+};
+
+/** Nombre de archivo seguro a partir de un título. */
+export const slugify = (text: string): string =>
+  normalizeText(text)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "evento";
+
+/** Duración RFC 5545 (`-PT15M`, `-P1D`, `PT1H30M`) a partir de minutos. */
+export const formatIcsDuration = (minutes: number): string => {
+  const sign = minutes < 0 ? "-" : "";
+  let rest = Math.abs(Math.round(minutes));
+  if (rest === 0) return "PT0M";
+  if (rest % 1440 === 0) return `${sign}P${rest / 1440}D`;
+  const days = Math.floor(rest / 1440);
+  rest -= days * 1440;
+  const h = Math.floor(rest / 60);
+  const m = rest % 60;
+  return `${sign}P${days ? `${days}D` : ""}T${h ? `${h}H` : ""}${m ? `${m}M` : ""}`;
 };
 
 /** Descarga el `.ics`. */
@@ -155,4 +206,333 @@ export const downloadIcs = (
 ): void => {
   const name = /\.ics$/i.test(filename) ? filename : `${filename}.ics`;
   downloadText(buildIcs(events, options), name, "text/calendar;charset=utf-8");
+};
+
+/** Descarga un solo evento como `.ics`. */
+export const downloadEventIcs = (event: CnCalendarEvent, options: CnIcsOptions = {}): void =>
+  downloadIcs([event], slugify(event.title), options);
+
+// ─── Importación ──────────────────────────────────────────────────────
+
+export type CnIcsParseOptions = {
+  /** Categorías para relacionar `CATEGORIES` por etiqueta o id. */
+  categories?: CnEventCategory[];
+  /** Dominio que se quita de los UID (por defecto `canek.mx`, el de la exportación). */
+  uidDomain?: string;
+};
+
+/** Revierte el escape de texto RFC 5545. */
+export const unescapeIcsText = (text: string): string =>
+  text.replace(/\\([\\;,nN])/g, (_, c: string) => (c === "n" || c === "N" ? "\n" : c));
+
+/** Minutos de una duración RFC 5545 (`-PT15M` → -15). `null` si no es válida. */
+export const parseIcsDuration = (value: string): number | null => {
+  const m = /^([+-])?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/.exec(
+    value.trim(),
+  );
+  if (!m || value.trim() === "P" || value.trim().endsWith("T")) return null;
+  const [, sign, w, d, h, min, sec] = m;
+  const total =
+    Number(w ?? 0) * 10080 +
+    Number(d ?? 0) * 1440 +
+    Number(h ?? 0) * 60 +
+    Number(min ?? 0) +
+    Math.round(Number(sec ?? 0) / 60);
+  return sign === "-" ? -total : total;
+};
+
+type IcsProp = { name: string; params: Record<string, string>; value: string };
+
+const parseLine = (line: string): IcsProp | null => {
+  let inQuotes = false;
+  let colon = -1;
+  for (let i = 0; i < line.length; i += 1) {
+    const c = line[i];
+    if (c === '"') inQuotes = !inQuotes;
+    else if (c === ":" && !inQuotes) {
+      colon = i;
+      break;
+    }
+  }
+  if (colon < 0) return null;
+  const head = line.slice(0, colon);
+  const value = line.slice(colon + 1);
+  const segments = head.match(/(?:[^;"]|"[^"]*")+/g) ?? [head];
+  const params: Record<string, string> = {};
+  for (const seg of segments.slice(1)) {
+    const eq = seg.indexOf("=");
+    if (eq > 0) params[seg.slice(0, eq).toUpperCase()] = seg.slice(eq + 1).replace(/^"|"$/g, "");
+  }
+  return { name: segments[0].toUpperCase(), params, value };
+};
+
+type IcsDate = { date: Date; allDay: boolean };
+
+const parseIcsDate = (value: string, params: Record<string, string>): IcsDate | null => {
+  const v = value.trim();
+  const dateOnly = /^(\d{4})(\d{2})(\d{2})$/.exec(v);
+  if (dateOnly || params.VALUE === "DATE") {
+    const m = dateOnly ?? /^(\d{4})(\d{2})(\d{2})/.exec(v);
+    if (!m) return null;
+    return { date: new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])), allDay: true };
+  }
+  const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?(Z)?$/.exec(v);
+  if (!m) return null;
+  const [y, mo, d, h, mi, s] = [m[1], m[2], m[3], m[4], m[5], m[6] ?? "0"].map(Number);
+  if (m[7]) return { date: new Date(Date.UTC(y, mo - 1, d, h, mi, s)), allDay: false };
+  const wall = new Date(y, mo - 1, d, h, mi, s);
+  const tz = params.TZID?.replace(/^\//, "");
+  return { date: isValidTimeZone(tz) ? fromZonedWallTime(wall, tz) : wall, allDay: false };
+};
+
+const localIso = (date: Date, allDay: boolean): string => {
+  const day = toIsoDate(date);
+  if (allDay) return day;
+  const time = `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  return `${day}T${time}${date.getSeconds() ? `:${pad2(date.getSeconds())}` : ""}`;
+};
+
+const WEEKDAY_INDEX: Record<string, CnWeekday> = {
+  SU: 0,
+  MO: 1,
+  TU: 2,
+  WE: 3,
+  TH: 4,
+  FR: 5,
+  SA: 6,
+};
+
+const STATUS_FROM_ICS: Record<string, CnEventStatus> = {
+  CONFIRMED: "confirmed",
+  TENTATIVE: "tentative",
+  CANCELLED: "cancelled",
+};
+
+/** RRULE (sin prefijo) → repetición. Subconjunto: FREQ, INTERVAL, COUNT, UNTIL, BYDAY, BYMONTHDAY. */
+export const parseRrule = (value: string): CnEventRecurrence | null => {
+  const parts = Object.fromEntries(
+    value
+      .replace(/^RRULE:/i, "")
+      .split(";")
+      .map((p) => p.split("="))
+      .filter((p) => p.length === 2)
+      .map(([k, v]) => [k.toUpperCase(), v]),
+  );
+  const freq = (parts.FREQ ?? "").toLowerCase();
+  if (!["daily", "weekly", "monthly", "yearly"].includes(freq)) return null;
+  const rule: CnEventRecurrence = { freq: freq as CnEventRecurrence["freq"] };
+  if (parts.INTERVAL && Number(parts.INTERVAL) > 1) rule.interval = Number(parts.INTERVAL);
+  if (parts.COUNT) rule.count = Number(parts.COUNT);
+  if (parts.UNTIL) {
+    const until = parseIcsDate(parts.UNTIL, {});
+    if (until) rule.until = toIsoDate(until.date);
+  }
+  if (parts.BYDAY) {
+    const days = parts.BYDAY.split(",")
+      .map((t: string) => /^([+-]?\d+)?(SU|MO|TU|WE|TH|FR|SA)$/i.exec(t.trim()))
+      .filter(Boolean) as RegExpExecArray[];
+    if (rule.freq === "weekly" || rule.freq === "daily") {
+      if (rule.freq === "weekly")
+        rule.byWeekday = days.map((m) => WEEKDAY_INDEX[m[2].toUpperCase()]);
+    } else {
+      rule.byNthWeekday = days.map((m) => ({
+        weekday: WEEKDAY_INDEX[m[2].toUpperCase()],
+        nth: m[1] ? Number(m[1]) : 0,
+      }));
+    }
+  }
+  if (parts.BYMONTHDAY && rule.freq !== "weekly" && rule.freq !== "daily") {
+    rule.byMonthDay = parts.BYMONTHDAY.split(",").map(Number).filter(Boolean);
+  }
+  return rule;
+};
+
+/**
+ * Lee VEVENTs de un `.ics` (RFC 5545, mejor esfuerzo): DTSTART/DTEND con
+ * `VALUE=DATE`, UTC o `TZID`, DURATION, SUMMARY, DESCRIPTION, LOCATION, URL,
+ * STATUS, CATEGORIES, ATTENDEE, RRULE (subconjunto), EXDATE, VALARM y
+ * RECURRENCE-ID (las excepciones quedan como eventos sueltos y la serie las
+ * excluye). Las horas se devuelven como ISO local del navegador.
+ */
+export const parseIcs = (text: string, options: CnIcsParseOptions = {}): CnCalendarEvent[] => {
+  const { categories = [], uidDomain = "canek.mx" } = options;
+  const lines = text
+    .replace(/\r\n[ \t]/g, "")
+    .replace(/\n[ \t]/g, "")
+    .split(/\r?\n/);
+  const events: CnCalendarEvent[] = [];
+  const overrides: { uid: string; recurrenceId: string }[] = [];
+  let current: IcsProp[] | null = null;
+  let alarms: IcsProp[][] = [];
+  let alarm: IcsProp[] | null = null;
+  let depth = 0;
+
+  const categoryFor = (raw: string): string => {
+    const first = unescapeIcsText(raw.split(/(?<!\\),/)[0] ?? "").trim();
+    const key = normalizeText(first);
+    return (
+      categories.find((c) => normalizeText(c.label) === key || normalizeText(c.id) === key)?.id ??
+      first
+    );
+  };
+
+  const finish = (props: IcsProp[], valarms: IcsProp[][], index: number) => {
+    const get = (name: string) => props.find((p) => p.name === name);
+    const startProp = get("DTSTART");
+    const start = startProp ? parseIcsDate(startProp.value, startProp.params) : null;
+    if (!start) return;
+    const endProp = get("DTEND");
+    let end = endProp ? parseIcsDate(endProp.value, endProp.params) : null;
+    const duration = get("DURATION") ? parseIcsDuration(get("DURATION")!.value) : null;
+    if (!end && duration !== null) {
+      end = { date: new Date(start.date.getTime() + duration * 60_000), allDay: start.allDay };
+    }
+    let uid = get("UID")?.value.trim() || `ics-${index + 1}`;
+    if (uidDomain && uid.endsWith(`@${uidDomain}`)) uid = uid.slice(0, -uidDomain.length - 1);
+    uid = unescapeIcsText(uid);
+
+    const event: CnCalendarEvent = {
+      id: uid,
+      title: unescapeIcsText(get("SUMMARY")?.value ?? "") || "(Sin título)",
+      start: localIso(start.date, start.allDay),
+    };
+    if (start.allDay) {
+      event.allDay = true;
+      // DTEND de todo el día es exclusivo: se guarda el último día (inclusive).
+      if (end && end.date > addDays(start.date, 1)) {
+        event.end = localIso(addDays(end.date, -1), true);
+      }
+    } else if (end) {
+      event.end = localIso(end.date, false);
+    }
+    const description = get("DESCRIPTION");
+    if (description) event.description = unescapeIcsText(description.value);
+    const location = get("LOCATION");
+    if (location?.value) event.location = unescapeIcsText(location.value);
+    const url = get("URL");
+    if (url?.value) event.url = url.value.trim();
+    const meeting =
+      get("X-CN-MEETING-URL") ??
+      get("X-GOOGLE-CONFERENCE") ??
+      get("X-MICROSOFT-SKYPETEAMSMEETINGURL");
+    if (meeting?.value) event.meetingUrl = meeting.value.trim();
+    const status = STATUS_FROM_ICS[get("STATUS")?.value.trim().toUpperCase() ?? ""];
+    if (status) event.status = status;
+    const category = get("CATEGORIES");
+    if (category?.value) event.category = categoryFor(category.value);
+
+    const attendees: CnEventAttendee[] = props
+      .filter((p) => p.name === "ATTENDEE")
+      .map((p) => {
+        const email = p.value.replace(/^mailto:/i, "").trim();
+        const partstat = p.params.PARTSTAT?.toUpperCase();
+        return {
+          name: p.params.CN || email,
+          ...(email && { email }),
+          ...(partstat === "ACCEPTED" && { status: "accepted" as const }),
+          ...(partstat === "DECLINED" && { status: "declined" as const }),
+          ...(partstat === "NEEDS-ACTION" && { status: "pending" as const }),
+        };
+      });
+    if (attendees.length) event.attendees = attendees;
+
+    const rrule = get("RRULE");
+    const recurrence = rrule ? parseRrule(rrule.value) : null;
+    if (recurrence) {
+      const exdates = props
+        .filter((p) => p.name === "EXDATE")
+        .flatMap((p) => p.value.split(",").map((v) => parseIcsDate(v, p.params)))
+        .filter((x): x is IcsDate => Boolean(x))
+        .map((x) => toIsoDate(x.date));
+      if (exdates.length) recurrence.exdates = exdates;
+      event.recurrence = recurrence;
+    }
+
+    const reminders = valarms
+      .map((a) => a.find((p) => p.name === "TRIGGER"))
+      .filter((t): t is IcsProp => Boolean(t) && t?.params.VALUE !== "DATE-TIME")
+      .map((t) => parseIcsDuration(t.value))
+      .filter((m): m is number => m !== null && m <= 0)
+      .map((m) => -m);
+    if (reminders.length) event.reminders = reminders;
+
+    const recurrenceId = get("RECURRENCE-ID");
+    if (recurrenceId) {
+      const rid = parseIcsDate(recurrenceId.value, recurrenceId.params);
+      if (rid) {
+        const iso = toIsoDate(rid.date);
+        overrides.push({ uid, recurrenceId: iso });
+        event.id = `${uid}::${iso}`;
+      }
+    }
+    events.push(event);
+  };
+
+  let index = 0;
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    if (!line) continue;
+    const upper = line.toUpperCase();
+    if (upper === "BEGIN:VEVENT") {
+      current = [];
+      alarms = [];
+      depth = 0;
+      continue;
+    }
+    if (!current) continue;
+    if (upper === "END:VEVENT") {
+      finish(current, alarms, index);
+      index += 1;
+      current = null;
+      continue;
+    }
+    if (upper === "BEGIN:VALARM") {
+      alarm = [];
+      continue;
+    }
+    if (upper === "END:VALARM") {
+      if (alarm) alarms.push(alarm);
+      alarm = null;
+      continue;
+    }
+    if (upper.startsWith("BEGIN:")) {
+      depth += 1;
+      continue;
+    }
+    if (upper.startsWith("END:")) {
+      depth = Math.max(0, depth - 1);
+      continue;
+    }
+    if (depth > 0) continue;
+    const prop = parseLine(line);
+    if (!prop) continue;
+    if (alarm) alarm.push(prop);
+    else current.push(prop);
+  }
+
+  // Las excepciones (RECURRENCE-ID) se quitan de su serie.
+  for (const { uid, recurrenceId } of overrides) {
+    const master = events.find((e) => e.id === uid && e.recurrence);
+    if (master?.recurrence) {
+      master.recurrence.exdates = [...(master.recurrence.exdates ?? []), recurrenceId];
+    }
+  }
+  return events;
+};
+
+/** Lee un archivo `.ics` (File/Blob). */
+export const readIcsFile = async (
+  file: Blob,
+  options: CnIcsParseOptions = {},
+): Promise<CnCalendarEvent[]> => {
+  const text =
+    typeof file.text === "function"
+      ? await file.text()
+      : await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result ?? ""));
+          reader.onerror = () => reject(reader.error);
+          reader.readAsText(file);
+        });
+  return parseIcs(text, options);
 };

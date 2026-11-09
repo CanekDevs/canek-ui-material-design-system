@@ -55,6 +55,7 @@ export const EventListItem = ({
       component="button"
       type="button"
       data-cn-event={event.id}
+      data-cn-occurrence={occ.key}
       aria-label={`${event.title}, ${timeInDay(occ, day)}`}
       onClick={(e: MouseEvent<HTMLElement>) => ctx.openEvent(occ, e.currentTarget)}
       sx={{

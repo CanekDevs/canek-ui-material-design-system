@@ -1,15 +1,113 @@
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
+import Link from "@mui/material/Link";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Popover from "@mui/material/Popover";
 import Tooltip from "@mui/material/Tooltip";
 import type { MouseEvent, ReactNode } from "react";
+import { useState } from "react";
 import { CnAvatar, CnAvatarGroup } from "../CnAvatar";
 import { CnButton } from "../CnButton";
 import type { CnChipColor } from "../CnChip";
 import { CnChip } from "../CnChip";
 import { CnIcon } from "../CnIcon";
 import { alpha, formatDayLong, formatOccurrenceTime, formatTime } from "./calendar-utils";
-import type { CnEventCategory, CnEventOccurrence, CnEventStatus } from "./CnEventCalendar.types";
+import { describeConflict } from "./conflicts";
+import type {
+  CnCalendarIntegrations,
+  CnEventCategory,
+  CnEventConflict,
+  CnEventOccurrence,
+  CnEventStatus,
+} from "./CnEventCalendar.types";
+import { formatReminders } from "./event-badges";
+import {
+  CALENDAR_PROVIDERS,
+  calendarProviderUrl,
+  detectMeetingLink,
+  isPhysicalLocation,
+  mapSearchUrl,
+  toLinkInput,
+} from "./integrations";
+
+export const openUrl = (url: string) => {
+  if (typeof window !== "undefined") window.open(url, "_blank", "noopener,noreferrer");
+};
+
+/** Menú "Agregar a calendario" (Google, Outlook, Office 365, Yahoo y .ics). */
+export const AddToCalendarMenu = ({
+  occurrence,
+  onDownloadIcs,
+}: {
+  occurrence: CnEventOccurrence;
+  onDownloadIcs?: () => void;
+}) => {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const input = toLinkInput(occurrence);
+  if (!input) return null;
+  return (
+    <>
+      <CnButton
+        size="small"
+        variant="text"
+        color="neutral"
+        startIcon="event_available"
+        aria-haspopup="menu"
+        onClick={(e: MouseEvent<HTMLElement>) => setAnchor(e.currentTarget)}
+        sx={{ textTransform: "none" }}
+      >
+        Agregar a calendario
+      </CnButton>
+      <Menu
+        anchorEl={anchor}
+        open={Boolean(anchor)}
+        onClose={() => setAnchor(null)}
+        slotProps={{ paper: { sx: { minWidth: 210, borderRadius: "10px" } } }}
+      >
+        {CALENDAR_PROVIDERS.map((p) => (
+          <MenuItem
+            key={p.id}
+            component="a"
+            href={calendarProviderUrl(p.id, input)}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-cn-add-to={p.id}
+            onClick={() => setAnchor(null)}
+          >
+            <ListItemIcon>
+              <CnIcon name="open_in_new" size="sm" />
+            </ListItemIcon>
+            <ListItemText
+              primary={p.label}
+              primaryTypographyProps={{ fontSize: "0.82rem", fontWeight: 600 }}
+            />
+          </MenuItem>
+        ))}
+        {onDownloadIcs && (
+          <MenuItem
+            onClick={() => {
+              setAnchor(null);
+              onDownloadIcs();
+            }}
+          >
+            <ListItemIcon>
+              <CnIcon name="download" size="sm" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Descargar .ics"
+              secondary="Apple Calendar y otros"
+              primaryTypographyProps={{ fontSize: "0.82rem", fontWeight: 600 }}
+              secondaryTypographyProps={{ fontSize: "0.7rem" }}
+            />
+          </MenuItem>
+        )}
+      </Menu>
+    </>
+  );
+};
 
 const CHIP_SX = { "& .MuiChip-label": { paddingInline: "8px" } };
 
@@ -43,6 +141,15 @@ export type EventPopoverProps = {
   actions?: ReactNode;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** Ocurrencia con instantes reales (para los enlaces "Agregar a…"). */
+  linkOccurrence?: CnEventOccurrence | null;
+  integrations?: CnCalendarIntegrations;
+  conflicts?: CnEventConflict[];
+  /** Zona mostrada junto al horario ("GMT-5"). */
+  timeZoneLabel?: string;
+  onDownloadIcs?: () => void;
+  /** Reemplaza el contenido (`renderEventPopover`). */
+  content?: ReactNode;
 };
 
 /** Tarjeta de detalle de un evento (título, horario, lugar, asistentes, descripción, acciones). */
@@ -55,10 +162,18 @@ export const EventPopover = ({
   actions,
   onEdit,
   onDelete,
+  linkOccurrence,
+  integrations = {},
+  conflicts = [],
+  timeZoneLabel,
+  onDownloadIcs,
+  content,
 }: EventPopoverProps) => {
   const open = Boolean(occurrence && anchorEl);
   const event = occurrence?.event;
   const status = event?.status ? STATUS_META[event.status] : null;
+  const meeting = event && integrations.meeting !== false ? detectMeetingLink(event) : null;
+  const showMap = integrations.map !== false && isPhysicalLocation(event?.location);
   return (
     <Popover
       open={open}
@@ -81,7 +196,12 @@ export const EventPopover = ({
         },
       }}
     >
-      {occurrence && event && (
+      {occurrence && event && content !== undefined && content !== null && (
+        <Box data-cn-event-popover data-cn-custom>
+          {content}
+        </Box>
+      )}
+      {occurrence && event && (content === undefined || content === null) && (
         <Box data-cn-event-popover>
           <Box sx={{ height: 5, backgroundColor: occurrence.color }} />
           <Box sx={{ p: "14px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -169,8 +289,83 @@ export const EventPopover = ({
               </IconButton>
             </Box>
 
-            {row("schedule", formatOccurrenceTime(occurrence, locale))}
-            {event.location && row("location_on", event.location)}
+            {row(
+              "schedule",
+              <>
+                {formatOccurrenceTime(occurrence, locale)}
+                {timeZoneLabel && !occurrence.allDay && (
+                  <Box
+                    component="span"
+                    data-cn-popover-tz
+                    sx={{ ml: "6px", color: "var(--cn-color-text-muted, #6e7682)" }}
+                  >
+                    ({timeZoneLabel})
+                  </Box>
+                )}
+              </>,
+            )}
+            {meeting && (
+              <Box sx={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                <CnButton
+                  size="small"
+                  variant="contained"
+                  color="accent"
+                  startIcon="videocam"
+                  href={meeting.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-cn-join={meeting.provider}
+                  sx={{ textTransform: "none" }}
+                >
+                  {`Unirse con ${meeting.label}`}
+                </CnButton>
+              </Box>
+            )}
+            {event.location &&
+              row(
+                "location_on",
+                <>
+                  <span>{event.location}</span>
+                  {showMap && (
+                    <>
+                      {" · "}
+                      <Link
+                        href={mapSearchUrl(event.location)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-cn-map-link
+                        sx={{ fontSize: "0.78rem", fontWeight: 600 }}
+                      >
+                        Ver en mapa
+                      </Link>
+                    </>
+                  )}
+                </>,
+              )}
+            {event.reminders &&
+              event.reminders.length > 0 &&
+              row("notifications", formatReminders(event.reminders))}
+            {conflicts.length > 0 && (
+              <Box
+                data-cn-popover-conflicts
+                sx={{
+                  display: "flex",
+                  gap: "8px",
+                  p: "8px 10px",
+                  borderRadius: "8px",
+                  fontSize: "0.78rem",
+                  color: "#8a5d00",
+                  backgroundColor: "rgba(224, 160, 32, 0.12)",
+                }}
+              >
+                <CnIcon name="warning" size={16} />
+                <Box>
+                  {conflicts.map((c) => (
+                    <Box key={`${c.with}-${c.reason}`}>{describeConflict(c)}</Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
             {event.attendees &&
               event.attendees.length > 0 &&
               row(
@@ -205,6 +400,14 @@ export const EventPopover = ({
                 }}
               >
                 {event.description}
+              </Box>
+            )}
+            {integrations.addToCalendar !== false && (linkOccurrence ?? occurrence) && (
+              <Box sx={{ display: "flex", justifyContent: "flex-start", mt: "-4px" }}>
+                <AddToCalendarMenu
+                  occurrence={linkOccurrence ?? occurrence}
+                  onDownloadIcs={onDownloadIcs}
+                />
               </Box>
             )}
             {(actions || onEdit || onDelete) && (

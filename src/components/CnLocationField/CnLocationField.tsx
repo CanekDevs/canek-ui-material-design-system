@@ -20,6 +20,8 @@ import {
   MUI_FIELD_SIZE,
 } from "../../utils/field-styles";
 import type { CnValidationRule } from "../CnForm/CnForm.types";
+import { CnMap } from "../CnMap/CnMap";
+import { useMaps } from "../CnMap/CnMapsProvider";
 import { CnLocationFieldSkeleton } from "./CnLocationFieldSkeleton";
 
 export type CnLocationValue = {
@@ -30,7 +32,10 @@ export type CnLocationValue = {
 };
 
 export type CnLocationFieldProps = CnFieldBaseProps<CnLocationValue | null> & {
-  /** Vista previa con Google Maps embebido. Por defecto `true`. */
+  /**
+   * Vista previa del mapa. Por defecto `true`. Sin `CnMapsProvider` con API key es el
+   * iframe embebido; con key el mapa es interactivo (clic o arrastre del pin para elegir).
+   */
   showMap?: boolean;
   /** Alto del mapa en px. Por defecto 220. */
   mapHeight?: number;
@@ -188,6 +193,7 @@ export const CnLocationField = forwardRef<HTMLFieldSetElement, CnLocationFieldPr
     const [lngDraft, setLngDraft] = useState(() => toDraft(location.lng));
     const [locating, setLocating] = useState(false);
     const [geoMessage, setGeoMessage] = useState<string | null>(null);
+    const { enabled: mapsEnabled } = useMaps();
     const mounted = useRef(true);
     useEffect(
       () => () => {
@@ -207,6 +213,12 @@ export const CnLocationField = forwardRef<HTMLFieldSetElement, CnLocationFieldPr
     const geoSupported = typeof navigator !== "undefined" && Boolean(navigator.geolocation);
     const locked = Boolean(disabled || readOnly);
     const valid = isValidCoordinates(location);
+    const point =
+      valid && location.lat !== null && location.lng !== null
+        ? { lat: location.lat, lng: location.lng }
+        : null;
+    // Con API key de Google Maps el mapa sirve también para elegir el punto.
+    const canPick = mapsEnabled && !locked;
 
     if (skeleton) {
       return (
@@ -227,6 +239,14 @@ export const CnLocationField = forwardRef<HTMLFieldSetElement, CnLocationFieldPr
     const emit = (patch: Partial<CnLocationValue>) => {
       control.markChanged();
       setCurrent({ ...location, ...patch });
+    };
+
+    const pick = (position: { lat: number; lng: number }) => {
+      const lat = round(position.lat, decimals);
+      const lng = round(position.lng, decimals);
+      setLatDraft(toDraft(lat));
+      setLngDraft(toDraft(lng));
+      emit({ lat, lng });
     };
 
     const locateMe = () => {
@@ -369,30 +389,32 @@ export const CnLocationField = forwardRef<HTMLFieldSetElement, CnLocationFieldPr
           />
         )}
         {showMap && (
-          <Box
-            data-cn-location-map
-            sx={{
-              mt: "10px",
-              height: mapHeight,
-              borderRadius: "var(--cn-radius-md, 8px)",
-              overflow: "hidden",
-              border: "1px solid var(--cn-color-border, #dde0e4)",
-              backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
-            }}
-          >
-            {valid && location.lat !== null && location.lng !== null ? (
-              <Box
-                component="iframe"
-                title={`Mapa de la ubicación ${location.lat}, ${location.lng}`}
-                src={getGoogleMapsEmbedUrl(location.lat, location.lng, zoom)}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                sx={{ width: "100%", height: "100%", border: 0, display: "block" }}
+          <Box data-cn-location-map sx={{ mt: "10px" }}>
+            {valid || canPick ? (
+              <CnMap
+                center={point}
+                zoom={point ? zoom : Math.min(zoom, 11)}
+                height={mapHeight}
+                title={
+                  point
+                    ? `Mapa de la ubicación ${point.lat}, ${point.lng}`
+                    : "Mapa para elegir la ubicación"
+                }
+                picker={canPick}
+                markers={point && !canPick ? [{ id: "location", position: point }] : undefined}
+                onClick={canPick ? pick : undefined}
+                onMarkerDrag={canPick ? pick : undefined}
+                showOpenLink={false}
+                markerList="hidden"
+                radius="var(--cn-radius-md, 8px)"
               />
             ) : (
               <Box
                 sx={{
-                  height: "100%",
+                  height: mapHeight,
+                  borderRadius: "var(--cn-radius-md, 8px)",
+                  border: "1px solid var(--cn-color-border, #dde0e4)",
+                  backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",

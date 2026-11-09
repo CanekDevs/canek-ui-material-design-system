@@ -6,12 +6,14 @@ import {
   addDays,
   addMinutes,
   alpha,
+  businessIntervals,
   DAY_MS,
   diffDays,
   formatDayLong,
   formatHour,
   formatTime,
   isOutOfBounds,
+  isoWeek,
   isSameDay,
   minutesOfDay,
   resolveColor,
@@ -19,9 +21,12 @@ import {
   weekdayName,
 } from "../calendar-utils";
 import type { CnEventOccurrence } from "../CnEventCalendar.types";
+import { AVAILABILITY_META, conflictRing, EventBadges } from "../event-badges";
 import { layoutSegments, layoutTimedEvents } from "../event-layout";
+import { formatTimeInZone, fromZonedWallTime, timeZoneLabel } from "../timezone";
 
 const GUTTER = 56;
+const SECONDARY_GUTTER = 48;
 const ALL_DAY_LANE = 22;
 
 export type TimeGridViewProps = {
@@ -68,7 +73,14 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
     slotDuration,
     workingHours,
     showNowIndicator,
+    secondaryTimeZone,
+    timeZone,
+    conflicts,
+    availability,
+    renderEvent,
   } = ctx;
+  const gutter = GUTTER + (secondaryTimeZone ? SECONDARY_GUTTER : 0);
+  const gutterColumns = `${gutter}px minmax(0, 1fr)`;
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const columnsRef = useRef<HTMLDivElement | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -317,23 +329,55 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
         />,
       ];
     }
-    if (!workingHours) return [];
-    const workDays = workingHours.days ?? [1, 2, 3, 4, 5];
+    const dayStart = atMinutes(day, 0);
+    const dayEnd = addDays(dayStart, 1);
+    const avail = availability
+      .filter((a) => !a.resourceId && a.start < dayEnd && a.end > dayStart)
+      .map((a, i) => {
+        const from = a.start < dayStart ? 0 : minutesOfDay(a.start);
+        const to = a.end >= dayEnd ? 24 * 60 : minutesOfDay(a.end);
+        const top = Math.max(from, gridStart);
+        const bottom = Math.min(to, gridEnd);
+        if (bottom <= top) return null;
+        const meta = AVAILABILITY_META[a.status];
+        return (
+          <Box
+            key={`av-${i}`}
+            data-cn-availability={a.status}
+            title={a.label ?? meta.label}
+            sx={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: (top - gridStart) * pxPerMin,
+              height: (bottom - top) * pxPerMin,
+              background: meta.background,
+              pointerEvents: "none",
+            }}
+          />
+        );
+      });
+    if (!workingHours) return avail;
     const off = "var(--cn-color-neutral-50, #fafbfc)";
-    if (!workDays.includes(day.getDay() as never)) {
+    const intervals = businessIntervals(workingHours, day.getDay());
+    if (!intervals.length) {
       return [
         <Box
           key="o"
           data-cn-offhours
           sx={{ position: "absolute", inset: 0, backgroundColor: off }}
         />,
+        ...avail,
       ];
     }
-    const blocks: [number, number][] = [
-      [gridStart, Math.min(gridEnd, workingHours.start * 60)],
-      [Math.max(gridStart, workingHours.end * 60), gridEnd],
-    ];
-    return blocks
+    const blocks: [number, number][] = [];
+    let cursor = gridStart;
+    for (const [a, b] of intervals) {
+      blocks.push([cursor, Math.min(gridEnd, a)]);
+      cursor = Math.max(cursor, b);
+    }
+    blocks.push([Math.max(gridStart, cursor), gridEnd]);
+    const offBlocks = blocks
       .filter(([a, b]) => b > a)
       .map(([a, b]) => (
         <Box
@@ -349,6 +393,7 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
           }}
         />
       ));
+    return [...offBlocks, ...avail];
   };
 
   return (
@@ -362,13 +407,56 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
         role="row"
         sx={{
           display: "grid",
-          gridTemplateColumns: `${GUTTER}px minmax(0, 1fr)`,
+          gridTemplateColumns: gutterColumns,
           borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
           overflowY: "hidden",
           scrollbarGutter: "stable",
         }}
       >
-        <Box />
+        <Box
+          data-cn-grid-corner
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            alignItems: "flex-end",
+            gap: "2px",
+            pr: "6px",
+            pb: "4px",
+            fontSize: "0.62rem",
+            fontWeight: 700,
+            color: "var(--cn-color-text-muted, #6e7682)",
+            lineHeight: 1.1,
+          }}
+        >
+          {ctx.showWeekNumbers && days[0] && (
+            <Box
+              component="span"
+              data-cn-week-number
+              title={`Semana ${isoWeek(days[0])}`}
+              sx={{
+                px: "5px",
+                py: "1px",
+                borderRadius: "999px",
+                backgroundColor: "var(--cn-color-neutral-100, #f1f3f5)",
+              }}
+            >
+              S{isoWeek(days[0])}
+            </Box>
+          )}
+          {(secondaryTimeZone || timeZone) && days[0] && (
+            <Box sx={{ display: "flex", gap: "6px" }}>
+              {secondaryTimeZone && (
+                <span title={secondaryTimeZone} data-cn-secondary-tz-label>
+                  {timeZoneLabel(secondaryTimeZone, days[0], locale)}
+                </span>
+              )}
+              <span title={timeZone ?? "Hora local"}>
+                {timeZone ? timeZoneLabel(timeZone, days[0], locale) : "Local"}
+              </span>
+            </Box>
+          )}
+        </Box>
         <Box sx={{ display: "grid", gridTemplateColumns: columnsTemplate }}>
           {days.map(dayHeader)}
         </Box>
@@ -380,7 +468,7 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
         data-cn-all-day-row
         sx={{
           display: "grid",
-          gridTemplateColumns: `${GUTTER}px minmax(0, 1fr)`,
+          gridTemplateColumns: gutterColumns,
           borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
           overflowY: "hidden",
           scrollbarGutter: "stable",
@@ -439,6 +527,7 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
                 component="button"
                 type="button"
                 data-cn-event={occ.event.id}
+                data-cn-occurrence={occ.key}
                 aria-label={`${occ.event.title}, todo el día`}
                 onClick={openEvent(occ)}
                 sx={{
@@ -461,13 +550,30 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
+                  ...conflictRing(conflicts.get(occ.key)),
                   "&:focus-visible": {
                     outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
                     outlineOffset: 1,
                   },
                 }}
               >
-                {occ.event.title}
+                {renderEvent ? (
+                  renderEvent(occ, {
+                    view,
+                    compact: true,
+                    conflicts: conflicts.get(occ.key) ?? [],
+                  })
+                ) : (
+                  <>
+                    <Box
+                      component="span"
+                      sx={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}
+                    >
+                      {occ.event.title}
+                    </Box>
+                    <EventBadges occurrence={occ} conflicts={conflicts.get(occ.key)} inverse />
+                  </>
+                )}
               </Box>
             );
           })}
@@ -485,8 +591,33 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
           position: "relative",
         }}
       >
-        <Box sx={{ display: "grid", gridTemplateColumns: `${GUTTER}px minmax(0, 1fr)` }}>
+        <Box sx={{ display: "grid", gridTemplateColumns: gutterColumns }}>
           <Box sx={{ position: "relative", height: totalHeight }} aria-hidden>
+            {secondaryTimeZone &&
+              days[0] &&
+              hours.map((h, i) => {
+                const wall = atMinutes(days[0], h * 60);
+                const instant = timeZone ? fromZonedWallTime(wall, timeZone) : wall;
+                return (
+                  <Box
+                    key={`s${h}`}
+                    data-cn-secondary-hour
+                    sx={{
+                      position: "absolute",
+                      top: i * hourHeight - 7,
+                      left: 4,
+                      width: SECONDARY_GUTTER - 6,
+                      textAlign: "right",
+                      fontSize: "0.64rem",
+                      fontVariantNumeric: "tabular-nums",
+                      color: "var(--cn-color-text-subtle, #9aa1aa)",
+                      display: i === 0 ? "none" : "block",
+                    }}
+                  >
+                    {formatTimeInZone(instant, secondaryTimeZone)}
+                  </Box>
+                );
+              })}
             {hours.map((h, i) => (
               <Box
                 key={h}
@@ -599,6 +730,7 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
                         component="button"
                         type="button"
                         data-cn-event={occ.event.id}
+                        data-cn-occurrence={occ.key}
                         data-cn-column={column}
                         data-cn-columns={columns}
                         aria-label={`${occ.event.title}, ${formatTime(occ.start)} a ${formatTime(occ.end)}`}
@@ -635,6 +767,7 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
                           cursor: draggable ? (isDragging ? "grabbing" : "grab") : "pointer",
                           touchAction: draggable ? "none" : undefined,
                           opacity: occ.event.status === "cancelled" ? 0.6 : 1,
+                          ...conflictRing(conflicts.get(occ.key)),
                           "&:hover": { backgroundColor: alpha(occ.color, 0.24) },
                           "&:focus-visible": {
                             outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
@@ -642,42 +775,68 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
                           },
                         }}
                       >
-                        <Box
-                          component="span"
-                          sx={{
-                            fontWeight: 700,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: compactBlock ? "nowrap" : "normal",
-                            textDecoration:
-                              occ.event.status === "cancelled" ? "line-through" : undefined,
-                          }}
-                        >
-                          {occ.event.title}
-                        </Box>
-                        <Box
-                          component="span"
-                          sx={{
-                            color: "var(--cn-color-text-muted, #6e7682)",
-                            fontVariantNumeric: "tabular-nums",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {formatTime(occ.start)} – {formatTime(occ.end)}
-                        </Box>
-                        {!compactBlock && blockHeight > 60 && occ.event.location && (
-                          <Box
-                            component="span"
-                            sx={{
-                              color: "var(--cn-color-text-muted, #6e7682)",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {occ.event.location}
-                          </Box>
+                        {renderEvent ? (
+                          renderEvent(occ, {
+                            view,
+                            compact: compactBlock,
+                            conflicts: conflicts.get(occ.key) ?? [],
+                          })
+                        ) : (
+                          <>
+                            <Box
+                              component="span"
+                              sx={{
+                                display: "flex",
+                                alignItems: "flex-start",
+                                gap: "4px",
+                                minWidth: 0,
+                              }}
+                            >
+                              <Box
+                                component="span"
+                                sx={{
+                                  flex: 1,
+                                  minWidth: 0,
+                                  fontWeight: 700,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: compactBlock ? "nowrap" : "normal",
+                                  textDecoration:
+                                    occ.event.status === "cancelled" ? "line-through" : undefined,
+                                }}
+                              >
+                                {occ.event.title}
+                              </Box>
+                              <EventBadges occurrence={occ} conflicts={conflicts.get(occ.key)} />
+                            </Box>
+                            <Box
+                              component="span"
+                              sx={{
+                                color: "var(--cn-color-text-muted, #6e7682)",
+                                fontVariantNumeric: "tabular-nums",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {formatTime(occ.start)} – {formatTime(occ.end)}
+                            </Box>
+                          </>
                         )}
+                        {!renderEvent &&
+                          !compactBlock &&
+                          blockHeight > 60 &&
+                          occ.event.location && (
+                            <Box
+                              component="span"
+                              sx={{
+                                color: "var(--cn-color-text-muted, #6e7682)",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {occ.event.location}
+                            </Box>
+                          )}
                         {draggable && (
                           <Box
                             component="span"

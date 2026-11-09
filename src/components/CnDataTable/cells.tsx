@@ -14,6 +14,7 @@ import { CnFlagIcon } from "../CnFlagIcon";
 import { CnSparkline } from "../CnMetricCard/CnMetricCard";
 import { normalizeDateValue } from "../CnForm/CnForm.engine";
 import { CnIcon } from "../CnIcon";
+import { CnMap } from "../CnMap/CnMap";
 import { ICON_ALIASES, ICON_REGISTRY } from "../CnIcon/icons";
 import type {
   CnCellThresholds,
@@ -4093,20 +4094,17 @@ export const renderTypedCell = (
           ]}
         >
           {options.mapPreview !== false && (
-            <Box
-              component="iframe"
-              title="Mapa"
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              src={`https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`}
-              sx={{
-                display: "block",
-                width: "100%",
-                height: 170,
-                border: 0,
-                borderRadius: "10px",
-                backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
-              }}
+            <CnMap
+              center={point}
+              query={point ? undefined : text}
+              zoom={15}
+              height={170}
+              framed={false}
+              radius={10}
+              controls={{ zoom: true, fullscreen: false }}
+              gestureHandling="cooperative"
+              showOpenLink={false}
+              markerList="hidden"
             />
           )}
         </CnCellDetail>,

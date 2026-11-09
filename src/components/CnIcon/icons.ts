@@ -1,5 +1,15 @@
 import type { SvgIconComponent } from "@mui/icons-material";
 
+import AddLink from "@mui/icons-material/AddLink";
+import CalendarViewMonth from "@mui/icons-material/CalendarViewMonth";
+import MeetingRoom from "@mui/icons-material/MeetingRoom";
+import ViewTimeline from "@mui/icons-material/ViewTimeline";
+
+import DarkMode from "@mui/icons-material/DarkMode";
+import Square from "@mui/icons-material/Square";
+import Translate from "@mui/icons-material/Translate";
+import Web from "@mui/icons-material/Web";
+
 import Celebration from "@mui/icons-material/Celebration";
 import DragIndicator from "@mui/icons-material/DragIndicator";
 import IosShare from "@mui/icons-material/IosShare";
@@ -430,6 +440,14 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 
 export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
+  add_link: AddLink,
+  calendar_view_month: CalendarViewMonth,
+  meeting_room: MeetingRoom,
+  view_timeline: ViewTimeline,
+  dark_mode: DarkMode,
+  square: Square,
+  translate: Translate,
+  web: Web,
   celebration: Celebration,
   drag_indicator: DragIndicator,
   ios_share: IosShare,

@@ -633,3 +633,39 @@ export * from "./components/CnScheduleField";
 export * from "./components/CnLocationField";
 export * from "./components/CnWeekdaysField";
 export * from "./components/CnTimeRangeField";
+
+// Mapas de Google con estilos (Styling Wizard, mapId de la nube o presets).
+export * from "./components/CnMap";
+
+// Listas: selección, grupos, árbol, búsqueda, reordenar y virtualización.
+export * from "./components/CnList";
+
+// Listas grandes: virtualización, carga paginada, valores preseleccionados y filtrado rápido.
+export { getVirtualSlots, useVirtualList } from "./utils/use-virtual-list";
+export type {
+  CnVirtualAlign,
+  CnVirtualItem,
+  CnVirtualSlot,
+  UseVirtualListParams,
+  UseVirtualListReturn,
+} from "./utils/use-virtual-list";
+export { clearResolvedOptionsCache, useResolvedOptions } from "./utils/use-resolved-options";
+export { clearOptionsCache } from "./utils/use-async-options";
+export type {
+  CnLoadOptionsResult,
+  CnOptionsPage,
+  CnResolveOptions,
+} from "./utils/use-async-options";
+export { filterOptionsFast, formatCount } from "./utils/option-filter";
+export type { CnFilterOptions, CnFilterResult } from "./utils/option-filter";
+export { LruCache } from "./utils/lru-cache";
+export {
+  CnListStatus,
+  CnVirtualListbox,
+  CnVirtualListboxContext,
+} from "./components/CnAutocompleteField";
+export type {
+  CnListStatusProps,
+  CnVirtualListboxConfig,
+  CnVirtualListboxProps,
+} from "./components/CnAutocompleteField";
