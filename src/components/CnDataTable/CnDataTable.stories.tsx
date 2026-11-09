@@ -706,6 +706,176 @@ export const MoreCellTypes: Story = {
   ),
 };
 
+type Ticket = {
+  id: string;
+  title: string;
+  priority: string;
+  due: Date;
+  done: boolean;
+  delta: number;
+  ip: string;
+  uuid: string;
+  version: string;
+  notes: string;
+  channel: { icon: string; label: string; tone?: "primary" | "success" | "warning" | "info" };
+  active: boolean;
+  step: number;
+  stage: string;
+  days: number[];
+  hours: [string, string];
+  birth: string;
+  budget: [number, number];
+  sentiment: string | number;
+  score: number;
+  order: { label: string; id: string; subtitle: string };
+  unread: number;
+};
+
+const NOW = Date.now();
+const TICKET_STAGES = ["Nuevo", "Asignado", "En progreso", "Validación", "Cerrado"];
+const TICKET_STEPS = ["Registro", "Diagnóstico", "Solución", "Cierre"];
+
+const TICKETS: Ticket[] = [
+  ["Error al facturar", "critical", 3, 12.4, "192.168.1.24", "1.4.0"],
+  ["Alta de proveedor", "medium", 50, -3.1, "10.0.0.8", "1.3.2"],
+  ["Reporte mensual", "low", 240, 0, "8.8.8.8", "2.0.0-beta.1"],
+  ["Acceso VPN", "high", -30, 5.6, "2001:db8::42", "1.4.0"],
+  ["Cambio de domicilio", "medium", 120, -8.9, "999.1.1.1", "1.2"],
+].map(([title, priority, hours, delta, ip, version], i) => ({
+  id: `TK-${1040 + i}`,
+  title: title as string,
+  priority: priority as string,
+  due: new Date(NOW + (hours as number) * 3600000),
+  done: i === 2,
+  delta: delta as number,
+  ip: ip as string,
+  uuid: `3f2a9c1e-7b4d-4c2a-9f1e-12345678${String(90 + i).padStart(4, "0")}`,
+  version: version as string,
+  notes: [
+    "<p>El cliente reporta que <strong>no se timbra</strong> la factura.</p><ul><li>Revisar certificado</li><li>Reintentar</li></ul>",
+    "Pendiente **documentación** del proveedor:\n\n- Constancia fiscal\n- Estado de cuenta",
+    "Sin observaciones",
+    "<p>Usuario sin acceso desde <em>ayer</em>.</p>",
+    "Confirmar comprobante de domicilio vigente y actualizar el expediente del empleado en el sistema de nómina.",
+  ][i],
+  channel: [
+    { icon: "mail", label: "Correo", tone: "info" as const },
+    { icon: "call", label: "Teléfono", tone: "success" as const },
+    { icon: "chat", label: "Chat", tone: "primary" as const },
+    { icon: "support_agent", label: "Mesa de ayuda", tone: "warning" as const },
+    { icon: "mail", label: "Correo", tone: "info" as const },
+  ][i],
+  active: i % 2 === 0,
+  step: [1, 2, 4, 3, 0][i],
+  stage: TICKET_STAGES[[2, 1, 4, 3, 0][i]],
+  days: [
+    [1, 2, 3, 4, 5],
+    [1, 3, 5],
+    [6, 7],
+    [1, 2, 3, 4, 5, 6, 7],
+    [2, 4],
+  ][i],
+  hours: [
+    ["09:00", "18:00"],
+    ["08:00", "14:00"],
+    ["10:00", "16:30"],
+    ["22:00", "06:00"],
+    ["07:00", "15:00"],
+  ][i] as [string, string],
+  birth: ["1988-03-14", "1995-11-02", "1979-07-21", "2001-01-30", "1990-09-09"][i],
+  budget: [
+    [10000, 25000],
+    [5000, 8000],
+    [30000, 45000],
+    [1000, 3000],
+    [15000, 20000],
+  ][i] as [number, number],
+  sentiment: ["negative", "neutral", 0.8, -0.7, 4][i],
+  score: [42, 67, 95, 58, 81][i],
+  order: { label: `Pedido ${2200 + i}`, id: `PO-${2200 + i}`, subtitle: "Acme SA" },
+  unread: [3, 0, 150, 12, 1][i],
+}));
+
+/** Tipos adicionales dentro de una tabla real (orden, búsqueda y exportación incluidos). */
+const EvenMoreTable = () => {
+  const [rows, setRows] = useState(TICKETS);
+  return (
+    <CnDataTable<Ticket>
+      title="Tickets"
+      description="Prioridad, vencimientos, IP, versiones, notas enriquecidas, interruptores, etapas, horarios y más"
+      data={rows}
+      columns={[
+        { id: "id", header: "Folio", type: "id", sticky: true },
+        { id: "title", header: "Asunto", cellOptions: { bold: true } },
+        { id: "priority", header: "Prioridad", type: "priority", filter: "select" },
+        {
+          id: "due",
+          header: "Vence",
+          type: "deadline",
+          cellOptions: { done: (row) => (row as Ticket).done },
+        },
+        { id: "delta", header: "Variación", type: "delta" },
+        { id: "ip", header: "IP", type: "ip" },
+        { id: "uuid", header: "UUID", type: "uuid", sortable: false },
+        {
+          id: "version",
+          header: "Versión",
+          type: "version",
+          cellOptions: { latestVersion: "1.4.0" },
+        },
+        { id: "notes", header: "Notas", type: "richtext", width: 260 },
+        { id: "channel", header: "Canal", type: "icon", sortable: false },
+        {
+          id: "active",
+          header: "Seguimiento",
+          type: "toggle",
+          cellOptions: {
+            trueLabel: "Siguiendo",
+            falseLabel: "Sin seguir",
+            onChange: (row, next) =>
+              setRows((prev) =>
+                prev.map((r) => (r.id === (row as Ticket).id ? { ...r, active: next } : r)),
+              ),
+          },
+        },
+        { id: "step", header: "Pasos", type: "steps", cellOptions: { stepLabels: TICKET_STEPS } },
+        { id: "stage", header: "Etapa", type: "stage", cellOptions: { stages: TICKET_STAGES } },
+        { id: "days", header: "Días de atención", type: "weekdays", sortable: false },
+        { id: "hours", header: "Horario", type: "timerange" },
+        { id: "birth", header: "Edad del solicitante", type: "age" },
+        {
+          id: "budget",
+          header: "Presupuesto",
+          type: "range",
+          cellOptions: { rangeFormat: "currency", bar: true, max: 50000 },
+        },
+        { id: "sentiment", header: "Sentimiento", type: "sentiment" },
+        { id: "score", header: "Satisfacción", type: "score" },
+        {
+          id: "order",
+          header: "Pedido",
+          type: "reference",
+          cellOptions: { prefix: "", onClick: (value) => console.info("Abrir", value) },
+        },
+        {
+          id: "unread",
+          header: "Sin leer",
+          type: "counter",
+          align: "center",
+          cellOptions: { max: 99 },
+        },
+      ]}
+      onRowClick={(row) => console.info("Fila", row.id)}
+      striped
+    />
+  );
+};
+
+export const EvenMoreCellTypes: Story = {
+  name: "Aún más tipos de celda",
+  render: () => <EvenMoreTable />,
+};
+
 // ─── Estado de carga ──────────────────────────────────────────────────────
 
 /**

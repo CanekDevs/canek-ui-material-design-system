@@ -378,7 +378,8 @@ export const CnChip = forwardRef<HTMLDivElement, CnChipProps>(function CnChip(
     transition:
       "background-color var(--cn-duration-fast, 140ms) var(--cn-ease-standard, ease), border-color var(--cn-duration-fast, 140ms) var(--cn-ease-standard, ease), box-shadow var(--cn-duration-fast, 140ms) var(--cn-ease-standard, ease), transform var(--cn-duration-fast, 140ms) var(--cn-ease-standard, ease)",
     "& .MuiChip-label": {
-      paddingInline: compact ? tokens.paddingX / 2 : tokens.paddingX,
+      // En px: un número suelto en sx se multiplica por el spacing del tema.
+      paddingInline: `${compact ? tokens.paddingX / 2 : tokens.paddingX}px`,
       fontSize:
         size === "small"
           ? "var(--cn-font-size-xs, 11px)"

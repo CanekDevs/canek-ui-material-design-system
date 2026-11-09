@@ -57,6 +57,18 @@ export type CnFormSkeletonField = CnFormGridProps & {
   marks?: unknown;
   optionColumns?: 1 | 2 | 3 | 4;
   showCountrySelect?: boolean;
+  /** address: partes visibles. */
+  addressFields?: readonly string[];
+  /** duration: unidades visibles. */
+  durationUnits?: readonly string[];
+  durationPresets?: unknown;
+  /** schedule: días visibles. */
+  scheduleDays?: readonly string[];
+  /** location: mapa y dirección. */
+  showMap?: boolean;
+  showAddress?: boolean;
+  /** weekdays: atajos. */
+  presets?: boolean;
   visibleWhen?: (formValues: CnFormValues, ctx?: never) => boolean;
 };
 
@@ -138,7 +150,45 @@ const WIDE_TYPES = new Set<string>([
   "signature",
   "tags",
   "numberrange",
+  "address",
+  "repeater",
+  "code",
+  "schedule",
+  "location",
 ]);
+
+/** Columnas (de 12) de cada parte de `address`, igual que `CnAddressField`. */
+const ADDRESS_SPANS: Record<string, number> = {
+  street: 6,
+  exteriorNumber: 3,
+  interiorNumber: 3,
+  postalCode: 3,
+  neighborhood: 5,
+  municipality: 4,
+  state: 6,
+  country: 6,
+  references: 12,
+};
+
+const ADDRESS_DEFAULT_PARTS = [
+  "street",
+  "exteriorNumber",
+  "interiorNumber",
+  "postalCode",
+  "neighborhood",
+  "municipality",
+  "state",
+  "references",
+];
+
+/** Fila de atajos (chips). */
+const ChipRow = ({ count }: { count: number }) => (
+  <Box sx={{ display: "flex", flexWrap: "wrap", gap: "6px", mt: "8px" }}>
+    {Array.from({ length: count }, (_, i) => (
+      <SkBlock key={i} width={48 + ((i * 17) % 28)} height={24} radius={999} />
+    ))}
+  </Box>
+);
 
 const asField = (item: AnyField): CnFormSkeletonField => item as CnFormSkeletonField;
 
@@ -563,6 +613,217 @@ const FieldShape = ({ field, size }: { field: CnFormSkeletonField; size: CnField
                 <SkBlock circle width={20} />
               </Box>
             ))}
+          </Box>
+        </SkLabeled>
+      );
+    case "address": {
+      const parts = field.addressFields?.length ? field.addressFields : ADDRESS_DEFAULT_PARTS;
+      return (
+        <SkLabeled label={label} helperText={helperText}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
+              gap: "14px 12px",
+            }}
+          >
+            {parts.map((part) => (
+              <Box
+                key={part}
+                sx={{
+                  gridColumn: {
+                    xs: `span ${part === "exteriorNumber" || part === "interiorNumber" ? 6 : 12}`,
+                    sm: `span ${ADDRESS_SPANS[part] ?? 6}`,
+                  },
+                  minWidth: 0,
+                }}
+              >
+                <CnFieldSkeleton
+                  size={fieldSize}
+                  rows={part === "references" ? 2 : undefined}
+                  endAdornment={part === "state" || part === "neighborhood" ? "chevron" : false}
+                />
+              </Box>
+            ))}
+          </Box>
+        </SkLabeled>
+      );
+    }
+    case "repeater":
+      return (
+        <SkLabeled label={label} helperText={helperText}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {[0, 1].map((i) => (
+              <Box key={i} sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <SkBlock width={14} height={10} radius={2} />
+                <Box sx={{ flex: 1 }}>
+                  <CnFieldSkeleton size={fieldSize} label={false} />
+                </Box>
+                <SkBlock circle width={18} />
+                <SkBlock circle width={18} />
+                <SkBlock circle width={18} />
+              </Box>
+            ))}
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", mt: "10px" }}>
+            <SkBlock width={84} height={24} radius={6} />
+            <Box sx={{ flex: 1 }} />
+            <SkText width={56} size={11} />
+          </Box>
+        </SkLabeled>
+      );
+    case "duration": {
+      const units = Math.max(1, field.durationUnits?.length ?? 2);
+      return (
+        <SkLabeled label={label} helperText={helperText}>
+          <Box sx={{ display: "flex", gap: "8px" }}>
+            {Array.from({ length: units }, (_, i) => (
+              <Box key={i} sx={{ flex: 1, minWidth: 0 }}>
+                <CnFieldSkeleton size={fieldSize} endAdornment="text" />
+              </Box>
+            ))}
+          </Box>
+          {field.durationPresets !== false && <ChipRow count={5} />}
+        </SkLabeled>
+      );
+    }
+    case "code": {
+      const rows = Math.min(staticNumber(field.minRows) ?? staticNumber(field.rows) ?? 6, 12);
+      return (
+        <SkLabeled label={label} helperText={helperText}>
+          <Box sx={{ ...boxBorder, overflow: "hidden" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                px: "10px",
+                height: 30,
+                borderBottom: "1px solid var(--cn-color-border-subtle, #e9ecef)",
+              }}
+            >
+              <SkText width={36} size={11} />
+            </Box>
+            <Box sx={{ display: "flex", py: "8px" }}>
+              <Box
+                sx={{
+                  width: 36,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  gap: "11px",
+                  pr: "8px",
+                  pt: "4px",
+                  borderRight: "1px solid var(--cn-color-border-subtle, #e9ecef)",
+                }}
+              >
+                {Array.from({ length: rows }, (_, i) => (
+                  <SkText key={i} width={10} size={10} />
+                ))}
+              </Box>
+              <Box
+                sx={{
+                  flex: 1,
+                  px: "10px",
+                  pt: "4px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "11px",
+                }}
+              >
+                {Array.from({ length: rows }, (_, i) => (
+                  <SkText key={i} width={varyWidth(i, 30, 45)} size={10} />
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        </SkLabeled>
+      );
+    }
+    case "schedule": {
+      const days = Math.max(1, field.scheduleDays?.length ?? 7);
+      return (
+        <SkLabeled label={label} helperText={helperText}>
+          <Box sx={boxBorder}>
+            {Array.from({ length: days }, (_, i) => (
+              <Box
+                key={i}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  px: "12px",
+                  py: "8px",
+                  borderTop: i ? "1px solid var(--cn-color-border-subtle, #e9ecef)" : 0,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: "8px", width: 150 }}>
+                  <SkBlock width={30} height={16} radius={999} />
+                  <SkText width={60} size={13} />
+                </Box>
+                {i < Math.min(5, days) ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <CnFieldSkeleton size={fieldSize} label={false} width={128} />
+                    <SkBlock width={8} height={2} radius={1} />
+                    <CnFieldSkeleton size={fieldSize} label={false} width={128} />
+                  </Box>
+                ) : (
+                  <SkText width={56} size={13} />
+                )}
+              </Box>
+            ))}
+          </Box>
+        </SkLabeled>
+      );
+    }
+    case "location":
+      return (
+        <SkLabeled label={label} helperText={helperText}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Box sx={{ flex: 1 }}>
+              <CnFieldSkeleton size={fieldSize} />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <CnFieldSkeleton size={fieldSize} />
+            </Box>
+            <SkBlock width={150} height={30} radius={8} />
+          </Box>
+          {field.showAddress && (
+            <Box sx={{ mt: "10px" }}>
+              <CnFieldSkeleton size={fieldSize} />
+            </Box>
+          )}
+          {field.showMap !== false && (
+            <Box sx={{ mt: "10px" }}>
+              <SkBlock width="100%" height={220} radius={8} />
+            </Box>
+          )}
+        </SkLabeled>
+      );
+    case "weekdays": {
+      const dim = fieldSize === "sm" ? 32 : fieldSize === "lg" ? 46 : 38;
+      return (
+        <SkLabeled label={label} helperText={helperText}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            {Array.from({ length: 7 }, (_, i) => (
+              <SkBlock key={i} circle width={dim} />
+            ))}
+          </Box>
+          {field.presets !== false && <ChipRow count={3} />}
+        </SkLabeled>
+      );
+    }
+    case "timerange":
+      return (
+        <SkLabeled label={label} helperText={helperText}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Box sx={{ flex: 1 }}>
+              <CnFieldSkeleton size={fieldSize} endAdornment="icon" />
+            </Box>
+            <SkBlock width={10} height={2} radius={1} />
+            <Box sx={{ flex: 1 }}>
+              <CnFieldSkeleton size={fieldSize} endAdornment="icon" />
+            </Box>
+            <SkBlock width={72} height={24} radius={999} />
           </Box>
         </SkLabeled>
       );

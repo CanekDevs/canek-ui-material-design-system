@@ -1,5 +1,20 @@
 import type { SvgIconComponent } from "@mui/icons-material";
 
+import Celebration from "@mui/icons-material/Celebration";
+import DragIndicator from "@mui/icons-material/DragIndicator";
+import IosShare from "@mui/icons-material/IosShare";
+import School from "@mui/icons-material/School";
+import ViewDay from "@mui/icons-material/ViewDay";
+import ViewWeek from "@mui/icons-material/ViewWeek";
+
+import Bedtime from "@mui/icons-material/Bedtime";
+import Html from "@mui/icons-material/Html";
+import SentimentDissatisfied from "@mui/icons-material/SentimentDissatisfied";
+import SentimentNeutral from "@mui/icons-material/SentimentNeutral";
+import SentimentSatisfied from "@mui/icons-material/SentimentSatisfied";
+import SentimentVeryDissatisfied from "@mui/icons-material/SentimentVeryDissatisfied";
+import SentimentVerySatisfied from "@mui/icons-material/SentimentVerySatisfied";
+
 import AreaChart from "@mui/icons-material/AreaChart";
 import CandlestickChart from "@mui/icons-material/CandlestickChart";
 import DataUsage from "@mui/icons-material/DataUsage";
@@ -415,6 +430,19 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 
 export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
+  celebration: Celebration,
+  drag_indicator: DragIndicator,
+  ios_share: IosShare,
+  school: School,
+  view_day: ViewDay,
+  view_week: ViewWeek,
+  bedtime: Bedtime,
+  html: Html,
+  sentiment_dissatisfied: SentimentDissatisfied,
+  sentiment_neutral: SentimentNeutral,
+  sentiment_satisfied: SentimentSatisfied,
+  sentiment_very_dissatisfied: SentimentVeryDissatisfied,
+  sentiment_very_satisfied: SentimentVerySatisfied,
   area_chart: AreaChart,
   candlestick_chart: CandlestickChart,
   data_usage: DataUsage,
