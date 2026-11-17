@@ -14,16 +14,16 @@ Los componentes que MUI tiene y Tabantaj no se diseñan con el lenguaje visual d
 
 ## Decisiones vigentes (resumen)
 
-| # | Decisión |
-|---|---|
-| 001 | Tabantaj gobierna el estilo; M3 es estructura |
-| 002 | Se evoluciona este repo (no se crea otro); se conservan nombre, paquete y prefijo `Cn` |
-| 003 | MUI 7 + React 18 + TypeScript; los productos en MUI 5 migran al adoptarlo |
+| #   | Decisión                                                                                                                                     |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 001 | Tabantaj gobierna el estilo; M3 es estructura                                                                                                |
+| 002 | Se evoluciona este repo (no se crea otro); se conservan nombre, paquete y prefijo `Cn`                                                       |
+| 003 | MUI 7 + React 18 + TypeScript; los productos en MUI 5 migran al adoptarlo                                                                    |
 | 004 | Fuente de verdad de color/tipografía: `tokens/tabantaj.tokens.json` (extraído de S4BTabantaj-frontend `develop@b7fe93e` + Figma Tabantaj DS) |
-| 005 | `primary` = action `#3D5AFE`; rol `brand` = `#4870B2` (navbar, títulos de marca), `brand-dark` = `#3B5391` |
-| 006 | Tipografía Roboto 300/400/500/700; 15 roles M3 con valores Tabantaj y nombres Tabantaj como alias |
-| 007 | Temas: claro (Tabantaj) y oscuro derivado de Tabantaj |
-| 008 | Documentación: sitio propio generado desde el repo + Storybook como laboratorio |
+| 005 | `primary` = action `#3D5AFE`; rol `brand` = `#4870B2` (navbar, títulos de marca), `brand-dark` = `#3B5391`                                   |
+| 006 | Tipografía Roboto 300/400/500/700; 15 roles M3 con valores Tabantaj y nombres Tabantaj como alias                                            |
+| 007 | Temas: claro (Tabantaj) y oscuro derivado de Tabantaj                                                                                        |
+| 008 | Documentación: sitio propio generado desde el repo + Storybook como laboratorio                                                              |
 
 ## Arquitectura de tokens (objetivo)
 
@@ -50,6 +50,7 @@ Ver README → Convenciones (commits `tipo(scope): descripción - por: Nombre`, 
 ## Estado
 
 Fase 0 — fundamentos (rama `feature/tabantaj-foundations`). Orden:
+
 1. Copiar el JSON fuente de Tabantaj y generar la capa ref.
 2. Definir la capa sys (claro + oscuro) y conectar `createCanekTheme()`.
 3. Regla ESLint que prohíba color crudo en `src/components`.
