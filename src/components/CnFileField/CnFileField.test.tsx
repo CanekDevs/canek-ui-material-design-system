@@ -7,7 +7,7 @@ import {
   getFileKind,
   getSafeUrl,
   matchesAccept,
-} from "./file-utils";
+} from "../../utils/file-utils";
 
 beforeAll(() => {
   if (!URL.createObjectURL) {
@@ -185,7 +185,7 @@ describe("CnFileField", () => {
   });
 
   it("shows metadata of existing files", () => {
-    render(
+    const { container } = render(
       <CnFileField
         label="Medios"
         multiple
@@ -216,7 +216,8 @@ describe("CnFileField", () => {
         ]}
       />,
     );
-    expect(screen.getByText("1.0 MB · 1:35")).toBeInTheDocument();
+    const metas = Array.from(container.querySelectorAll("[data-cn-doc-meta]"));
+    expect(metas[0]).toHaveTextContent("1.0 MB · 1:35");
     expect(screen.getByText("1920×1080")).toBeInTheDocument();
     expect(screen.getByText("12 páginas")).toBeInTheDocument();
   });
@@ -237,7 +238,7 @@ describe("CnFileField", () => {
       />,
     );
     expect(screen.getByText("Subiendo 40 %")).toBeInTheDocument();
-    expect(screen.getByRole("progressbar", { name: "Progreso de subida" })).toHaveAttribute(
+    expect(screen.getByRole("progressbar", { name: /Progreso de subida/ })).toHaveAttribute(
       "aria-valuenow",
       "40",
     );
@@ -283,7 +284,8 @@ describe("CnFileField", () => {
     expect(screen.getByText("contrato.pdf")).toBeInTheDocument();
     rerender(<CnFileField label="Adjuntos" variant="card" multiple value={[pdf]} />);
     expect(screen.getByRole("button", { name: "Agregar archivos" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Descargar contrato.pdf" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Más acciones de contrato.pdf" }));
+    expect(screen.getByRole("menuitem", { name: /Descargar/ })).toBeInTheDocument();
   });
 
   it("marks another file as primary in the gallery", () => {
@@ -319,6 +321,77 @@ describe("CnFileField", () => {
       key: "ArrowRight",
     });
     expect(onChange).toHaveBeenCalledWith([png, pdf]);
+  });
+
+  it("renders each listed file as a CnDocCard", () => {
+    const { container } = render(<CnFileField label="Docs" multiple value={[pdf, png]} />);
+    const items = container.querySelectorAll("li[data-cn-file-item]");
+    expect(items).toHaveLength(2);
+    items.forEach((item) => expect(item.querySelector("[data-cn-doc-card='list']")).not.toBeNull());
+    expect(screen.getByRole("article", { name: "contrato.pdf" })).toBeInTheDocument();
+  });
+
+  it("renders readOnly as plain CnDocCards (no dropzone, remove or reorder)", () => {
+    const existing = { id: 1, url: "https://cdn.canek.mx/a.pdf", name: "a.pdf", size: 10 };
+    const { container, rerender } = render(
+      <CnFileField label="Docs" multiple reorderable readOnly value={[existing, pdf]} />,
+    );
+    expect(screen.queryByRole("button", { name: /Docs/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Quitar/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Reordenar/ })).not.toBeInTheDocument();
+    expect(container.querySelectorAll("[data-cn-doc-card='list']")).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Descargar a.pdf" })).toBeInTheDocument();
+
+    rerender(<CnFileField label="Docs" variant="card" multiple readOnly value={[existing]} />);
+    expect(container.querySelectorAll("[data-cn-doc-card='grid']")).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "Agregar archivos" })).not.toBeInTheDocument();
+  });
+
+  it("opens the field lightbox from a list DocCard", () => {
+    render(<CnFileField label="Docs" multiple value={[png, pdf]} onChange={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Ver foto.png" }));
+    expect(screen.getByRole("dialog", { name: "Vista previa: foto.png" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
+    expect(screen.getByRole("dialog", { name: "Vista previa: contrato.pdf" })).toBeInTheDocument();
+  });
+
+  it("marks another file as primary from the card menu", () => {
+    const onChange = vi.fn();
+    render(
+      <CnFileField
+        label="Fotos"
+        variant="card"
+        multiple
+        reorderable
+        value={[pdf, png]}
+        onChange={onChange}
+      />,
+    );
+    expect(screen.getByText("Principal")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Más acciones de foto.png" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /Marcar como principal/ }));
+    expect(onChange).toHaveBeenCalledWith([png, pdf]);
+  });
+
+  it("shows the success state of an upload", () => {
+    render(
+      <CnFileField
+        label="Docs"
+        value={[pdf]}
+        fileStatus={() => ({ state: "success" })}
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByText("Subido")).toBeInTheDocument();
+  });
+
+  it("truncates very long names instead of overflowing", () => {
+    const long = new File(["x"], `${"nombre-de-archivo-muy-largo-".repeat(4)}.pdf`, {
+      type: "application/pdf",
+    });
+    render(<CnFileField label="Docs" value={[long]} onChange={() => {}} />);
+    const name = screen.getByTitle(long.name);
+    expect(name).toHaveStyle({ textOverflow: "ellipsis", whiteSpace: "nowrap" });
   });
 
   it("passes capture to the input for mobile cameras", () => {

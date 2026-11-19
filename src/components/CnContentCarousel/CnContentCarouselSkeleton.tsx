@@ -15,7 +15,7 @@ export type CnContentCarouselSkeletonProps = CnSkeletonCommonProps & {
   /** Encabezado con título (preset `cards`). */
   header?: boolean;
   indicators?: CnCarouselIndicators;
-  /** Contenido propio de cada tarjeta (p. ej. un `CnPersonCardSkeleton`). */
+  /** Contenido propio de cada tarjeta (p. ej. un `CnProfileCardSkeleton`). */
   renderSlide?: (index: number) => ReactNode;
 };
 

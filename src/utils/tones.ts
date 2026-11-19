@@ -1,6 +1,6 @@
 /**
- * Paleta de tonos compartida por las tarjetas de contenido (información,
- * secciones, personas y documentos). Usa los tokens `--cn-color-*` con
+ * Paleta de tonos compartida por las tarjetas de contenido (secciones,
+ * perfiles, carruseles y documentos). Usa los tokens `--cn-color-*` con
  * respaldo para funcionar sin la hoja de tokens.
  */
 export type CnTone = "primary" | "info" | "success" | "warning" | "error" | "neutral" | "accent";

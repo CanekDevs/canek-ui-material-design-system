@@ -1,5 +1,6 @@
 export { CnAlert } from "./CnAlert";
 export type {
+  CnAlertAction,
   CnAlertCloseReason,
   CnAlertColor,
   CnAlertIconMode,

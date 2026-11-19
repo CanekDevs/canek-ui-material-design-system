@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { parseIsoDate } from "../../utils/date-utils";
-import type { CnTone } from "../CnInfoCard/tones";
+import type { CnTone } from "../../utils/tones";
 
 export type CnPersonEventType =
   "birthday" | "anniversary" | "new-hire" | "leave" | "vacation" | "promotion" | "custom";

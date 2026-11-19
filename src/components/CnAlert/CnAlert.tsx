@@ -9,16 +9,41 @@ import type { SnackbarOrigin, SnackbarProps } from "@mui/material/Snackbar";
 import Snackbar from "@mui/material/Snackbar";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
-import { forwardRef, useCallback, useState } from "react";
+import { forwardRef, isValidElement, useCallback, useId, useState } from "react";
+import { prefersReducedMotion } from "../../utils/tones";
+import type { CnButtonColor } from "../CnButton";
+import { CnButton } from "../CnButton";
 import { CnIcon } from "../CnIcon";
 import { CnAlertSkeleton } from "./CnAlertSkeleton";
 
 export type CnAlertMode = "inline" | "popup" | "toast";
 export type CnAlertSeverity = "success" | "info" | "warning" | "error";
-export type CnAlertVariant = "standard" | "filled" | "outlined";
+/** `left-accent`: superficie blanca con borde izquierdo de color (callout / nota destacada). */
+export type CnAlertVariant = "standard" | "filled" | "outlined" | "left-accent";
+
+/** Acción de la fila inferior (`actions`). */
+export type CnAlertAction = {
+  label: ReactNode;
+  onClick?: () => void;
+  href?: string;
+  target?: "_blank" | "_self";
+  /** Nombre de ícono (`ICON_REGISTRY`) al inicio del botón. */
+  icon?: string;
+  /**
+   * `link` = botón de texto compacto y subrayado ("Más información").
+   * Por defecto, la primera acción es `contained` y las demás `text`.
+   */
+  variant?: "contained" | "outlined" | "text" | "link";
+  disabled?: boolean;
+  "aria-label"?: string;
+};
 export type CnAlertColor = CnAlertSeverity | "primary" | "secondary" | "accent" | "neutral";
 export type CnAlertIconMode = "icon" | "none";
-export type CnAlertRole = "alert" | "status" | "none";
+/**
+ * `alert`/`status` se anuncian al aparecer; `note` es un callout de contenido que no
+ * interrumpe; `none` quita el rol (MUI pondría `alert` por defecto).
+ */
+export type CnAlertRole = "alert" | "status" | "note" | "none";
 export type CnAlertCloseReason = "close" | "auto" | "clickaway" | "escape";
 
 export type CnAlertProps = {
@@ -26,13 +51,36 @@ export type CnAlertProps = {
   severity?: CnAlertSeverity;
   variant?: CnAlertVariant;
   color?: CnAlertColor;
-  title?: string;
+  title?: ReactNode;
   message?: string;
   children?: ReactNode;
   icon?: ReactNode | string | false;
   iconMode?: CnAlertIconMode;
+  /** Acción compacta a la derecha (junto al botón de cerrar). */
   action?: ReactNode;
+  /**
+   * Fila de acciones bajo el mensaje (hace wrap en anchos chicos). Acepta
+   * descriptores (`CnAlertAction[]`) o nodos propios.
+   */
+  actions?: CnAlertAction[] | ReactNode;
+  /** Contenido plegable bajo el mensaje, con botón "Ver detalles". */
+  details?: ReactNode;
+  detailsLabel?: string;
+  hideDetailsLabel?: string;
+  /** Estado controlado de `details`. */
+  expanded?: boolean;
+  defaultExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  /** Muestra el botón de cerrar; requiere `onClose` (o usa `dismissible`). */
   closable?: boolean;
+  /**
+   * Cierre autogestionado: muestra el botón de cerrar aunque no haya `onClose`
+   * y oculta la alerta al pulsarlo, salvo que `visible` (en línea) u `open`
+   * (popup/toast) la controlen.
+   */
+  dismissible?: boolean;
+  /** Nombre accesible del botón de cerrar. */
+  closeLabel?: string;
   onClose?: (reason: CnAlertCloseReason) => void;
   visible?: boolean;
   role?: CnAlertRole;
@@ -217,6 +265,21 @@ function parseMessage(message: string): ReactNode {
 const isNativeSeverity = (value: CnAlertColor): value is CnAlertSeverity =>
   NATIVE_SEVERITIES.has(value as CnAlertSeverity);
 
+const BUTTON_COLOR: Record<CnAlertColor, CnButtonColor> = {
+  success: "success",
+  info: "info",
+  warning: "warning",
+  error: "error",
+  primary: "primary",
+  secondary: "neutral",
+  accent: "accent",
+  neutral: "neutral",
+};
+
+const isActionList = (value: unknown): value is CnAlertAction[] =>
+  Array.isArray(value) &&
+  value.every((item) => item && typeof item === "object" && !isValidElement(item));
+
 export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert(
   {
     mode = "inline",
@@ -229,9 +292,18 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
     icon,
     iconMode = "icon",
     action,
+    actions,
+    details,
+    detailsLabel = "Ver detalles",
+    hideDetailsLabel = "Ocultar detalles",
+    expanded: expandedProp,
+    defaultExpanded = false,
+    onExpandedChange,
     closable = false,
+    dismissible = false,
+    closeLabel = "Cerrar alerta",
     onClose,
-    visible = true,
+    visible: visibleProp,
     role,
     open: externalOpen,
     autoHideDuration = 4000,
@@ -248,10 +320,18 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
   ref,
 ) {
   const [internalOpen, setInternalOpen] = useState(true);
+  const [dismissed, setDismissed] = useState(false);
+  const [expandedState, setExpandedState] = useState(defaultExpanded);
+  const detailsId = useId();
 
   const isPopup = mode === "popup" || mode === "toast";
   const isControlled = externalOpen !== undefined;
   const resolvedOpen = isControlled ? Boolean(externalOpen) : internalOpen;
+  // En línea: `visible` controla; sin él, solo `dismissible` puede ocultarla.
+  const visible = visibleProp ?? !dismissed;
+  const showClose = (closable && Boolean(onClose)) || dismissible;
+  const expanded = expandedProp ?? expandedState;
+  const hasActions = isActionList(actions) ? actions.length > 0 : Boolean(actions);
 
   const resolvedColor: CnAlertColor = color ?? severity;
   const tokens = COLOR_TOKENS[resolvedColor];
@@ -266,9 +346,12 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
       if (!isControlled && isPopup) {
         setInternalOpen(false);
       }
+      if (!isPopup && dismissible && visibleProp === undefined && reason === "close") {
+        setDismissed(true);
+      }
       onClose?.(reason);
     },
-    [isControlled, isPopup, onClose],
+    [isControlled, isPopup, dismissible, visibleProp, onClose],
   );
 
   if (skeleton) {
@@ -278,16 +361,127 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
         variant={variant}
         severity={resolvedSeverity}
         mode={mode}
-        title={title ?? false}
+        title={typeof title === "string" ? title : Boolean(title)}
         message={message || Boolean(children)}
         icon={icon !== false && iconMode !== "none"}
         action={Boolean(action)}
-        closable={closable && Boolean(onClose)}
+        actions={isActionList(actions) ? actions.length : actions ? 1 : 0}
+        details={Boolean(details)}
+        closable={showClose}
         sx={sx}
         className={className}
       />
     );
   }
+
+  const isFilled = variant === "filled";
+  const buttonColor = BUTTON_COLOR[resolvedColor];
+  const reduced = prefersReducedMotion();
+
+  const toggleDetails = () => {
+    const next = !expanded;
+    if (expandedProp === undefined) setExpandedState(next);
+    onExpandedChange?.(next);
+  };
+
+  const detailsBlock = details ? (
+    <>
+      <Collapse in={expanded} timeout={reduced ? 0 : "auto"} unmountOnExit>
+        <Box id={detailsId} data-cn-alert-details sx={{ mt: "8px", overflowWrap: "anywhere" }}>
+          {details}
+        </Box>
+      </Collapse>
+      <Box sx={{ display: "flex", mt: "4px" }}>
+        <CnButton
+          size="small"
+          variant="text"
+          color={buttonColor}
+          endIcon={
+            <CnIcon
+              name="expand_more"
+              size={16}
+              color="inherit"
+              sx={{
+                transition: reduced ? "none" : "transform 160ms ease",
+                transform: expanded ? "rotate(180deg)" : "none",
+              }}
+            />
+          }
+          aria-expanded={expanded}
+          aria-controls={expanded ? detailsId : undefined}
+          onClick={toggleDetails}
+          sx={{
+            ml: "-4px",
+            px: "4px",
+            minWidth: 0,
+            ...(isFilled && { color: "inherit" }),
+          }}
+        >
+          {expanded ? hideDetailsLabel : detailsLabel}
+        </CnButton>
+      </Box>
+    </>
+  ) : null;
+
+  const actionNodes = isActionList(actions)
+    ? actions.map((item, index) => {
+        const isLink = item.variant === "link";
+        const buttonVariant: "contained" | "outlined" | "text" =
+          item.variant === undefined
+            ? index > 0
+              ? "text"
+              : "contained"
+            : item.variant === "link"
+              ? "text"
+              : item.variant;
+        return (
+          <CnButton
+            key={index}
+            size="small"
+            variant={buttonVariant}
+            color={buttonColor}
+            startIcon={item.icon}
+            href={item.href}
+            target={item.target}
+            rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+            disabled={item.disabled}
+            aria-label={item["aria-label"]}
+            onClick={item.onClick}
+            sx={[
+              { maxWidth: "100%" },
+              isLink ? { px: "4px", minWidth: 0, textDecoration: "underline" } : {},
+              isFilled
+                ? buttonVariant === "contained"
+                  ? {
+                      backgroundColor: "var(--cn-color-neutral-0, #ffffff)",
+                      color: tokens.main,
+                      "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.9)" },
+                    }
+                  : { color: "inherit", borderColor: "rgba(255, 255, 255, 0.6)" }
+                : {},
+            ]}
+          >
+            {item.label}
+          </CnButton>
+        );
+      })
+    : actions;
+
+  const actionsBlock = hasActions ? (
+    <Box
+      data-cn-alert-actions
+      sx={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        gap: "8px",
+        mt: "10px",
+        minWidth: 0,
+      }}
+    >
+      {actionNodes}
+    </Box>
+  ) : null;
 
   const resolvedIcon: ReactNode = (() => {
     if (icon === false || iconMode === "none") return false;
@@ -301,24 +495,23 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
   })();
 
   const resolvedAction: ReactNode = (() => {
-    const closeButton =
-      closable && onClose ? (
-        <IconButton
-          size="small"
-          aria-label="Cerrar alerta"
-          onClick={() => handleClose("close")}
-          sx={{
-            color: "inherit",
-            padding: "4px",
-            marginTop: "2px",
-            transition: "opacity 140ms ease",
-            opacity: 0.7,
-            "&:hover": { opacity: 1, backgroundColor: "transparent" },
-          }}
-        >
-          <CnIcon name="close" size={16} color="inherit" />
-        </IconButton>
-      ) : null;
+    const closeButton = showClose ? (
+      <IconButton
+        size="small"
+        aria-label={closeLabel}
+        onClick={() => handleClose("close")}
+        sx={{
+          color: "inherit",
+          padding: "4px",
+          marginTop: "2px",
+          transition: "opacity 140ms ease",
+          opacity: 0.7,
+          "&:hover": { opacity: 1, backgroundColor: "transparent" },
+        }}
+      >
+        <CnIcon name="close" size={16} color="inherit" />
+      </IconButton>
+    ) : null;
 
     if (action && closeButton) {
       return (
@@ -350,6 +543,17 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
         "& .MuiAlertTitle-root": { color: tokens.text },
       };
     }
+    if (variant === "left-accent") {
+      return {
+        backgroundColor: "var(--cn-color-surface, #ffffff)",
+        color: "var(--cn-color-text, #222831)",
+        border: "1px solid var(--cn-color-border, #dde0e4)",
+        borderLeftWidth: "4px",
+        borderLeftColor: tokens.main,
+        "& .MuiAlert-icon": { color: tokens.icon },
+        "& .MuiAlertTitle-root": { color: tokens.text },
+      };
+    }
     return {
       backgroundColor: tokens.soft,
       color: tokens.text,
@@ -371,6 +575,8 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
     },
     "& .MuiAlert-message": {
       width: "100%",
+      minWidth: 0,
+      overflowWrap: "anywhere",
       padding: "2px 0 0",
       fontSize: "var(--cn-font-size-sm, 12px)",
       lineHeight: 1.5,
@@ -389,7 +595,7 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
     },
   };
 
-  const alertContent: ReactNode =
+  const mainContent: ReactNode =
     children ??
     (message ? (
       title ? (
@@ -404,14 +610,25 @@ export const CnAlert = forwardRef<HTMLDivElement, CnAlertProps>(function CnAlert
       <AlertTitle>{title}</AlertTitle>
     ) : null);
 
+  const alertContent: ReactNode =
+    detailsBlock || actionsBlock ? (
+      <>
+        {mainContent}
+        {detailsBlock}
+        {actionsBlock}
+      </>
+    ) : (
+      mainContent
+    );
+
   const alertElement = (
     <Alert
       ref={ref}
       severity={resolvedSeverity}
-      variant={isNativeColor ? variant : "standard"}
+      variant={isNativeColor && variant !== "left-accent" ? variant : "standard"}
       icon={resolvedIcon}
       action={resolvedAction}
-      role={resolvedRole === "none" ? undefined : resolvedRole}
+      role={resolvedRole}
       className={className}
       sx={[baseSx, variantSx, ...(Array.isArray(sx) ? sx : [sx])]}
       {...rest}

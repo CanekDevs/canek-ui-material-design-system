@@ -10,5 +10,4 @@ export type {
 } from "./CnDocCard";
 export { CnDocCardSkeleton } from "./CnDocCardSkeleton";
 export type { CnDocCardSkeletonProps } from "./CnDocCardSkeleton";
-export { DOC_KIND_META, extensionLabel, formatDocDate, getDocKind } from "./doc-utils";
-export type { CnDocKind } from "./doc-utils";
+export { formatDocDate } from "./doc-utils";

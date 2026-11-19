@@ -3,7 +3,7 @@ import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useRef, useState } from "react";
 import { CnButton } from "../CnButton";
-import { CnInfoCard } from "../CnInfoCard";
+import { CnAlert } from "../CnAlert";
 import type { CnCarouselActions } from "./CnCarousel";
 import { CnCarousel } from "./CnCarousel";
 import { CnCarouselSkeleton } from "./CnCarouselSkeleton";
@@ -58,7 +58,20 @@ const meta: Meta<typeof CnCarousel> = {
   title: "Data Display/CnCarousel",
   component: CnCarousel,
   tags: ["autodocs"],
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: {
+        component: [
+          '**Para qué sirve:** motor genérico de carrusel para cualquier contenido (imágenes, tarjetas, nodos propios): diapositivas por vista según el ancho del contenedor, vistazo (`peek`), bucle continuo sin saltos (`loopMode="seamless"`), autoplay accesible con progreso sincronizado (se pausa al pasar el cursor, al enfocar o con el botón), flechas, puntos/progreso/fracción/miniaturas, arrastre y deslizamiento táctil con umbral y velocidad, teclado, RTL, carga diferida, `slideAspectRatio` por breakpoint y `onSlideView` para analítica.',
+          "",
+          "**Cuándo NO usarlo:** para banners de anuncios con imagen, título y CTA o para una fila de tarjetas con encabezado usa `CnContentCarousel` (ya trae esos presets); para navegar entre secciones usa `CnTabs`; para listas largas que el usuario recorre completas usa `CnList` o una cuadrícula.",
+          "",
+          "**Relación con vecinos:** `CnContentCarousel` está construido encima de este componente; `CnProfileCard`, `CnDocCard` o `CnSectionCard` pueden ser sus diapositivas.",
+        ].join("\n"),
+      },
+    },
+  },
   args: { slidesPerView: 1, gap: 16, indicators: "dots", arrows: true },
   argTypes: {
     indicators: {
@@ -68,7 +81,15 @@ const meta: Meta<typeof CnCarousel> = {
     arrowsPosition: { control: "inline-radio", options: ["inside", "outside", "top"] },
     arrows: { control: "select", options: [true, false, "hover"] },
   },
-  decorators: [(Story) => <Box sx={{ maxWidth: 900 }}>{Story()}</Box>],
+  // Las historias de pantalla completa (stress) prueban sus propios anchos.
+  decorators: [
+    (Story, context) =>
+      context.parameters.layout === "fullscreen" ? (
+        Story()
+      ) : (
+        <Box sx={{ maxWidth: 900 }}>{Story()}</Box>
+      ),
+  ],
 };
 
 export default meta;
@@ -161,11 +182,13 @@ export const TopToolbar: Story = {
       header={<Typography sx={{ fontWeight: 700, fontSize: 14 }}>Avisos importantes</Typography>}
     >
       {(["info", "success", "warning", "error", "accent"] as const).map((tone) => (
-        <CnInfoCard
+        <CnAlert
           key={tone}
-          tone={tone}
+          color={tone}
+          variant="left-accent"
+          role="note"
           title={`Aviso ${tone}`}
-          description="Contenido del aviso."
+          message="Contenido del aviso."
         />
       ))}
     </CnCarousel>
@@ -210,6 +233,58 @@ export const Skeleton: Story = {
       </CnCarousel>
       <CnCarouselSkeleton slidesPerView={3} height={140} arrowsPosition="top" indicators="none" />
       <CnCarouselSkeleton indicators="thumbnails" />
+    </Box>
+  ),
+};
+
+/**
+ * Anchos de contenedor 320 / 480 / 1200 px con flechas, puntos y botón de
+ * pausa: nada se desborda (los puntos hacen wrap y el botón de pausa siempre
+ * queda visible). Bucle continuo: al pasar de la última a la primera no hay
+ * salto hacia atrás.
+ */
+export const Stress: Story = {
+  parameters: { layout: "fullscreen" },
+  render: () => (
+    <Box sx={{ p: "16px", display: "grid", gap: "28px", overflowX: "auto" }}>
+      {[320, 480, 1200].map((width) => (
+        <Box
+          key={width}
+          data-stress-frame={width}
+          sx={{
+            width,
+            boxSizing: "border-box",
+            p: "8px",
+            border: "1px dashed var(--cn-color-neutral-300, #c5cad0)",
+            display: "grid",
+            gap: "16px",
+          }}
+        >
+          <CnCarousel
+            loop
+            autoplay
+            autoplayProgress
+            slidesPerView={{ xs: 1, sm: 2, md: 3 }}
+            slideAspectRatio={{ xs: "4 / 3", md: "16 / 9" }}
+          >
+            {tiles(24)}
+          </CnCarousel>
+          <CnCarousel slideWidth={360} peek={40} arrowsPosition="outside" indicators="progress">
+            {tiles(6)}
+          </CnCarousel>
+        </Box>
+      ))}
+    </Box>
+  ),
+};
+
+/** Dirección de derecha a izquierda: el arrastre, las flechas y el teclado se invierten. */
+export const RightToLeft: Story = {
+  render: () => (
+    <Box dir="rtl">
+      <CnCarousel slidesPerView={2} loop>
+        {tiles(6)}
+      </CnCarousel>
     </Box>
   ),
 };

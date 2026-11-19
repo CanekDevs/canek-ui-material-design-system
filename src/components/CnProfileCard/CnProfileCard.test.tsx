@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { CnPersonCard } from "./CnPersonCard";
-import { CnPersonCardGroup } from "./CnPersonCardGroup";
-import { CnPersonCardSkeleton } from "./CnPersonCardSkeleton";
+import { CnProfileCard } from "./CnProfileCard";
+import { CnProfileCardGroup } from "./CnProfileCardGroup";
+import { CnProfileCardSkeleton } from "./CnProfileCardSkeleton";
 import { resolvePersonEvent } from "./person-event";
 
 const TODAY = new Date(2026, 10, 19); // 19 nov 2026
@@ -56,10 +56,10 @@ describe("resolvePersonEvent", () => {
   });
 });
 
-describe("CnPersonCard", () => {
+describe("CnProfileCard", () => {
   it("renders the person, event context and contact links", () => {
     render(
-      <CnPersonCard
+      <CnProfileCard
         name="María Pérez"
         role="Diseñadora"
         department="Producto"
@@ -91,7 +91,7 @@ describe("CnPersonCard", () => {
   it("highlights today's event and runs quick actions", () => {
     const onCongrats = vi.fn();
     const { container } = render(
-      <CnPersonCard
+      <CnProfileCard
         layout="vertical"
         cover
         name="Luis Gómez"
@@ -101,7 +101,7 @@ describe("CnPersonCard", () => {
       />,
     );
     expect(container.querySelector("[data-today='true']")).not.toBeNull();
-    expect(container.querySelector("[data-cn-person-cover]")).not.toBeNull();
+    expect(container.querySelector("[data-cn-profile-cover]")).not.toBeNull();
     expect(screen.getByText("10 años")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Felicitar" }));
     expect(onCongrats).toHaveBeenCalled();
@@ -109,7 +109,7 @@ describe("CnPersonCard", () => {
 
   it("renders details, tags and an eyebrow override", () => {
     render(
-      <CnPersonCard
+      <CnProfileCard
         name="Ana"
         eyebrow="Bienvenida"
         details={[{ label: "Área", value: "Finanzas" }]}
@@ -123,20 +123,20 @@ describe("CnPersonCard", () => {
 
   it("renders the compact layout without contact buttons", () => {
     const { container } = render(
-      <CnPersonCard layout="compact" name="Eva" email="eva@canek.mx" hideContact />,
+      <CnProfileCard layout="compact" name="Eva" email="eva@canek.mx" hideContact />,
     );
-    expect(container.querySelector("[data-cn-person-card='compact']")).not.toBeNull();
+    expect(container.querySelector("[data-cn-profile-card='compact']")).not.toBeNull();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("renders the skeleton via the skeleton prop", () => {
-    render(<CnPersonCard name="Eva" skeleton />);
-    expect(screen.getByRole("status")).toHaveAttribute("data-cn-skeleton", "person-card");
+    render(<CnProfileCard name="Eva" skeleton />);
+    expect(screen.getByRole("status")).toHaveAttribute("data-cn-skeleton", "profile-card");
     expect(screen.queryByText("Eva")).not.toBeInTheDocument();
   });
 });
 
-describe("CnPersonCardGroup", () => {
+describe("CnProfileCardGroup", () => {
   const people = [
     { id: 5, name: "Pronto", event: { type: "birthday" as const, date: "1990-11-22" } },
     { id: 1, name: "Pasado", event: { type: "birthday" as const, date: "1990-11-10" } },
@@ -147,7 +147,7 @@ describe("CnPersonCardGroup", () => {
 
   it("sorts by proximity, filters by month and badges today's count", () => {
     render(
-      <CnPersonCardGroup
+      <CnProfileCardGroup
         title="Cumpleaños del mes"
         icon="cake"
         people={people}
@@ -163,36 +163,36 @@ describe("CnPersonCardGroup", () => {
   });
 
   it("limits the list with maxVisible", () => {
-    render(<CnPersonCardGroup title="Todos" people={people} maxVisible={2} today={TODAY} />);
+    render(<CnProfileCardGroup title="Todos" people={people} maxVisible={2} today={TODAY} />);
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
     fireEvent.click(screen.getByRole("button", { name: "Ver todos (5)" }));
     expect(screen.getAllByRole("listitem")).toHaveLength(5);
   });
 
   it("groups by proximity", () => {
-    render(<CnPersonCardGroup title="Grupos" people={people} groupByProximity today={TODAY} />);
+    render(<CnProfileCardGroup title="Grupos" people={people} groupByProximity today={TODAY} />);
     expect(screen.getByText("Próximos días")).toBeInTheDocument();
     expect(screen.getByText("Más adelante")).toBeInTheDocument();
     expect(screen.getByText("Pasados")).toBeInTheDocument();
   });
 
   it("shows the empty state and skeletons", () => {
-    const { rerender } = render(<CnPersonCardGroup title="Vacío" people={[]} />);
+    const { rerender } = render(<CnProfileCardGroup title="Vacío" people={[]} />);
     expect(screen.getByText("Sin eventos")).toBeInTheDocument();
-    rerender(<CnPersonCardGroup title="Cargando" people={[]} skeleton />);
-    expect(screen.getByRole("status")).toHaveAttribute("data-cn-skeleton", "person-card-group");
+    rerender(<CnProfileCardGroup title="Cargando" people={[]} skeleton />);
+    expect(screen.getByRole("status")).toHaveAttribute("data-cn-skeleton", "profile-card-group");
   });
 });
 
-describe("CnPersonCardSkeleton", () => {
+describe("CnProfileCardSkeleton", () => {
   it("follows the layout", () => {
     const { container, rerender } = render(
-      <CnPersonCardSkeleton layout="vertical" cover contacts={2} quickActions={1} />,
+      <CnProfileCardSkeleton layout="vertical" cover contacts={2} quickActions={1} />,
     );
     expect(screen.getAllByRole("status")).toHaveLength(1);
-    expect(container.querySelector("[data-cn-person-skeleton-cover]")).not.toBeNull();
-    expect(container.querySelector("[data-cn-person-skeleton-actions]")?.children).toHaveLength(3);
-    rerender(<CnPersonCardSkeleton layout="compact" />);
-    expect(container.querySelector("[data-cn-person-skeleton='compact']")).not.toBeNull();
+    expect(container.querySelector("[data-cn-profile-skeleton-cover]")).not.toBeNull();
+    expect(container.querySelector("[data-cn-profile-skeleton-actions]")?.children).toHaveLength(3);
+    rerender(<CnProfileCardSkeleton layout="compact" />);
+    expect(container.querySelector("[data-cn-profile-skeleton='compact']")).not.toBeNull();
   });
 });

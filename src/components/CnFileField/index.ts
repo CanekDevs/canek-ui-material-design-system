@@ -5,20 +5,24 @@ export type { CnFileFieldSkeletonProps } from "./CnFileFieldSkeleton";
 export { downloadFile, FileLightbox, isViewableFile } from "./FileLightbox";
 export {
   checkImageConstraints,
+  FILE_KIND_META,
+  fileExtensionLabel,
   formatDuration,
+  getFileDisplayKind,
   getFileKind,
   getSafeUrl,
   isExistingFile,
   isFile,
   matchesAccept,
   readFileMetadata,
-} from "./file-utils";
+} from "../../utils/file-utils";
 export type {
   CnExistingFile,
+  CnFileDisplayKind,
   CnFileKind,
   CnFileMetadata,
   CnFileRejection,
   CnFileStatus,
   CnFileValue,
   CnImageConstraints,
-} from "./file-utils";
+} from "../../utils/file-utils";

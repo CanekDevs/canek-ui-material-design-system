@@ -24,9 +24,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { visuallyHiddenSx } from "../../utils/tones";
 import { CnButton } from "../CnButton";
 import { CnEmptyState } from "../CnEmptyState";
-import { visuallyHiddenSx } from "../CnInfoCard/tones";
 import { CnCarouselSkeleton } from "./CnCarouselSkeleton";
 
 export type CnCarouselBreakpoint = "xs" | "sm" | "md" | "lg" | "xl";
@@ -40,6 +40,10 @@ export type CnCarouselSlideMeta = {
   isActive: boolean;
   /** Dentro del área visible. */
   isVisible: boolean;
+  /** Copia decorativa del bucle continuo (`aria-hidden`, sin foco). */
+  isClone: boolean;
+  /** Ancho medido del carrusel en px (0 antes de medir). */
+  containerWidth: number;
 };
 
 export type CnCarouselActions = {
@@ -73,8 +77,10 @@ export type CnCarouselProps<T = unknown> = {
 
   /** Diapositivas visibles (admite fracciones y breakpoints por ancho del contenedor). */
   slidesPerView?: CnCarouselResponsive<number>;
-  /** Ancho fijo de cada diapositiva en px (la cantidad visible se calcula sola). */
+  /** Ancho máximo de cada diapositiva en px (la cantidad visible se calcula sola). */
   slideWidth?: number;
+  /** Relación de aspecto de cada diapositiva (por ancho del contenedor, p. ej. `{ xs: "4 / 3", md: "16 / 9" }`). */
+  slideAspectRatio?: CnCarouselResponsive<string>;
   /** Diapositivas que avanza cada flecha (`page` = las visibles). */
   slidesPerMove?: number | "page";
   /** Separación entre diapositivas (px). */
@@ -83,6 +89,11 @@ export type CnCarouselProps<T = unknown> = {
   peek?: number;
   /** Al llegar al final vuelve al inicio (y viceversa). */
   loop?: boolean;
+  /**
+   * `seamless` (por defecto): el bucle sigue sin salto visible (copias de las
+   * diapositivas en los extremos). `rewind`: regresa desplazándose al inicio.
+   */
+  loopMode?: "seamless" | "rewind";
 
   autoplay?: boolean;
   /** Intervalo del autoplay (ms). */
@@ -91,7 +102,7 @@ export type CnCarouselProps<T = unknown> = {
   pauseOnFocus?: boolean;
   /** Con `prefers-reduced-motion` el autoplay arranca en pausa y no hay animación. */
   respectReducedMotion?: boolean;
-  /** Barra de tiempo del autoplay. */
+  /** Barra de tiempo del autoplay (sincronizada con las pausas). */
   autoplayProgress?: boolean;
   /** Botón reproducir/pausar (por defecto, cuando hay autoplay). */
   showPlayPause?: boolean;
@@ -103,8 +114,12 @@ export type CnCarouselProps<T = unknown> = {
   /** Miniatura de cada diapositiva (indicador `thumbnails`). */
   renderThumbnail?: (item: T | undefined, index: number) => ReactNode;
   thumbnailSize?: { width: number; height: number };
-  /** Arrastre con el ratón (el táctil usa el desplazamiento nativo). */
+  /** Arrastre con ratón y deslizamiento táctil (con umbral y velocidad). */
   draggable?: boolean;
+  /** Distancia mínima (px) del gesto para cambiar de diapositiva. Por defecto, 15 % del ancho (máx. 80). */
+  swipeThreshold?: number;
+  /** Velocidad (px/ms) a partir de la cual un gesto corto y rápido también avanza. */
+  swipeVelocity?: number;
   keyboard?: boolean;
   /** Monta solo las diapositivas cercanas (número = cuántas precargar a cada lado). */
   lazy?: boolean | number;
@@ -112,6 +127,11 @@ export type CnCarouselProps<T = unknown> = {
   index?: number;
   defaultIndex?: number;
   onChange?: (index: number) => void;
+  /**
+   * Analítica: se llama cada vez que una diapositiva entra al área visible
+   * (no se repite mientras siga visible).
+   */
+  onSlideView?: (index: number, item: T | undefined) => void;
   actionRef?: Ref<CnCarouselActions>;
 
   /** Contenido a la izquierda de la barra superior (`arrowsPosition="top"`). */
@@ -149,6 +169,7 @@ const timerFill = keyframes`
 `;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const mod = (value: number, n: number) => ((value % n) + n) % n;
 
 /** Valor responsivo según el ancho del contenedor. */
 export const resolveResponsive = <T,>(
@@ -186,11 +207,14 @@ const usePrefersReducedMotion = () => {
   return reduced;
 };
 
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 /**
  * Carrusel genérico con desplazamiento nativo (CSS scroll-snap) y un índice
- * controlado o no controlado: diapositivas por vista responsivas, separación,
- * vistazo de la siguiente, bucle, autoplay accesible, flechas, puntos,
- * progreso o miniaturas, arrastre, teclado y carga diferida.
+ * controlado o no controlado: diapositivas por vista responsivas (por ancho del
+ * contenedor), separación, vistazo de la siguiente, bucle continuo, autoplay
+ * accesible con progreso sincronizado, flechas, puntos, progreso o miniaturas,
+ * arrastre/deslizamiento con umbral y velocidad, teclado, RTL y carga diferida.
  */
 export function CnCarousel<T = unknown>({
   children,
@@ -200,10 +224,12 @@ export function CnCarousel<T = unknown>({
   getItemLabel,
   slidesPerView = 1,
   slideWidth,
+  slideAspectRatio,
   slidesPerMove = 1,
   gap: gapProp = 16,
   peek = 0,
   loop = false,
+  loopMode = "seamless",
   autoplay = false,
   interval = 5000,
   pauseOnHover = true,
@@ -217,11 +243,14 @@ export function CnCarousel<T = unknown>({
   renderThumbnail,
   thumbnailSize = { width: 64, height: 44 },
   draggable = true,
+  swipeThreshold,
+  swipeVelocity = 0.35,
   keyboard = true,
   lazy = false,
   index: indexProp,
   defaultIndex = 0,
   onChange,
+  onSlideView,
   actionRef,
   header,
   emptyState,
@@ -240,6 +269,9 @@ export function CnCarousel<T = unknown>({
   const trackId = useId();
   const trackRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const [rtl, setRtl] = useState(false);
+  const rtlRef = useRef(false);
+  rtlRef.current = rtl;
   const reducedMotion = usePrefersReducedMotion();
   const reduced = respectReducedMotion && reducedMotion;
 
@@ -261,11 +293,18 @@ export function CnCarousel<T = unknown>({
   }, [items, children, getItemKey, getItemLabel]);
   const count = slides.length;
 
-  // ─── Medidas ───────────────────────────────────────────────────────
-  useLayoutEffect(() => {
+  // ─── Medidas (ancho del contenedor, no de la ventana) ──────────────
+  useIsomorphicLayoutEffect(() => {
     const track = trackRef.current;
     if (!track) return;
-    const measure = () => setWidth(track.clientWidth);
+    const measure = () => {
+      setWidth(track.clientWidth);
+      setRtl(
+        typeof window !== "undefined" &&
+          (window.getComputedStyle(track).direction === "rtl" ||
+            track.closest("[dir]")?.getAttribute("dir") === "rtl"),
+      );
+    };
     measure();
     if (typeof ResizeObserver === "undefined") {
       window.addEventListener("resize", measure);
@@ -286,6 +325,20 @@ export function CnCarousel<T = unknown>({
   const maxIndex = Math.max(0, count - fullPerView);
   const move = slidesPerMove === "page" ? fullPerView : Math.max(1, slidesPerMove);
   const canScroll = count > fullPerView;
+  // Las copias solo se agregan cuando ya se midió el contenedor (y no en SSR / jsdom).
+  const seamless = loop && loopMode === "seamless" && canScroll && width > 0;
+  const cloneCount = seamless ? Math.ceil(perView) + 1 : 0;
+  const aspectRatio = resolveResponsive(slideAspectRatio, width, breakpoints, undefined);
+
+  // ─── Utilidades de desplazamiento (seguras en RTL) ──────────────────
+  const getScroll = (track: HTMLElement) => (rtlRef.current ? -track.scrollLeft : track.scrollLeft);
+  const setScroll = (track: HTMLElement, left: number, behavior: ScrollBehavior) => {
+    const value = rtlRef.current ? -left : left;
+    if (typeof track.scrollTo === "function") track.scrollTo({ left: value, behavior });
+    else track.scrollLeft = value;
+  };
+  const offsetOf = (track: HTMLElement, el: HTMLElement) =>
+    rtlRef.current ? track.clientWidth - el.offsetLeft - el.offsetWidth : el.offsetLeft;
 
   // ─── Índice ────────────────────────────────────────────────────────
   const [indexState, setIndexState] = useState(defaultIndex);
@@ -295,6 +348,25 @@ export function CnCarousel<T = unknown>({
   const fromScrollRef = useRef(false);
   const programmaticRef = useRef<number | null>(null);
   const programmaticTimer = useRef<ReturnType<typeof setTimeout>>();
+  /** Destino en una copia (bucle continuo) para el próximo desplazamiento. */
+  const wrapRef = useRef<{ target: number; dom: number } | null>(null);
+  const settleTimer = useRef<ReturnType<typeof setTimeout>>();
+  const settleRef = useRef<() => void>(() => undefined);
+  /** Espera a que el desplazamiento se detenga y normaliza la posición (bucle continuo). */
+  const scheduleSettle = useCallback(() => {
+    clearTimeout(settleTimer.current);
+    let last = Number.NaN;
+    const check = () => {
+      const track = trackRef.current;
+      if (!track) return;
+      if (track.scrollLeft === last) settleRef.current();
+      else {
+        last = track.scrollLeft;
+        settleTimer.current = setTimeout(check, 120);
+      }
+    };
+    settleTimer.current = setTimeout(check, 120);
+  }, []);
 
   const commit = useCallback(
     (next: number) => {
@@ -308,33 +380,39 @@ export function CnCarousel<T = unknown>({
   const scrollToIndex = useCallback(
     (target: number, behavior: ScrollBehavior) => {
       const track = trackRef.current;
-      const slide = track?.children[target] as HTMLElement | undefined;
-      if (!track || !slide) return;
-      const atEnd = target >= maxIndex && maxIndex > 0;
-      const left = atEnd ? track.scrollWidth - track.clientWidth : slide.offsetLeft;
+      if (!track) return;
+      const wrap = wrapRef.current;
+      wrapRef.current = null;
+      const dom = wrap && wrap.target === target ? wrap.dom : cloneCount + target;
+      const slide = track.children[dom] as HTMLElement | undefined;
+      if (!slide) return;
+      const left = Math.min(offsetOf(track, slide), track.scrollWidth - track.clientWidth);
       programmaticRef.current = target;
       clearTimeout(programmaticTimer.current);
       programmaticTimer.current = setTimeout(() => {
         programmaticRef.current = null;
       }, 900);
-      if (typeof track.scrollTo === "function") track.scrollTo({ left, behavior });
-      else track.scrollLeft = left;
+      setScroll(track, Math.max(0, left), behavior);
+      if (wrap) scheduleSettle();
     },
-    [maxIndex],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cloneCount],
   );
 
   // Sincroniza el desplazamiento con el índice (salvo si el cambio vino del propio scroll).
   const lastWidthRef = useRef(width);
-  useEffect(() => {
-    const resized = lastWidthRef.current !== width;
+  const lastClonesRef = useRef(cloneCount);
+  useIsomorphicLayoutEffect(() => {
+    const resized = lastWidthRef.current !== width || lastClonesRef.current !== cloneCount;
     lastWidthRef.current = width;
+    lastClonesRef.current = cloneCount;
     if (fromScrollRef.current && !resized) {
       fromScrollRef.current = false;
       return;
     }
     fromScrollRef.current = false;
     scrollToIndex(current, reduced || resized ? "auto" : "smooth");
-  }, [current, width, perView, scrollToIndex, reduced]);
+  }, [current, width, perView, scrollToIndex, reduced, rtl]);
 
   useEffect(() => () => clearTimeout(programmaticTimer.current), []);
 
@@ -349,30 +427,85 @@ export function CnCarousel<T = unknown>({
     [commit, count, loop, maxIndex],
   );
 
+  /** Da la vuelta (bucle): con copias, la animación continúa en la misma dirección. */
+  const wrapAround = useCallback(
+    (direction: 1 | -1) => {
+      const target = direction > 0 ? 0 : maxIndex;
+      if (seamless) {
+        wrapRef.current = {
+          target,
+          dom: direction > 0 ? cloneCount + count : cloneCount + maxIndex - count,
+        };
+      }
+      commit(target);
+    },
+    [seamless, cloneCount, count, maxIndex, commit],
+  );
+
   const next = useCallback(() => {
     const cur = currentRef.current;
-    if (cur >= maxIndex) goTo(loop ? 0 : maxIndex);
-    else goTo(Math.min(cur + move, maxIndex));
-  }, [goTo, loop, maxIndex, move]);
+    if (cur >= maxIndex) {
+      if (loop) wrapAround(1);
+      else goTo(maxIndex);
+    } else goTo(Math.min(cur + move, maxIndex));
+  }, [goTo, loop, maxIndex, move, wrapAround]);
 
   const prev = useCallback(() => {
     const cur = currentRef.current;
-    if (cur <= 0) goTo(loop ? maxIndex : 0);
-    else goTo(Math.max(cur - move, 0));
-  }, [goTo, loop, maxIndex, move]);
+    if (cur <= 0) {
+      if (loop) wrapAround(-1);
+      else goTo(0);
+    } else goTo(Math.max(cur - move, 0));
+  }, [goTo, loop, move, wrapAround]);
 
-  // ─── Scroll nativo (táctil, rueda, trackpad) ────────────────────────
+  // ─── Scroll nativo (rueda, trackpad) ────────────────────────────────
   const rafRef = useRef<number>();
+  const draggingRef = useRef(false);
+
+  const stepOf = (track: HTMLElement) => {
+    const first = track.children[0] as HTMLElement | undefined;
+    return first && first.offsetWidth > 0 ? first.offsetWidth + gap : 0;
+  };
+
+  /** Al terminar de desplazarse dentro de las copias, salta (sin animación) a la real. */
+  const settle = () => {
+    const track = trackRef.current;
+    if (!track || !seamless || draggingRef.current) return;
+    const step = stepOf(track);
+    if (step <= 0) return;
+    const dom = Math.round(getScroll(track) / step);
+    let target = dom;
+    if (dom < cloneCount) target = dom + count;
+    else if (dom >= cloneCount + count) target = dom - count;
+    if (target !== dom) {
+      const from = track.children[dom] as HTMLElement | undefined;
+      const to = track.children[target] as HTMLElement | undefined;
+      if (!from || !to) return;
+      programmaticRef.current = currentRef.current;
+      setScroll(track, getScroll(track) + offsetOf(track, to) - offsetOf(track, from), "auto");
+    }
+    const real = target - cloneCount;
+    if (real > maxIndex) {
+      // Vista "partida" (final + inicio): se ajusta a la última posición válida.
+      commit(maxIndex);
+      scrollToIndex(maxIndex, reduced ? "auto" : "smooth");
+    }
+  };
+
+  settleRef.current = settle;
+
   const handleScroll = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (seamless) scheduleSettle();
     rafRef.current = requestAnimationFrame(() => {
       const track = trackRef.current;
-      const first = track?.children[0] as HTMLElement | undefined;
-      if (!track || !first || draggingRef.current) return;
-      const step = first.offsetWidth + gap;
+      if (!track || draggingRef.current) return;
+      const step = stepOf(track);
       if (step <= 0) return;
-      let idx = Math.round(track.scrollLeft / step);
-      if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 2) idx = maxIndex;
+      const scroll = getScroll(track);
+      let idx = Math.round(scroll / step) - cloneCount;
+      if (seamless) idx = mod(idx, count);
+      else if (scroll + track.clientWidth >= track.scrollWidth - 2) idx = maxIndex;
       idx = clamp(idx, 0, maxIndex);
       if (programmaticRef.current !== null) {
         if (idx === programmaticRef.current) programmaticRef.current = null;
@@ -387,25 +520,35 @@ export function CnCarousel<T = unknown>({
   useEffect(
     () => () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      clearTimeout(settleTimer.current);
     },
     [],
   );
 
-  // ─── Arrastre con ratón ────────────────────────────────────────────
-  const dragRef = useRef<{ x: number; left: number; start: number; moved: boolean } | null>(null);
-  const draggingRef = useRef(false);
+  // ─── Arrastre (ratón y táctil) con umbral y velocidad ──────────────
+  type DragState = {
+    x: number;
+    y: number;
+    left: number;
+    start: number;
+    moved: boolean;
+    samples: { x: number; t: number }[];
+  };
+  const dragRef = useRef<DragState | null>(null);
   const suppressClickRef = useRef(false);
   const [dragging, setDragging] = useState(false);
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!draggable || !canScroll || event.pointerType !== "mouse" || event.button !== 0) return;
+    if (!draggable || !canScroll || event.button !== 0) return;
     const track = trackRef.current;
     if (!track) return;
     dragRef.current = {
       x: event.clientX,
-      left: track.scrollLeft,
+      y: event.clientY,
+      left: getScroll(track),
       start: currentRef.current,
       moved: false,
+      samples: [{ x: event.clientX, t: event.timeStamp || Date.now() }],
     };
   };
 
@@ -414,13 +557,27 @@ export function CnCarousel<T = unknown>({
     const track = trackRef.current;
     if (!drag || !track) return;
     const dx = event.clientX - drag.x;
-    if (!drag.moved && Math.abs(dx) > 5) {
-      drag.moved = true;
-      draggingRef.current = true;
-      setDragging(true);
-      track.setPointerCapture?.(event.pointerId);
+    const dy = event.clientY - drag.y;
+    if (!drag.moved) {
+      // Gesto vertical en táctil: se deja al navegador (desplazar la página).
+      if (event.pointerType !== "mouse" && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6) {
+        dragRef.current = null;
+        return;
+      }
+      if (Math.abs(dx) > 5) {
+        drag.moved = true;
+        draggingRef.current = true;
+        setDragging(true);
+        track.setPointerCapture?.(event.pointerId);
+      }
     }
-    if (drag.moved) track.scrollLeft = drag.left - dx;
+    if (drag.moved) {
+      const logicalDx = rtlRef.current ? -dx : dx;
+      setScroll(track, drag.left - logicalDx, "auto");
+      const t = event.timeStamp || Date.now();
+      drag.samples.push({ x: event.clientX, t });
+      while (drag.samples.length > 2 && t - drag.samples[0].t > 120) drag.samples.shift();
+    }
   };
 
   const endDrag = (event: PointerEvent<HTMLDivElement>) => {
@@ -435,12 +592,37 @@ export function CnCarousel<T = unknown>({
     setTimeout(() => {
       suppressClickRef.current = false;
     }, 0);
-    const dx = event.clientX - drag.x;
-    const threshold = Math.min(80, width * 0.15 || 50);
-    let target = drag.start;
-    if (dx < -threshold) target = drag.start + move;
-    else if (dx > threshold) target = drag.start - move;
-    target = clamp(target, 0, maxIndex);
+    const cancelled = event.type === "pointercancel";
+    const dx = (event.clientX - drag.x) * (rtlRef.current ? -1 : 1);
+    const first = drag.samples[0];
+    const t = event.timeStamp || Date.now();
+    const dt = Math.max(1, t - first.t);
+    const velocity = ((event.clientX - first.x) * (rtlRef.current ? -1 : 1)) / dt;
+    const threshold = swipeThreshold ?? Math.min(80, width * 0.15 || 50);
+    const step = track ? stepOf(track) : 0;
+    let delta = 0;
+    if (!cancelled) {
+      const slidesDragged = step > 0 ? Math.round(Math.abs(dx) / step) : 0;
+      const passes = Math.abs(dx) > threshold || Math.abs(velocity) > swipeVelocity;
+      if (passes) {
+        const direction = (Math.abs(dx) > 2 ? dx : velocity) < 0 ? 1 : -1;
+        delta = direction * Math.max(move, slidesDragged);
+      }
+    }
+    const raw = drag.start + delta;
+    if (raw > maxIndex && delta > 0) {
+      if (loop && drag.start >= maxIndex) wrapAround(1);
+      else commit(maxIndex);
+      if (drag.start === maxIndex && !loop) scrollToIndex(maxIndex, reduced ? "auto" : "smooth");
+      return;
+    }
+    if (raw < 0 && delta < 0) {
+      if (loop && drag.start <= 0) wrapAround(-1);
+      else commit(0);
+      if (drag.start === 0 && !loop) scrollToIndex(0, reduced ? "auto" : "smooth");
+      return;
+    }
+    const target = clamp(raw, 0, maxIndex);
     if (target === currentRef.current) scrollToIndex(target, reduced ? "auto" : "smooth");
     else commit(target);
   };
@@ -456,8 +638,8 @@ export function CnCarousel<T = unknown>({
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!keyboard || event.target !== event.currentTarget) return;
     const map: Record<string, () => void> = {
-      ArrowRight: next,
-      ArrowLeft: prev,
+      ArrowRight: rtl ? prev : next,
+      ArrowLeft: rtl ? next : prev,
       Home: () => goTo(0),
       End: () => goTo(maxIndex),
     };
@@ -468,7 +650,7 @@ export function CnCarousel<T = unknown>({
     }
   };
 
-  // ─── Autoplay ──────────────────────────────────────────────────────
+  // ─── Autoplay (tiempo restante conservado en las pausas) ───────────
   const [playing, setPlaying] = useState(autoplay && !reduced);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -492,15 +674,28 @@ export function CnCarousel<T = unknown>({
     !(pauseOnHover && hovered) &&
     !(pauseOnFocus && focused);
 
+  const remainingRef = useRef(interval);
+  useEffect(() => {
+    remainingRef.current = interval;
+  }, [current, interval]);
+
   useEffect(() => {
     if (!running) return;
+    const started = Date.now();
     const timer = setTimeout(() => {
+      remainingRef.current = interval;
       const cur = currentRef.current;
-      // El autoplay siempre vuelve al inicio al terminar.
-      goTo(cur >= maxIndex ? 0 : Math.min(cur + move, maxIndex));
-    }, interval);
-    return () => clearTimeout(timer);
-  }, [running, current, interval, goTo, maxIndex, move]);
+      if (cur >= maxIndex) {
+        // El autoplay siempre vuelve al inicio al terminar.
+        if (loop) wrapAround(1);
+        else goTo(0);
+      } else goTo(Math.min(cur + move, maxIndex));
+    }, remainingRef.current);
+    return () => {
+      clearTimeout(timer);
+      remainingRef.current = Math.max(0, remainingRef.current - (Date.now() - started));
+    };
+  }, [running, current, interval, goTo, maxIndex, move, loop, wrapAround]);
 
   useImperativeHandle(
     actionRef,
@@ -513,20 +708,40 @@ export function CnCarousel<T = unknown>({
   const [loaded, setLoaded] = useState<Set<number>>(() => new Set());
   const nearStart = current - preload;
   const nearEnd = current + Math.ceil(perView) - 1 + preload;
+  const isNear = (i: number) =>
+    (i >= nearStart && i <= nearEnd) ||
+    (seamless && ((i + count >= nearStart && i + count <= nearEnd) || i - count >= nearStart));
   useEffect(() => {
-    if (!lazy) return;
+    if (!lazy || count === 0) return;
     setLoaded((prevSet) => {
       let changed = false;
       const nextSet = new Set(prevSet);
-      for (let i = Math.max(0, nearStart); i <= Math.min(count - 1, nearEnd); i++) {
-        if (!nextSet.has(i)) {
-          nextSet.add(i);
+      for (let i = nearStart; i <= nearEnd; i++) {
+        const real = seamless ? mod(i, count) : i;
+        if (real < 0 || real >= count) continue;
+        if (!nextSet.has(real)) {
+          nextSet.add(real);
           changed = true;
         }
       }
       return changed ? nextSet : prevSet;
     });
-  }, [lazy, nearStart, nearEnd, count]);
+  }, [lazy, nearStart, nearEnd, count, seamless]);
+
+  // ─── Analítica: diapositivas que entran al área visible ────────────
+  const visibleCount = Math.max(1, Math.floor(perView + 0.001));
+  const onSlideViewRef = useRef(onSlideView);
+  onSlideViewRef.current = onSlideView;
+  const seenRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    if (skeleton || count === 0) return;
+    const now = new Set<number>();
+    for (let i = current; i < Math.min(count, current + visibleCount); i++) now.add(i);
+    now.forEach((i) => {
+      if (!seenRef.current.has(i)) onSlideViewRef.current?.(i, slides[i]?.item);
+    });
+    seenRef.current = now;
+  }, [current, visibleCount, count, skeleton, slides]);
 
   if (skeleton) {
     return (
@@ -559,15 +774,15 @@ export function CnCarousel<T = unknown>({
     );
   }
 
-  const visibleCount = Math.max(1, Math.floor(perView + 0.001));
   const isVisible = (i: number) => i >= current && i < current + visibleCount;
   const basis = slideWidth
-    ? `${slideWidth}px`
+    ? `min(${slideWidth}px, 100%)`
     : `calc((100% - ${peek}px - ${gap * (perView - 1)}px) / ${perView})`;
   const arrowsVisible = Boolean(arrows) && canScroll;
   const showPlay = (showPlayPause ?? autoplay) && canScroll;
   const atStart = current <= 0;
   const atEnd = current >= maxIndex;
+  const origin = rtl ? "right" : "left";
 
   const positions: number[] = [];
   for (let i = 0; i < maxIndex; i += move) positions.push(i);
@@ -577,14 +792,24 @@ export function CnCarousel<T = unknown>({
     0,
   );
 
+  /** Relleno de tiempo del autoplay (puntos y barra), pausado junto con el temporizador. */
+  const timerFillSx = reduced
+    ? { transform: "scaleX(0)" }
+    : {
+        transformOrigin: origin,
+        animation: `${timerFill} ${interval}ms linear forwards`,
+        animationPlayState: running ? "running" : "paused",
+      };
+
   const arrowButton = (direction: "prev" | "next") => {
     const disabled = !loop && (direction === "prev" ? atStart : atEnd);
     const inside = arrowsPosition === "inside";
     const outside = arrowsPosition === "outside";
+    const pointsLeft = (direction === "prev") !== rtl;
     return (
       <CnButton
         iconOnly
-        icon={direction === "prev" ? "chevron_left" : "chevron_right"}
+        icon={pointsLeft ? "chevron_left" : "chevron_right"}
         size="small"
         variant={inside ? "contained" : "outlined"}
         color="neutral"
@@ -601,7 +826,7 @@ export function CnCarousel<T = unknown>({
                 top: "50%",
                 transform: "translateY(-50%)",
                 zIndex: 2,
-                [direction === "prev" ? "left" : "right"]: inside ? 8 : 0,
+                [direction === "prev" ? "insetInlineStart" : "insetInlineEnd"]: inside ? 8 : 0,
               }
             : {}),
           ...(inside
@@ -634,9 +859,9 @@ export function CnCarousel<T = unknown>({
       variant="text"
       color="neutral"
       aria-label={playing ? labels.pause : labels.play}
-      aria-pressed={undefined}
       onClick={() => setPlaying((p) => !p)}
       data-cn-carousel-playpause
+      sx={{ flexShrink: 0 }}
     />
   ) : null;
 
@@ -651,10 +876,12 @@ export function CnCarousel<T = unknown>({
           gap: "6px",
           flexWrap: "wrap",
           justifyContent: "center",
+          minWidth: 0,
         }}
       >
         {positions.map((pos, i) => {
           const active = i === activePosition;
+          const withTimer = active && autoplay && playing && !reduced;
           return (
             <ButtonBase
               key={pos}
@@ -663,12 +890,16 @@ export function CnCarousel<T = unknown>({
               aria-controls={trackId}
               onClick={() => goTo(pos)}
               sx={{
+                position: "relative",
+                overflow: "hidden",
                 width: active ? 22 : 8,
                 height: 8,
                 borderRadius: "999px",
-                backgroundColor: active
-                  ? "var(--cn-color-brand-500, #3562a6)"
-                  : "var(--cn-color-neutral-300, #c5cad0)",
+                backgroundColor: withTimer
+                  ? "var(--cn-color-brand-200, #b5c8e6)"
+                  : active
+                    ? "var(--cn-color-brand-500, #3562a6)"
+                    : "var(--cn-color-neutral-300, #c5cad0)",
                 transition: reduced ? "none" : "width 200ms ease, background-color 200ms ease",
                 "&:hover": {
                   backgroundColor: active ? undefined : "var(--cn-color-neutral-400, #9aa1aa)",
@@ -677,7 +908,21 @@ export function CnCarousel<T = unknown>({
                   boxShadow: "var(--cn-shadow-focus, 0 0 0 3px rgba(80, 129, 196, 0.35))",
                 },
               }}
-            />
+            >
+              {withTimer && (
+                <Box
+                  key={current}
+                  aria-hidden
+                  data-cn-carousel-dot-timer
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    backgroundColor: "var(--cn-color-brand-500, #3562a6)",
+                    ...timerFillSx,
+                  }}
+                />
+              )}
+            </ButtonBase>
           );
         })}
       </Box>
@@ -693,6 +938,7 @@ export function CnCarousel<T = unknown>({
         aria-valuenow={current + 1}
         sx={{
           flex: 1,
+          minWidth: 40,
           maxWidth: 240,
           height: 4,
           borderRadius: 2,
@@ -734,6 +980,8 @@ export function CnCarousel<T = unknown>({
           display: "flex",
           gap: "8px",
           overflowX: "auto",
+          flex: "0 1 auto",
+          minWidth: 0,
           maxWidth: "100%",
           py: "4px",
           px: "2px",
@@ -785,15 +1033,61 @@ export function CnCarousel<T = unknown>({
       <Box sx={{ flex: 1, minWidth: 0 }}>{header}</Box>
       {playPauseButton}
       {arrowsVisible && (
-        <>
+        <Box sx={{ display: "flex", gap: "6px", flexShrink: 0 }}>
           {arrowButton("prev")}
           {arrowButton("next")}
-        </>
+        </Box>
       )}
     </Box>
   );
 
   const showFooter = Boolean(indicatorNode) || (showPlay && !isTop);
+
+  const renderSlideContent = (slide: SlideEntry, meta: CnCarouselSlideMeta) =>
+    items && renderItem ? renderItem(slide.item as T, meta) : (slide.node ?? null);
+
+  const slideBaseSx = {
+    flex: `0 0 ${basis}`,
+    minWidth: 0,
+    scrollSnapAlign: "start",
+    scrollSnapStop: "normal",
+    display: "flex",
+    position: "relative",
+    borderRadius: "var(--cn-radius-lg, 12px)",
+    ...(aspectRatio && { aspectRatio }),
+    "& > *": { flex: 1, minWidth: 0 },
+    // Foco visible: la diapositiva se resalta cuando algo dentro tiene foco de teclado.
+    "&:has(:focus-visible)": {
+      outline: "2px solid var(--cn-color-brand-500, #3562a6)",
+      outlineOffset: "-2px",
+    },
+  };
+
+  const cloneNodes = (side: "before" | "after") =>
+    Array.from({ length: cloneCount }, (_, j) => {
+      const real = side === "before" ? mod(count - cloneCount + j, count) : mod(j, count);
+      const slide = slides[real];
+      const mounted = !lazy || loaded.has(real) || isNear(real);
+      return (
+        <Box
+          key={`clone-${side}-${j}`}
+          aria-hidden
+          data-cn-carousel-clone={real}
+          {...({ inert: "" } as Record<string, unknown>)}
+          sx={[slideBaseSx, ...(Array.isArray(slideSx) ? slideSx : [slideSx])]}
+        >
+          {mounted
+            ? renderSlideContent(slide, {
+                index: real,
+                isActive: false,
+                isVisible: false,
+                isClone: true,
+                containerWidth: width,
+              })
+            : null}
+        </Box>
+      );
+    });
 
   return (
     <Box
@@ -845,6 +1139,8 @@ export function CnCarousel<T = unknown>({
               overscrollBehaviorX: "contain",
               scrollbarWidth: "none",
               "&::-webkit-scrollbar": { display: "none" },
+              // El gesto horizontal lo maneja el carrusel (umbral/velocidad); el vertical, la página.
+              touchAction: draggable && canScroll ? "pan-y pinch-zoom" : undefined,
               cursor: draggable && canScroll ? (dragging ? "grabbing" : "grab") : undefined,
               userSelect: dragging ? "none" : undefined,
               borderRadius: "var(--cn-radius-lg, 12px)",
@@ -852,18 +1148,25 @@ export function CnCarousel<T = unknown>({
               "&:focus-visible": {
                 boxShadow: "var(--cn-shadow-focus, 0 0 0 3px rgba(80, 129, 196, 0.35))",
               },
+              "&:focus-visible > [data-active]": {
+                outline: "2px solid var(--cn-color-brand-500, #3562a6)",
+                outlineOffset: "-2px",
+              },
               "& img": { WebkitUserDrag: "none" },
             },
             ...(Array.isArray(trackSx) ? trackSx : [trackSx]),
           ]}
         >
+          {cloneCount > 0 && cloneNodes("before")}
           {slides.map((slide, i) => {
             const visible = isVisible(i);
-            const mounted = !lazy || loaded.has(i) || (i >= nearStart && i <= nearEnd);
+            const mounted = !lazy || loaded.has(i) || isNear(i);
             const meta: CnCarouselSlideMeta = {
               index: i,
               isActive: i === current,
               isVisible: visible,
+              isClone: false,
+              containerWidth: width,
             };
             const label = labels.slide(i + 1, count);
             return (
@@ -876,26 +1179,13 @@ export function CnCarousel<T = unknown>({
                 data-cn-carousel-slide={i}
                 data-active={i === current || undefined}
                 {...((visible ? {} : { inert: "" }) as Record<string, unknown>)}
-                sx={[
-                  {
-                    flex: `0 0 ${basis}`,
-                    minWidth: 0,
-                    scrollSnapAlign: "start",
-                    scrollSnapStop: "normal",
-                    display: "flex",
-                    "& > *": { flex: 1, minWidth: 0 },
-                  },
-                  ...(Array.isArray(slideSx) ? slideSx : [slideSx]),
-                ]}
+                sx={[slideBaseSx, ...(Array.isArray(slideSx) ? slideSx : [slideSx])]}
               >
-                {mounted
-                  ? items && renderItem
-                    ? renderItem(slide.item as T, meta)
-                    : (slide.node ?? null)
-                  : null}
+                {mounted ? renderSlideContent(slide, meta) : null}
               </Box>
             );
           })}
+          {cloneCount > 0 && cloneNodes("after")}
         </Box>
         {arrowsVisible && !isTop && (
           <>
@@ -918,14 +1208,11 @@ export function CnCarousel<T = unknown>({
           }}
         >
           <Box
-            key={`${current}-${playing}`}
+            key={current}
             sx={{
               height: "100%",
-              transformOrigin: "left",
               backgroundColor: "var(--cn-color-brand-500, #3562a6)",
-              transform: playing ? undefined : "scaleX(0)",
-              animation: playing ? `${timerFill} ${interval}ms linear forwards` : "none",
-              animationPlayState: running ? "running" : "paused",
+              ...timerFillSx,
             }}
           />
         </Box>
@@ -938,7 +1225,8 @@ export function CnCarousel<T = unknown>({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "12px",
+            flexWrap: "wrap",
+            gap: "8px 12px",
             mt: "12px",
             minWidth: 0,
           }}

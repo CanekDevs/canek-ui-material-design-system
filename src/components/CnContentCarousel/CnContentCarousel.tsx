@@ -1,21 +1,21 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import type { ReactNode } from "react";
-import { Children, isValidElement, useId } from "react";
+import { Children, isValidElement, useEffect, useId, useRef, useState } from "react";
+import type { CnTone } from "../../utils/tones";
+import { CN_TONES } from "../../utils/tones";
 import { CnButton } from "../CnButton";
-import type { CnCarouselProps } from "../CnCarousel";
-import { CnCarousel } from "../CnCarousel";
+import type { CnCarouselBreakpoint, CnCarouselProps } from "../CnCarousel";
+import { CnCarousel, resolveResponsive } from "../CnCarousel";
 import { CnChip } from "../CnChip";
 import { getSafeUrl } from "../CnFileField/file-utils";
 import { CnIcon } from "../CnIcon";
-import type { CnTone } from "../CnInfoCard/tones";
-import { CN_TONES } from "../CnInfoCard/tones";
 import { CnContentCarouselSkeleton } from "./CnContentCarouselSkeleton";
 
-type Breakpoint = "xs" | "sm" | "md" | "lg" | "xl";
-/** Valor fijo o por breakpoint del viewport (como `sx` de MUI). */
-export type CnResponsiveValue<T> = T | Partial<Record<Breakpoint, T>>;
+/** Valor fijo o por breakpoint del **ancho del carrusel** (claves de breakpoint de MUI). */
+export type CnResponsiveValue<T> = T | Partial<Record<CnCarouselBreakpoint, T>>;
 
 export type CnContentSlideAction = {
   label: ReactNode;
@@ -29,6 +29,12 @@ export type CnContentSlideAction = {
 export type CnContentSlide = {
   id?: string | number;
   image?: string;
+  /** Candidatos responsivos (`"a.jpg 640w, b.jpg 1280w"`). */
+  imageSrcSet?: string;
+  /** Tamaños para `srcSet` (por defecto, el ancho completo). */
+  imageSizes?: string;
+  /** Miniatura (URL o data URI) que se muestra desenfocada mientras carga la imagen. */
+  placeholder?: string;
   imageAlt?: string;
   /** Video (con controles nativos). */
   video?: string;
@@ -63,6 +69,7 @@ type PassThrough = Pick<
   | "autoplay"
   | "interval"
   | "loop"
+  | "loopMode"
   | "arrows"
   | "arrowsPosition"
   | "indicators"
@@ -74,6 +81,8 @@ type PassThrough = Pick<
   | "gap"
   | "peek"
   | "draggable"
+  | "swipeThreshold"
+  | "swipeVelocity"
   | "lazy"
   | "index"
   | "defaultIndex"
@@ -89,12 +98,15 @@ export type CnContentCarouselProps = PassThrough & {
 
   // ─── hero ────────────────────────────────────────────────────────────
   slides?: CnContentSlide[];
-  /** Relación de aspecto de los banners (por breakpoint del viewport). */
+  /**
+   * Relación de aspecto mínima de los banners, por ancho del carrusel
+   * (`{ xs: "4 / 3", sm: "16 / 9", lg: "21 / 9" }`). Si el texto no cabe, el banner crece.
+   */
   aspectRatio?: CnResponsiveValue<string>;
-  /** Alto fijo (sustituye `aspectRatio`). */
+  /** Alto mínimo fijo (sustituye `aspectRatio`), por ancho del carrusel. */
   height?: CnResponsiveValue<number | string>;
   overlay?: "gradient" | "solid" | "none";
-  /** Opacidad máxima del velo (0–1). */
+  /** Opacidad máxima del velo (0–1). En anchos chicos se refuerza para conservar el contraste. */
   overlayOpacity?: number;
   /** `below`: título y descripción bajo la imagen. */
   captionPosition?: "overlay" | "below";
@@ -107,6 +119,8 @@ export type CnContentCarouselProps = PassThrough & {
   onViewMore?: (slide: CnContentSlide, index: number) => void;
   viewMoreLabel?: string;
   onSlideClick?: (slide: CnContentSlide, index: number) => void;
+  /** Analítica: la diapositiva entró al área visible. */
+  onSlideView?: (slide: CnContentSlide | undefined, index: number) => void;
   /** Diapositiva personalizada. */
   renderSlide?: (slide: CnContentSlide, index: number) => ReactNode;
   /** Nivel del título de cada diapositiva. */
@@ -116,7 +130,7 @@ export type CnContentCarouselProps = PassThrough & {
   /** Tarjetas (preset `cards`). También se aceptan como hijos. */
   items?: ReactNode[];
   children?: ReactNode;
-  /** Ancho de cada tarjeta (px). */
+  /** Ancho máximo de cada tarjeta (px; nunca más ancho que el carrusel). */
   slideWidth?: number;
   title?: ReactNode;
   subtitle?: ReactNode;
@@ -138,23 +152,122 @@ export type CnContentCarouselProps = PassThrough & {
 const JUSTIFY = { start: "flex-start", center: "center", end: "flex-end" } as const;
 const VERTICAL = { top: "flex-start", center: "center", bottom: "flex-end" } as const;
 
-const overlayBackground = (
+/** Contenedores (CSS container queries) para tipografía y CTA por ancho real. */
+const HERO_CONTAINER = "cn-hero";
+const CAROUSEL_CONTAINER = "cn-content-carousel";
+const narrow = (px: number) => `@container ${HERO_CONTAINER} (max-width: ${px}px)`;
+const wide = (px: number) => `@container ${HERO_CONTAINER} (min-width: ${px}px)`;
+
+/**
+ * Velo sobre la imagen. En anchos chicos el texto ocupa más superficie, así que
+ * el velo cubre más área y conserva un mínimo de opacidad en toda la imagen.
+ */
+export const overlayBackground = (
   overlay: "gradient" | "solid" | "none",
   vertical: "top" | "center" | "bottom",
   opacity: number,
   dark: boolean,
+  compact = false,
 ) => {
   if (overlay === "none") return "none";
   const rgb = dark ? "0, 0, 0" : "255, 255, 255";
-  if (overlay === "solid" || vertical === "center") return `rgba(${rgb}, ${opacity * 0.7})`;
+  const a = (value: number) => `rgba(${rgb}, ${Math.min(1, value).toFixed(3)})`;
+  if (overlay === "solid" || vertical === "center") return a(opacity * (compact ? 0.8 : 0.7));
   const direction = vertical === "top" ? "to bottom" : "to top";
-  return `linear-gradient(${direction}, rgba(${rgb}, ${opacity}) 0%, rgba(${rgb}, ${opacity * 0.45}) 45%, rgba(${rgb}, 0) 80%)`;
+  if (compact) {
+    return `linear-gradient(${direction}, ${a(opacity * 1.05)} 0%, ${a(opacity * 0.7)} 55%, ${a(opacity * 0.3)} 100%)`;
+  }
+  return `linear-gradient(${direction}, ${a(opacity)} 0%, ${a(opacity * 0.45)} 45%, ${a(0)} 80%)`;
+};
+
+/** Valida cada candidato de un `srcSet` (descarta URLs inseguras). */
+const safeSrcSet = (srcSet?: string) => {
+  if (!srcSet) return undefined;
+  const parts = srcSet
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const [url, ...rest] = part.split(/\s+/);
+      const safe = getSafeUrl(url);
+      return safe ? [safe, ...rest].join(" ") : null;
+    })
+    .filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : undefined;
+};
+
+type HeroImageProps = {
+  src: string;
+  srcSet?: string;
+  sizes?: string;
+  alt: string;
+  placeholder?: string;
+  fit: "cover" | "contain";
+  eager: boolean;
+};
+
+/** Imagen con `srcSet`/`sizes`, aparición suave y marcador desenfocado (blur-up). */
+const HeroImage = ({ src, srcSet, sizes, alt, placeholder, fit, eager }: HeroImageProps) => {
+  const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const safePlaceholder = getSafeUrl(placeholder);
+  useEffect(() => {
+    const img = imgRef.current;
+    setLoaded(Boolean(img?.complete && img.naturalWidth > 0));
+  }, [src]);
+  return (
+    <>
+      {safePlaceholder && (
+        <Box
+          aria-hidden
+          data-cn-hero-placeholder
+          sx={{
+            position: "absolute",
+            inset: "-24px",
+            backgroundImage: `url("${safePlaceholder.replace(/"/g, "%22")}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(18px)",
+            transform: "scale(1.05)",
+            opacity: loaded ? 0 : 1,
+            transition: "opacity 400ms ease",
+            "@media (prefers-reduced-motion: reduce)": { transition: "none" },
+          }}
+        />
+      )}
+      <Box
+        ref={imgRef}
+        component="img"
+        src={src}
+        srcSet={srcSet}
+        sizes={srcSet ? (sizes ?? "100vw") : undefined}
+        alt={alt}
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
+        draggable={false}
+        data-loaded={loaded || undefined}
+        onLoad={() => setLoaded(true)}
+        sx={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: fit,
+          opacity: safePlaceholder && !loaded ? 0 : 1,
+          transition: "transform 600ms ease, opacity 400ms ease",
+          "@media (prefers-reduced-motion: reduce)": { transition: "none" },
+        }}
+      />
+    </>
+  );
 };
 
 /**
- * Carrusel de contenido: banners (`hero`) con imagen o fondo, velo, título,
- * descripción, CTA y pies de foto; o una fila de tarjetas (`cards`) con
- * encabezado y flechas. Construido sobre `CnCarousel`.
+ * Carrusel de contenido: banners (`hero`) con imagen o fondo, velo adaptable,
+ * título, descripción, CTA y pies de foto; o una fila de tarjetas (`cards`)
+ * con encabezado y flechas. Construido sobre `CnCarousel`; la tipografía, el
+ * número de líneas y la disposición de los CTA dependen del ancho del
+ * carrusel (container queries), no de la ventana.
  */
 export const CnContentCarousel = ({
   variant = "hero",
@@ -171,6 +284,7 @@ export const CnContentCarousel = ({
   onViewMore,
   viewMoreLabel = "Ver más",
   onSlideClick,
+  onSlideView,
   renderSlide,
   titleComponent = "h3",
   items,
@@ -196,13 +310,15 @@ export const CnContentCarousel = ({
   ...carouselProps
 }: CnContentCarouselProps) => {
   const baseId = useId();
+  const theme = useTheme();
+  const breakpoints = theme.breakpoints.values as Record<CnCarouselBreakpoint, number>;
   const isCards = variant === "cards";
 
   if (skeleton) {
     return (
       <CnContentCarouselSkeleton
         variant={variant}
-        aspectRatio={typeof aspectRatio === "string" ? aspectRatio : "16 / 9"}
+        aspectRatio={resolveResponsive(aspectRatio, 0, breakpoints, "16 / 9")}
         slideWidth={slideWidth}
         count={skeletonCount}
         header={Boolean(title || subtitle || icon || headerAction)}
@@ -243,6 +359,11 @@ export const CnContentCarousel = ({
               fontWeight: "var(--cn-font-weight-bold, 700)",
               color: "var(--cn-color-text, #222831)",
               lineHeight: 1.3,
+              overflowWrap: "anywhere",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
             }}
           >
             {title}
@@ -254,13 +375,16 @@ export const CnContentCarousel = ({
             sx={{
               fontSize: "var(--cn-font-size-sm, 12px)",
               color: "var(--cn-color-text-muted, #6e7682)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
             {subtitle}
           </Typography>
         )}
       </Box>
-      {headerAction}
+      {headerAction && <Box sx={{ flexShrink: 0, maxWidth: "45%" }}>{headerAction}</Box>}
     </Box>
   );
 
@@ -279,6 +403,7 @@ export const CnContentCarousel = ({
         slidesPerMove={carouselProps.slidesPerMove ?? "page"}
         header={header || undefined}
         labels={{ region: label ?? (typeof title === "string" ? title : "Carrusel"), ...labels }}
+        onSlideView={onSlideView ? (index) => onSlideView(undefined, index) : undefined}
         className={className}
         sx={sx}
         {...carouselProps}
@@ -286,7 +411,7 @@ export const CnContentCarousel = ({
         {cards.map((card, i) => (
           <Box
             key={isValidElement(card) && card.key !== null ? card.key : i}
-            sx={{ height: "100%" }}
+            sx={{ height: "100%", minWidth: 0 }}
           >
             {card}
           </Box>
@@ -295,9 +420,9 @@ export const CnContentCarousel = ({
     );
   }
 
-  const ratioSx = height !== undefined ? { height } : { aspectRatio };
+  const arrowsInside = Boolean(arrows) && (arrowsPosition ?? "inside") === "inside";
 
-  const renderHero = (slide: CnContentSlide, index: number) => {
+  const renderHero = (slide: CnContentSlide, index: number, width: number, isClone: boolean) => {
     if (renderSlide) return renderSlide(slide, index);
     const vAlign = slide.verticalAlign ?? verticalAlign;
     const hAlign = slide.align ?? contentAlign;
@@ -305,27 +430,23 @@ export const CnContentCarousel = ({
     const light = (slide.textColor ?? "light") === "light";
     const hasMedia = Boolean(slide.image || slide.video);
     const textOnMedia = captionPosition === "overlay";
-    const textColor =
-      textOnMedia && (hasMedia || slide.background)
-        ? light
-          ? "#fff"
-          : "#111418"
-        : "var(--cn-color-text, #222831)";
-    const titleId = `${baseId}-title-${index}`;
+    const onMedia = textOnMedia && (hasMedia || Boolean(slide.background));
+    const textColor = onMedia ? (light ? "#fff" : "#111418") : "var(--cn-color-text, #222831)";
+    const titleId = `${baseId}-title-${index}${isClone ? "-clone" : ""}`;
     const safeHref = getSafeUrl(slide.href);
     const imageSrc = getSafeUrl(slide.image);
     const videoSrc = getSafeUrl(slide.video);
     const clickable = Boolean(safeHref || onSlideClick);
+    const minSize =
+      height !== undefined
+        ? { minHeight: resolveResponsive(height, width, breakpoints, undefined) }
+        : { aspectRatio: resolveResponsive(aspectRatio, width, breakpoints, "16 / 9") };
 
     const viewMoreAction: CnContentSlideAction | null = onViewMore
-      ? {
-          label: viewMoreLabel,
-          variant: "text",
-          icon: undefined,
-          onClick: () => onViewMore(slide, index),
-        }
+      ? { label: viewMoreLabel, variant: "text", onClick: () => onViewMore(slide, index) }
       : null;
     const actions = [...(slide.actions ?? []), ...(viewMoreAction ? [viewMoreAction] : [])];
+    const textShadow = textOnMedia && hasMedia && light ? "0 1px 3px rgba(0,0,0,0.45)" : "none";
 
     const textBlock = (slide.content ||
       slide.title ||
@@ -340,19 +461,33 @@ export const CnContentCarousel = ({
           zIndex: 2,
           pointerEvents: safeHref ? "none" : undefined,
           "& a, & button": { pointerEvents: "auto" },
-          maxWidth: textOnMedia ? { xs: "100%", md: 640 } : "100%",
+          width: "100%",
+          minWidth: 0,
+          maxWidth: "100%",
+          ...(textOnMedia && { [wide(900)]: { maxWidth: 640 } }),
           display: "flex",
           flexDirection: "column",
           alignItems: JUSTIFY[hAlign],
           textAlign: hAlign === "center" ? "center" : hAlign === "end" ? "right" : "left",
           gap: "8px",
           color: textColor,
+          overflowWrap: "anywhere",
         }}
       >
         {slide.content ?? (
           <>
             {(slide.eyebrow || slide.badge) && (
-              <Box sx={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                  maxWidth: "100%",
+                  minWidth: 0,
+                  justifyContent: JUSTIFY[hAlign],
+                }}
+              >
                 {slide.badge &&
                   (typeof slide.badge === "string" ? (
                     <CnChip
@@ -373,7 +508,13 @@ export const CnContentCarousel = ({
                       fontWeight: 600,
                       letterSpacing: "0.08em",
                       textTransform: "uppercase",
-                      opacity: 0.9,
+                      opacity: 0.92,
+                      textShadow,
+                      minWidth: 0,
+                      maxWidth: "100%",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {slide.eyebrow}
@@ -384,24 +525,27 @@ export const CnContentCarousel = ({
             {slide.title && (
               <Typography
                 id={titleId}
+                data-cn-hero-title
                 component={titleComponent}
                 sx={{
                   m: 0,
-                  fontSize: textOnMedia
-                    ? "clamp(18px, 2.6vw, 32px)"
-                    : "var(--cn-font-size-lg, 16px)",
+                  maxWidth: "100%",
+                  fontSize: textOnMedia ? "20px" : "var(--cn-font-size-lg, 16px)",
+                  ...(textOnMedia && {
+                    "@supports (font-size: 1cqi)": { fontSize: "clamp(17px, 4cqi, 34px)" },
+                  }),
                   fontWeight: "var(--cn-font-weight-bold, 700)",
                   lineHeight: 1.2,
                   color: "inherit",
-                  textShadow:
-                    textOnMedia && hasMedia && light ? "0 1px 2px rgba(0,0,0,0.35)" : "none",
+                  textShadow,
                   display: "-webkit-box",
-                  WebkitLineClamp: 2,
+                  WebkitLineClamp: 3,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
+                  [narrow(359)]: { WebkitLineClamp: 2 },
                 }}
               >
-                {safeHref ? (
+                {safeHref && !isClone ? (
                   <Box
                     component="a"
                     href={safeHref}
@@ -423,17 +567,22 @@ export const CnContentCarousel = ({
             {slide.description && (
               <Typography
                 component="div"
+                data-cn-hero-description
                 sx={{
-                  fontSize: textOnMedia
-                    ? "clamp(12px, 1.4vw, 15px)"
-                    : "var(--cn-font-size-sm, 13px)",
+                  maxWidth: "100%",
+                  fontSize: textOnMedia ? "14px" : "var(--cn-font-size-sm, 13px)",
+                  ...(textOnMedia && {
+                    "@supports (font-size: 1cqi)": { fontSize: "clamp(12.5px, 1.9cqi, 16px)" },
+                  }),
                   lineHeight: 1.5,
                   color: "inherit",
-                  opacity: textOnMedia ? 0.92 : 1,
+                  opacity: textOnMedia ? 0.95 : 1,
+                  textShadow,
                   display: "-webkit-box",
-                  WebkitLineClamp: { xs: 2, md: 3 },
+                  WebkitLineClamp: 3,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
+                  [narrow(599)]: { WebkitLineClamp: 2 },
                   ...(!textOnMedia && { color: "var(--cn-color-text-muted, #6e7682)" }),
                 }}
               >
@@ -450,7 +599,16 @@ export const CnContentCarousel = ({
                   flexWrap: "wrap",
                   gap: "8px",
                   mt: "4px",
+                  maxWidth: "100%",
                   justifyContent: JUSTIFY[hAlign],
+                  "& > *": { minWidth: 0, maxWidth: "100%" },
+                  // En anchos chicos los CTA se apilan a lo ancho.
+                  [narrow(419)]: {
+                    flexDirection: "column",
+                    alignItems: "stretch",
+                    alignSelf: "stretch",
+                    "& > *": { width: "100%" },
+                  },
                 }}
               >
                 {actions.map((action, i) => {
@@ -470,7 +628,12 @@ export const CnContentCarousel = ({
                         event.stopPropagation();
                         action.onClick?.();
                       }}
-                      sx={
+                      sx={[
+                        {
+                          whiteSpace: "normal",
+                          textAlign: "center",
+                          overflowWrap: "anywhere",
+                        },
                         onDark
                           ? buttonVariant === "contained"
                             ? {
@@ -481,10 +644,11 @@ export const CnContentCarousel = ({
                             : {
                                 color: "#fff",
                                 borderColor: "rgba(255,255,255,0.75)",
+                                textShadow,
                                 "&:hover": { backgroundColor: "rgba(255,255,255,0.12)" },
                               }
-                          : undefined
-                      }
+                          : {},
+                      ]}
                     >
                       {action.label}
                     </CnButton>
@@ -496,6 +660,8 @@ export const CnContentCarousel = ({
         )}
       </Box>
     );
+
+    const sidePad = arrowsInside ? 56 : 24;
 
     return (
       <Box
@@ -509,6 +675,9 @@ export const CnContentCarousel = ({
           flexDirection: "column",
           gap: "10px",
           height: "100%",
+          minWidth: 0,
+          containerType: "inline-size",
+          containerName: HERO_CONTAINER,
           cursor: clickable ? "pointer" : undefined,
         }}
       >
@@ -516,7 +685,7 @@ export const CnContentCarousel = ({
           data-cn-hero-media
           sx={{
             position: "relative",
-            overflow: "hidden",
+            flex: textOnMedia ? 1 : undefined,
             borderRadius: radius,
             background:
               slide.background ??
@@ -524,64 +693,82 @@ export const CnContentCarousel = ({
             display: "flex",
             alignItems: VERTICAL[vAlign],
             justifyContent: JUSTIFY[hAlign],
-            p: textOnMedia ? { xs: "16px", sm: "24px", md: "32px" } : 0,
-            ...ratioSx,
-            ...(clickable && {
-              "&:hover img": { transform: "scale(1.02)" },
+            minWidth: 0,
+            boxSizing: "border-box",
+            // El tamaño es mínimo: si el texto no cabe, el banner crece en vez de recortarlo.
+            ...minSize,
+            ...(textOnMedia && {
+              p: "16px",
+              pb: "20px",
+              [wide(480)]: { px: `${sidePad}px`, py: "24px" },
+              [wide(900)]: { px: `${sidePad + 8}px`, py: "32px" },
             }),
+            ...(clickable && { "&:hover img": { transform: "scale(1.02)" } }),
           }}
         >
-          {imageSrc && !videoSrc && (
-            <Box
-              component="img"
-              src={imageSrc}
-              alt={slide.imageAlt ?? ""}
-              loading={index === 0 ? "eager" : "lazy"}
-              decoding="async"
-              draggable={false}
-              sx={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: slide.imageFit ?? "cover",
-                transition: "transform 600ms ease",
-                "@media (prefers-reduced-motion: reduce)": { transition: "none" },
-              }}
-            />
-          )}
-          {videoSrc && (
-            <Box
-              component="video"
-              src={videoSrc}
-              poster={getSafeUrl(slide.poster)}
-              controls
-              playsInline
-              preload="metadata"
-              aria-label={slide.imageAlt ?? slide.label}
-              sx={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: slide.imageFit ?? "cover",
-                backgroundColor: "#000",
-              }}
-            />
-          )}
-          {textOnMedia && hasMedia && slideOverlay !== "none" && textBlock && (
-            <Box
-              aria-hidden
-              data-cn-hero-overlay
-              sx={{
-                position: "absolute",
-                inset: 0,
-                pointerEvents: "none",
-                background: overlayBackground(slideOverlay, vAlign, overlayOpacity, light),
-              }}
-            />
-          )}
-          {safeHref && (
+          <Box
+            data-cn-hero-backdrop
+            sx={{
+              position: "absolute",
+              inset: 0,
+              overflow: "hidden",
+              borderRadius: "inherit",
+              pointerEvents: videoSrc ? undefined : "none",
+            }}
+          >
+            {imageSrc && !videoSrc && (
+              <HeroImage
+                src={imageSrc}
+                srcSet={safeSrcSet(slide.imageSrcSet)}
+                sizes={slide.imageSizes}
+                alt={isClone ? "" : (slide.imageAlt ?? "")}
+                placeholder={slide.placeholder}
+                fit={slide.imageFit ?? "cover"}
+                eager={index === 0}
+              />
+            )}
+            {videoSrc && (
+              <Box
+                component="video"
+                src={videoSrc}
+                poster={getSafeUrl(slide.poster)}
+                controls
+                playsInline
+                preload="metadata"
+                aria-label={slide.imageAlt ?? slide.label}
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: slide.imageFit ?? "cover",
+                  backgroundColor: "#000",
+                }}
+              />
+            )}
+            {textOnMedia && hasMedia && slideOverlay !== "none" && textBlock && (
+              <Box
+                aria-hidden
+                data-cn-hero-overlay
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  pointerEvents: "none",
+                  background: overlayBackground(slideOverlay, vAlign, overlayOpacity, light),
+                  [narrow(599)]: {
+                    background: overlayBackground(
+                      slideOverlay,
+                      vAlign,
+                      overlayOpacity,
+                      light,
+                      true,
+                    ),
+                  },
+                }}
+              />
+            )}
+          </Box>
+          {safeHref && !isClone && (
             <Box
               component="a"
               href={safeHref}
@@ -590,13 +777,13 @@ export const CnContentCarousel = ({
               aria-hidden
               tabIndex={-1}
               data-cn-hero-link
-              sx={{ position: "absolute", inset: 0, zIndex: 1 }}
+              sx={{ position: "absolute", inset: 0, zIndex: 1, borderRadius: "inherit" }}
             />
           )}
           {textOnMedia && textBlock}
         </Box>
         {!textOnMedia && textBlock && (
-          <Box sx={{ position: "relative", px: "2px" }}>{textBlock}</Box>
+          <Box sx={{ position: "relative", px: "2px", minWidth: 0 }}>{textBlock}</Box>
         )}
         {slide.caption && (
           <Box
@@ -605,6 +792,11 @@ export const CnContentCarousel = ({
               fontSize: "var(--cn-font-size-xs, 11px)",
               color: "var(--cn-color-text-muted, #6e7682)",
               px: "2px",
+              overflowWrap: "anywhere",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
             }}
           >
             {slide.caption}
@@ -617,7 +809,7 @@ export const CnContentCarousel = ({
   return (
     <CnCarousel<CnContentSlide>
       items={slides}
-      renderItem={(slide, meta) => renderHero(slide, meta.index)}
+      renderItem={(slide, meta) => renderHero(slide, meta.index, meta.containerWidth, meta.isClone)}
       getItemKey={(slide, i) => slide.id ?? i}
       getItemLabel={(slide) =>
         slide.label ?? (typeof slide.title === "string" ? slide.title : undefined)
@@ -636,6 +828,7 @@ export const CnContentCarousel = ({
           />
         );
       }}
+      onSlideView={onSlideView ? (index, slide) => onSlideView(slide, index) : undefined}
       autoplay={autoplay ?? true}
       interval={interval}
       loop={loop}
@@ -644,7 +837,18 @@ export const CnContentCarousel = ({
       indicators={indicators ?? "dots"}
       labels={{ region: label ?? "Anuncios", ...labels }}
       className={className}
-      sx={sx}
+      sx={[
+        {
+          containerType: "inline-size",
+          containerName: CAROUSEL_CONTAINER,
+          // En carruseles angostos las flechas internas tapan el texto: se navega
+          // deslizando, con los puntos o con el teclado.
+          [`@container ${CAROUSEL_CONTAINER} (max-width: 479px)`]: {
+            "& [data-cn-carousel-arrow]": arrowsInside ? { display: "none" } : {},
+          },
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
       {...carouselProps}
     />
   );

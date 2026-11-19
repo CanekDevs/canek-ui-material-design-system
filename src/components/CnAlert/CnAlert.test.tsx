@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CnAlert } from "./CnAlert";
 
@@ -118,5 +118,120 @@ describe("CnAlert", () => {
   it("does not render popup when open is false", () => {
     const { container } = render(<CnAlert mode="popup" open={false} message="Oculta" />);
     expect(container.querySelector("[role='presentation']")).toBeNull();
+  });
+
+  describe("callout (antes CnInfoCard)", () => {
+    it("left-accent variant draws a colored left border", () => {
+      render(<CnAlert variant="left-accent" severity="warning" message="Nota" />);
+      const alert = screen.getByRole("alert");
+      expect(getComputedStyle(alert).borderLeftWidth).toBe("4px");
+    });
+
+    it("renders descriptor actions in a row below the message", () => {
+      const onOpen = vi.fn();
+      const { container } = render(
+        <CnAlert
+          message="Hay una actualización"
+          actions={[
+            { label: "Abrir", onClick: onOpen },
+            {
+              label: "Más información",
+              variant: "link",
+              href: "https://example.com",
+              target: "_blank",
+            },
+          ]}
+        />,
+      );
+      expect(container.querySelector("[data-cn-alert-actions]")).not.toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Abrir" }));
+      expect(onOpen).toHaveBeenCalledTimes(1);
+      const link = screen.getByRole("link", { name: "Más información" });
+      expect(link).toHaveAttribute("href", "https://example.com");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    });
+
+    it("accepts custom nodes as actions", () => {
+      render(<CnAlert message="Custom" actions={<button>Propio</button>} />);
+      expect(screen.getByRole("button", { name: "Propio" })).toBeInTheDocument();
+    });
+
+    it("toggles collapsible details (uncontrolled)", () => {
+      render(<CnAlert message="Resumen" details={<span>Detalle oculto</span>} />);
+      const toggle = screen.getByRole("button", { name: "Ver detalles" });
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+      expect(screen.queryByText("Detalle oculto")).toBeNull();
+      fireEvent.click(toggle);
+      expect(screen.getByText("Detalle oculto")).toBeInTheDocument();
+      const hide = screen.getByRole("button", { name: "Ocultar detalles" });
+      expect(hide).toHaveAttribute("aria-expanded", "true");
+      expect(hide.getAttribute("aria-controls")).toBeTruthy();
+    });
+
+    it("supports controlled details", () => {
+      const onExpandedChange = vi.fn();
+      render(
+        <CnAlert
+          message="Resumen"
+          details="Detalle"
+          expanded={false}
+          onExpandedChange={onExpandedChange}
+          detailsLabel="Más"
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Más" }));
+      expect(onExpandedChange).toHaveBeenCalledWith(true);
+      expect(screen.queryByText("Detalle")).toBeNull();
+    });
+
+    it("dismissible hides itself without onClose", async () => {
+      render(<CnAlert message="Me voy" dismissible closeLabel="Cerrar aviso" />);
+      fireEvent.click(screen.getByRole("button", { name: "Cerrar aviso" }));
+      await waitFor(() => expect(screen.getByText("Me voy")).not.toBeVisible());
+    });
+
+    it("dismissible respects controlled visible", () => {
+      const onClose = vi.fn();
+      render(<CnAlert message="Me quedo" dismissible visible onClose={onClose} />);
+      fireEvent.click(screen.getByRole("button", { name: "Cerrar alerta" }));
+      expect(onClose).toHaveBeenCalledWith("close");
+      expect(screen.getByText("Me quedo")).toBeVisible();
+    });
+
+    it("closable + onClose does not auto-hide (backwards compatible)", () => {
+      render(<CnAlert message="Sigo aquí" closable onClose={vi.fn()} />);
+      fireEvent.click(screen.getByRole("button", { name: "Cerrar alerta" }));
+      expect(screen.getByText("Sigo aquí")).toBeVisible();
+    });
+
+    it("role note does not announce; role none removes MUI's default alert role", () => {
+      const { container, rerender } = render(
+        <CnAlert severity="error" role="note" message="Nota" />,
+      );
+      expect(screen.getByRole("note")).toBeInTheDocument();
+      expect(screen.queryByRole("alert")).toBeNull();
+      rerender(<CnAlert severity="error" role="none" message="Nota" />);
+      expect(screen.queryByRole("alert")).toBeNull();
+      expect(container.querySelector(".MuiAlert-root")).toHaveAttribute("role", "none");
+    });
+
+    it("accepts a node title", () => {
+      render(<CnAlert title={<span data-testid="t">Título</span>} message="m" />);
+      expect(screen.getByTestId("t")).toBeInTheDocument();
+    });
+
+    it("wraps long unbroken strings", () => {
+      render(<CnAlert message={"x".repeat(200)} />);
+      const message = document.querySelector(".MuiAlert-message") as HTMLElement;
+      expect(getComputedStyle(message).overflowWrap).toBe("anywhere");
+    });
+
+    it("skeleton reflects actions and details", () => {
+      const { container } = render(
+        <CnAlert message="m" details="d" actions={[{ label: "A" }, { label: "B" }]} skeleton />,
+      );
+      expect(container.querySelector("[data-cn-alert-skeleton-details]")).not.toBeNull();
+      expect(container.querySelector("[data-cn-alert-skeleton-actions]")?.children).toHaveLength(2);
+    });
   });
 });

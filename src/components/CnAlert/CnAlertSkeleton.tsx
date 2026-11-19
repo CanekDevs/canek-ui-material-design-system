@@ -19,6 +19,10 @@ export type CnAlertSkeletonProps = CnSkeletonCommonProps & {
   action?: boolean;
   /** Botón de cerrar. */
   closable?: boolean;
+  /** Número de botones en la fila inferior (`actions`). */
+  actions?: number;
+  /** Botón "Ver detalles" de `details`. */
+  details?: boolean;
 };
 
 const MESSAGE_FONT = 12;
@@ -47,6 +51,8 @@ export const CnAlertSkeleton = ({
   icon = true,
   action = false,
   closable = false,
+  actions = 0,
+  details = false,
   animation,
   ariaLabel = "Cargando alerta",
   sx,
@@ -58,7 +64,9 @@ export const CnAlertSkeleton = ({
   const contentHeight =
     2 +
     (title ? Math.round(TITLE_FONT * 1.35) + (messageLines ? 4 : 0) : 0) +
-    messageLines * MESSAGE_LINE;
+    messageLines * MESSAGE_LINE +
+    (details ? 30 : 0) +
+    (actions > 0 ? 40 : 0);
   const height = 20 + Math.max(icon ? ICON : 0, contentHeight, closable ? 26 : 0);
   const sizeSx = isPopup ? { minWidth: { xs: "auto", sm: 320 }, maxWidth: 560 } : {};
 
@@ -91,7 +99,14 @@ export const CnAlertSkeleton = ({
                   border: "1px solid var(--cn-color-border, #dde0e4)",
                   backgroundColor: "var(--cn-color-surface, #ffffff)",
                 }
-              : { backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)" }),
+              : variant === "left-accent"
+                ? {
+                    border: "1px solid var(--cn-color-border, #dde0e4)",
+                    borderLeftWidth: "4px",
+                    borderLeftColor: "var(--cn-color-border-strong, #c5cad0)",
+                    backgroundColor: "var(--cn-color-surface, #ffffff)",
+                  }
+                : { backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)" }),
           }}
         >
           {icon && <SkBlock circle width={ICON} sx={{ mr: "10px" }} />}
@@ -109,6 +124,26 @@ export const CnAlertSkeleton = ({
             )}
             {messageLines > 0 && (
               <SkLines lines={messageLines} size={MESSAGE_FONT} gap={MESSAGE_LINE - 10} />
+            )}
+            {details && (
+              <Box data-cn-alert-skeleton-details sx={{ mt: "12px" }}>
+                <SkText width={92} size={12} />
+              </Box>
+            )}
+            {actions > 0 && (
+              <Box
+                data-cn-alert-skeleton-actions
+                sx={{ display: "flex", flexWrap: "wrap", gap: "8px", mt: "10px" }}
+              >
+                {Array.from({ length: actions }, (_, i) => (
+                  <SkBlock
+                    key={i}
+                    width={i === 0 ? 92 : 72}
+                    height={30}
+                    radius="var(--cn-radius-md, 8px)"
+                  />
+                ))}
+              </Box>
             )}
           </Box>
           {(action || closable) && (

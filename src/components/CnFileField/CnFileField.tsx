@@ -1,23 +1,11 @@
-import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
-import AudioFileOutlinedIcon from "@mui/icons-material/AudioFileOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import DownloadIcon from "@mui/icons-material/Download";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import FolderZipOutlinedIcon from "@mui/icons-material/FolderZipOutlined";
-import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
-import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
-import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
-import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
-import PlayCircleFilledWhiteOutlinedIcon from "@mui/icons-material/PlayCircleFilledWhiteOutlined";
 import ReplayIcon from "@mui/icons-material/Replay";
-import SlideshowOutlinedIcon from "@mui/icons-material/SlideshowOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import TableChartOutlinedIcon from "@mui/icons-material/TableChartOutlined";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -34,35 +22,42 @@ import { useControllableValue, useFieldControl } from "../../utils/field-control
 import { groupLegendSx, helperTextSx, mergeSx } from "../../utils/field-styles";
 import { formatBytes } from "../../utils/number-utils";
 import { moveArrayItem, useSortableList } from "../../utils/use-sortable-list";
-import { CnButton } from "../CnButton";
-import { CnFileFieldSkeleton } from "./CnFileFieldSkeleton";
-import { downloadFile, FileLightbox, isViewableFile } from "./FileLightbox";
 import type {
   CnExistingFile,
-  CnFileKind,
   CnFileMetadata,
   CnFileRejection,
   CnFileStatus,
   CnFileValue,
   CnImageConstraints,
-} from "./file-utils";
+} from "../../utils/file-utils";
 import {
   checkImageConstraints,
+  downloadFile,
+  FILE_KIND_META,
   fileKey,
   formatDuration,
+  getFileDisplayKind,
   getFileKind,
   getSafeUrl,
   isFile,
+  isViewableFile,
   matchesAccept,
   readFileMetadata,
-} from "./file-utils";
+} from "../../utils/file-utils";
+import { CnButton } from "../CnButton";
+import type { CnDocCardLayout } from "../CnDocCard/CnDocCard";
+import { CnDocCard } from "../CnDocCard/CnDocCard";
+import { FileThumb } from "../CnDocCard/FileThumb";
+import { CnIcon } from "../CnIcon";
+import { CnFileFieldSkeleton } from "./CnFileFieldSkeleton";
+import { FileLightbox } from "./FileLightbox";
 
 /**
- * - `dropzone`: zona de arrastre + lista (por defecto).
- * - `button`: botón + lista.
+ * - `dropzone`: zona de arrastre + lista de `CnDocCard` (por defecto).
+ * - `button`: botón + lista de `CnDocCard`.
  * - `compact`: chips en línea, para formularios densos.
  * - `grid`: galería de miniaturas cuadradas (fotos).
- * - `card`: tarjetas con vista previa grande y metadatos.
+ * - `card`: cuadrícula de `CnDocCard` (vista previa grande y metadatos).
  * - `avatar`: una sola imagen circular (foto de perfil).
  * - `masonry`: galería en columnas que respeta la proporción de cada imagen.
  */
@@ -131,23 +126,13 @@ export type CnFileFieldProps = CnFieldBaseProps<CnFileValue[]> & {
 
 // ─── Utilidades de presentación ─────────────────────────────────────────
 
-const KIND_ICONS: Record<CnFileKind, { icon: typeof InsertDriveFileOutlinedIcon; color: string }> =
-  {
-    image: { icon: ImageOutlinedIcon, color: "var(--cn-color-info-500, #2f7dc4)" },
-    video: { icon: MovieOutlinedIcon, color: "var(--cn-color-accent-500, #3d5afe)" },
-    audio: { icon: AudioFileOutlinedIcon, color: "var(--cn-color-warning-600, #b8831a)" },
-    pdf: { icon: PictureAsPdfOutlinedIcon, color: "var(--cn-color-error-500, #d63c3c)" },
-    document: { icon: DescriptionOutlinedIcon, color: "var(--cn-color-brand-500, #3562a6)" },
-    spreadsheet: { icon: TableChartOutlinedIcon, color: "var(--cn-color-success-600, #228740)" },
-    presentation: { icon: SlideshowOutlinedIcon, color: "var(--cn-color-warning-600, #b8831a)" },
-    archive: { icon: FolderZipOutlinedIcon, color: "var(--cn-color-neutral-600, #4e5660)" },
-    text: { icon: ArticleOutlinedIcon, color: "var(--cn-color-neutral-600, #4e5660)" },
-    other: { icon: InsertDriveFileOutlinedIcon, color: "var(--cn-color-neutral-500, #6e7682)" },
-  };
+const displayKind = (file: CnFileValue) =>
+  getFileDisplayKind(file.name, isFile(file) ? file.type : file.mime);
 
+/** Ícono por tipo: mismo registro y color que `CnDocCard` (`FILE_KIND_META`). */
 const KindIcon = ({ file, size = 20 }: { file: CnFileValue; size?: number }) => {
-  const { icon: Icon, color } = KIND_ICONS[getFileKind(file)];
-  return <Icon sx={{ fontSize: size, color }} />;
+  const { icon, color } = FILE_KIND_META[displayKind(file)];
+  return <CnIcon name={icon} size={size} color={color} />;
 };
 
 const visuallyHidden = {
@@ -582,60 +567,92 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
   } as const;
 
   // ─── Piezas compartidas ──────────────────────────────────────────────
-  const preview = (
-    file: CnFileValue,
-    sizePx: number | "100%",
-    rounded = "var(--cn-radius-sm, 6px)",
-  ) => {
+  const preview = (file: CnFileValue) => {
     const url = previews.get(fileKey(file));
     const kind = getFileKind(file);
-    const iconSize = typeof sizePx === "number" ? Math.max(18, sizePx * 0.45) : 40;
     return (
-      <Box
-        sx={{
-          width: sizePx,
-          height: sizePx,
-          flexShrink: 0,
-          borderRadius: rounded,
-          overflow: "hidden",
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
-        }}
-      >
-        {url && kind === "image" ? (
-          <Box
-            component="img"
-            src={url}
-            alt=""
-            loading="lazy"
-            sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : url && kind === "video" ? (
-          <>
-            <Box
-              component="video"
-              src={`${url}#t=0.1`}
-              muted
-              preload="metadata"
-              playsInline
-              sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-            <PlayCircleFilledWhiteOutlinedIcon
-              sx={{
-                position: "absolute",
-                color: "#fff",
-                fontSize: iconSize * 0.8,
-                filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.5))",
-              }}
-            />
-          </>
-        ) : (
-          <KindIcon file={file} size={iconSize} />
-        )}
-      </Box>
+      <FileThumb
+        kind={displayKind(file)}
+        name={file.name}
+        src={kind === "image" ? url : undefined}
+        videoSrc={kind === "video" ? url : undefined}
+        size="fill"
+        radius={0}
+      />
+    );
+  };
+
+  /**
+   * Cada archivo de las variantes de lista (`dropzone`, `button`) y `card` es un
+   * `CnDocCard`: mismo aspecto y comportamiento que en las vistas de solo lectura.
+   */
+  const docCard = (file: CnFileValue, index: number, layout: CnDocCardLayout) => {
+    const status = statusOf(file, index);
+    const info = meta.get(file);
+    const details = showMetadata
+      ? [
+          info.width && info.height ? `${info.width}×${info.height}` : null,
+          info.duration ? formatDuration(info.duration) : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : "";
+    const success = status?.state === "success" ? (status.message ?? "Subido") : null;
+    const isPrimary = primaryEnabled && index === 0;
+    const kind = getFileKind(file);
+    return (
+      <CnDocCard
+        file={file}
+        layout={layout}
+        thumbnailUrl={isFile(file) && kind === "image" ? previews.get(fileKey(file)) : undefined}
+        showThumbnail={showPreviews}
+        videoFrame={showPreviews}
+        pages={showMetadata ? (info.pages ?? 0) : 0}
+        meta={
+          details || success ? (
+            <>
+              {details}
+              {success && (
+                <Box component="span" sx={{ color: "var(--cn-color-success-600, #228740)" }}>
+                  {details ? ` · ${success}` : success}
+                </Box>
+              )}
+            </>
+          ) : undefined
+        }
+        viewer={false}
+        onPreview={canView(file) ? () => setLightboxIndex(index) : undefined}
+        downloadable={canDownload(file)}
+        onDownload={() => downloadFile(file)}
+        upload={
+          status?.state === "uploading"
+            ? {
+                progress: status.progress,
+                label: status.progress === undefined ? undefined : "Subiendo",
+              }
+            : undefined
+        }
+        error={status?.state === "error" ? (status.message ?? "Error al subir") : undefined}
+        onRetry={status?.state === "error" && onRetry ? () => onRetry(file, index) : undefined}
+        onRemove={blocked ? undefined : () => removeAt(index)}
+        extraActions={renderFileActions?.(file, index)}
+        draggable={canReorder}
+        dragHandleProps={canReorder ? sortable.getHandleProps(index) : undefined}
+        status={isPrimary ? { label: primaryLabel, icon: "star", color: "primary" } : undefined}
+        menuActions={
+          primaryEnabled && index > 0 && !blocked
+            ? [
+                {
+                  key: "primary",
+                  label: `Marcar como ${primaryLabel.toLowerCase()}`,
+                  icon: "star_border",
+                  onClick: () => commit(moveArrayItem(files, index, 0)),
+                },
+              ]
+            : undefined
+        }
+        disabled={disabled}
+      />
     );
   };
 
@@ -728,8 +745,9 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
     );
   };
 
+  const canReorder = reorderable && !blocked && files.length > 1;
   const dragHandle = (index: number, overlay = false) =>
-    reorderable && !blocked && files.length > 1 ? (
+    canReorder ? (
       <Box
         {...sortable.getHandleProps(index)}
         sx={{
@@ -790,7 +808,13 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
 
   const fileName = (file: CnFileValue, index: number) => {
     const safe = !isFile(file) ? getSafeUrl(file.url) : undefined;
-    const textSx = { ...ellipsisSx, fontSize: "var(--cn-font-size-base, 13px)" };
+    const textSx = {
+      ...ellipsisSx,
+      display: "block",
+      minWidth: 0,
+      maxWidth: "100%",
+      fontSize: "var(--cn-font-size-base, 13px)",
+    };
     if (canView(file)) {
       return (
         <ButtonBase
@@ -860,61 +884,28 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
       <Box
         component="ul"
         aria-label="Archivos seleccionados"
-        sx={{ listStyle: "none", m: 0, p: 0, display: "flex", flexDirection: "column", gap: "6px" }}
+        sx={{
+          listStyle: "none",
+          m: 0,
+          p: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+          minWidth: 0,
+        }}
       >
-        {files.map((file, index) => {
-          const status = statusOf(file, index);
-          return (
-            <Box
-              component="li"
-              key={fileKey(file)}
-              data-cn-file-item
-              data-status={status?.state}
-              {...sortable.getItemProps(index)}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "6px 8px",
-                borderRadius: "var(--cn-radius-md, 8px)",
-                border: "1px solid",
-                borderColor: itemBorder(status),
-                backgroundColor: "var(--cn-color-surface, #ffffff)",
-                minWidth: 0,
-              }}
-            >
-              {dragHandle(index)}
-              {canView(file) ? (
-                <ButtonBase
-                  aria-label={`Ver ${file.name}`}
-                  onClick={() => setLightboxIndex(index)}
-                  sx={{ borderRadius: "var(--cn-radius-sm, 6px)", position: "relative" }}
-                >
-                  {preview(file, 40)}
-                  <ZoomInIcon
-                    sx={{
-                      position: "absolute",
-                      fontSize: 16,
-                      right: -4,
-                      bottom: -4,
-                      color: "var(--cn-color-brand-600, #254d87)",
-                      backgroundColor: "var(--cn-color-surface, #fff)",
-                      borderRadius: "50%",
-                    }}
-                  />
-                </ButtonBase>
-              ) : (
-                preview(file, 40)
-              )}
-              <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1 }}>
-                {fileName(file, index)}
-                {statusText(status, describe(file))}
-                {statusBar(status)}
-              </Box>
-              {actions(file, index)}
-            </Box>
-          );
-        })}
+        {files.map((file, index) => (
+          <Box
+            component="li"
+            key={fileKey(file)}
+            data-cn-file-item
+            data-status={statusOf(file, index)?.state}
+            {...sortable.getItemProps(index)}
+            sx={{ minWidth: 0 }}
+          >
+            {docCard(file, index, "list")}
+          </Box>
+        ))}
       </Box>
     );
 
@@ -944,7 +935,8 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              maxWidth: 280,
+              maxWidth: "min(280px, 100%)",
+              minWidth: 0,
               pl: "8px",
               pr: "2px",
               height: 32,
@@ -1020,6 +1012,20 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
     >
       {files.map((file, index) => {
         const status = statusOf(file, index);
+        if (cards) {
+          return (
+            <Box
+              component="li"
+              key={fileKey(file)}
+              data-cn-file-item
+              data-status={status?.state}
+              {...sortable.getItemProps(index)}
+              sx={{ minWidth: 0 }}
+            >
+              {docCard(file, index, "grid")}
+            </Box>
+          );
+        }
         const previewUrl = previews.get(fileKey(file));
         const hasPreview = Boolean(previewUrl);
         const natural = masonry && previewUrl && getFileKind(file) === "image";
@@ -1067,7 +1073,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
                     sx={{ display: "block", width: "100%", height: "auto" }}
                   />
                 ) : (
-                  preview(file, "100%", "0")
+                  preview(file)
                 )}
               </ButtonBase>
               {!cards && !hasPreview && (

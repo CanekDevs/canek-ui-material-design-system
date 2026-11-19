@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useEffect, useState } from "react";
 import { CnButton } from "../CnButton";
+import { FileFieldVsDocCardDemo, WidthFrames } from "../CnFileField/FileFieldVsDocCard.demo";
 import { CnSectionCard } from "../CnSectionCard";
 import type { CnDocCardProps } from "./CnDocCard";
 import { CnDocCard } from "./CnDocCard";
@@ -71,13 +72,30 @@ const meta: Meta<typeof CnDocCard> = {
   title: "Data Display/CnDocCard",
   component: CnDocCard,
   tags: ["autodocs"],
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: {
+        component: [
+          `**Para qué:** mostrar *un* documento o archivo ya existente: ícono o miniatura por tipo, nombre, tamaño, páginas, fecha y autor, estado, versión, etiquetas y acciones (ver, descargar, compartir, más). Para repositorios, listas de adjuntos, páginas de detalle y vistas de solo lectura, en layouts \`list\`, \`grid\` y \`compact\`. También muestra la subida o el error de un archivo puntual.`,
+          ``,
+          `**Cuándo NO usarlo:** para que el usuario *elija o suba* archivos en un formulario usa \`CnFileField\` (valida, reordena y entrega el valor del formulario). Para muchos archivos con orden y filtros por columna, \`CnDataTable\`. Para una galería de fotos, \`CnFileField\` (\`grid\`/\`masonry\`) o \`CnCarousel\`.`,
+          ``,
+          `**Relación con CnFileField:** \`CnFileField\` dibuja su lista (\`dropzone\`, \`button\`) y su variante \`card\` con \`CnDocCard\`, por lo que un archivo se ve igual antes y después de guardarse. Acepta el mismo valor del campo con la prop \`file\` (\`File\` local o \`CnExistingFile\`). Tipos, íconos, colores, extensiones y URLs seguras vienen de \`src/utils/file-utils.ts\`, compartido por ambos.`,
+        ].join("\n"),
+      },
+    },
+  },
   args: { ...DOCS[0], onShare: () => alert("Compartir") },
   argTypes: {
     layout: { control: "inline-radio", options: ["list", "grid", "compact"] },
     variant: { control: "inline-radio", options: ["outlined", "elevated", "filled", "ghost"] },
   },
-  decorators: [(Story) => <Box sx={{ maxWidth: 720 }}>{Story()}</Box>],
+  // `fullWidth` en una historia quita el ancho máximo de 720 px.
+  decorators: [
+    (Story, context) =>
+      context.parameters.fullWidth ? Story() : <Box sx={{ maxWidth: 720 }}>{Story()}</Box>,
+  ],
 };
 
 export default meta;
@@ -103,7 +121,7 @@ export const FileTypes: Story = {
 };
 
 export const Grid: Story = {
-  decorators: [(Story) => <Box>{Story()}</Box>],
+  parameters: { fullWidth: true },
   render: () => (
     <Box
       sx={{
@@ -155,7 +173,7 @@ export const UploadAndError: Story = {
           size={22_000}
           error="El archivo supera el tamaño permitido (10 MB)."
           onRetry={() => undefined}
-          menuActions={[{ label: "Quitar", icon: "close", onClick: () => undefined }]}
+          onRemove={() => undefined}
         />
         <Box
           sx={{
@@ -174,7 +192,7 @@ export const UploadAndError: Story = {
 
 /** Documentos en una sección con selección múltiple y acciones en lote. */
 export const DocumentsGrid: Story = {
-  decorators: [(Story) => <Box>{Story()}</Box>],
+  parameters: { fullWidth: true },
   render: function Render() {
     const [selected, setSelected] = useState<string[]>([]);
     const [layout, setLayout] = useState<"grid" | "list">("grid");
@@ -267,7 +285,7 @@ export const Draggable: Story = {
 };
 
 export const Skeleton: Story = {
-  decorators: [(Story) => <Box>{Story()}</Box>],
+  parameters: { fullWidth: true },
   render: () => (
     <Box sx={{ display: "grid", gap: "16px" }}>
       <Box sx={{ display: "grid", gap: "8px" }}>
@@ -288,4 +306,98 @@ export const Skeleton: Story = {
       </Box>
     </Box>
   ),
+};
+
+const STRESS: (CnDocCardProps & { id: string })[] = [
+  {
+    id: "s1",
+    name: "Contrato marco de prestación de servicios profesionales Acme Comercializadora del Centro SA de CV 2026 - versión firmada.pdf",
+    url: "https://example.com/contrato.pdf",
+    size: 4_812_000,
+    pages: 38,
+    updatedAt: hoursAgo(3),
+    updatedBy: {
+      name: "María Fernanda de los Ángeles Gutiérrez Villaseñor",
+      avatarUrl: "https://i.pravatar.cc/150?img=9",
+    },
+    status: { label: "Pendiente de firma del representante legal", color: "warning" },
+    tags: ["Legal", "Clientes", "Contratos marco", "2026", "Firmas", "Urgente"],
+    version: "v12.4-final",
+    description:
+      "Documento con las cláusulas de confidencialidad, penalizaciones y anexos técnicos acordados con el área de compras.",
+  },
+  {
+    id: "s2",
+    name: "fotografia_del_inmueble_fachada_principal_tomada_con_dron_alta_resolucion.jpg",
+    mime: "image/jpeg",
+    url: "https://picsum.photos/id/1040/600/400",
+    size: 3_200_000,
+    upload: { progress: 64, onCancel: () => undefined },
+    onRemove: () => undefined,
+  },
+  {
+    id: "s3",
+    name: "Factura_A-000000001024_CFDI_4.0_timbrada_con_complemento_de_pago.xml",
+    size: 22_000,
+    error:
+      "No se pudo procesar: el XML no cumple con el esquema del SAT (nodo cfdi:Complemento inválido).",
+    onRetry: () => undefined,
+    onRemove: () => undefined,
+  },
+  { id: "s4", name: "a" },
+];
+
+/** Datos extremos (nombres de 100+ caracteres, muchas etiquetas, error largo, cero datos) en 320, 480 y 1200 px. */
+export const Responsive: Story = {
+  parameters: { fullWidth: true },
+  render: () => (
+    <WidthFrames>
+      {() => (
+        <Box sx={{ display: "grid", gap: "16px" }}>
+          <Box sx={{ display: "grid", gap: "8px" }}>
+            {STRESS.map(({ id, ...doc }) => (
+              <CnDocCard
+                key={id}
+                {...doc}
+                selectable
+                draggable
+                onShare={() => undefined}
+                menuActions={menuActions}
+              />
+            ))}
+          </Box>
+          <Box sx={{ display: "grid", gap: "4px" }}>
+            {STRESS.map(({ id, ...doc }) => (
+              <CnDocCard key={id} {...doc} layout="compact" onShare={() => undefined} />
+            ))}
+          </Box>
+          <Box
+            sx={{
+              display: "grid",
+              gap: "12px",
+              gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 190px), 1fr))",
+            }}
+          >
+            {STRESS.map(({ id, ...doc }) => (
+              <CnDocCard
+                key={id}
+                {...doc}
+                layout="grid"
+                selectable
+                draggable
+                menuActions={menuActions}
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
+    </WidthFrames>
+  ),
+};
+
+/** Flujo de subida con `CnFileField` que termina como `CnDocCard` en el expediente. */
+export const FileFieldVsDocCard: Story = {
+  name: "FileField vs DocCard",
+  parameters: { fullWidth: true },
+  render: () => <FileFieldVsDocCardDemo />,
 };

@@ -1,15 +1,29 @@
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useCallback, useRef, useState } from "react";
-import type { CnFileStatus, CnFileValue } from "./file-utils";
+import type { CnFileStatus, CnFileValue } from "../../utils/file-utils";
 import { CnFileField } from "./CnFileField";
 import { CnFileFieldSkeleton } from "./CnFileFieldSkeleton";
+import { FileFieldVsDocCardDemo, WidthFrames } from "./FileFieldVsDocCard.demo";
 
 const meta: Meta<typeof CnFileField> = {
   title: "Forms/CnFileField",
   component: CnFileField,
   tags: ["autodocs"],
   args: { label: "Documentos" },
+  parameters: {
+    docs: {
+      description: {
+        component: [
+          `**Para qué:** campo de formulario para *elegir* archivos: arrastrar, seleccionar, pegar o usar la cámara; valida tipo, tamaño, cantidad y dimensiones, permite reordenar y quitar, y entrega \`File[]\` / \`CnExistingFile[]\` como valor del formulario (con progreso y reintento si el consumidor sube los archivos).`,
+          ``,
+          `**Cuándo NO usarlo:** para *mostrar* documentos ya guardados (repositorios, listas de adjuntos, detalle de un registro) usa \`CnDocCard\`; para firmas, \`CnSignatureField\`; para una galería de solo consulta, \`CnCarousel\`.`,
+          ``,
+          `**Relación con CnDocCard:** las variantes \`dropzone\` y \`button\` dibujan cada archivo con \`CnDocCard\` (layout \`list\`) y \`card\` con \`CnDocCard\` (layout \`grid\`), así que un archivo se ve y se comporta igual antes y después de guardarse (progreso, error/reintento, quitar, vista previa, asa para reordenar). Con \`readOnly\` el campo es exactamente una lista o cuadrícula de \`CnDocCard\`. \`compact\` (chips), \`grid\`/\`masonry\` (galería de fotos) y \`avatar\` son visuales propios del campo. Tipos, íconos, URLs seguras y metadatos vienen de \`src/utils/file-utils.ts\`, compartido por ambos.`,
+        ].join("\n"),
+      },
+    },
+  },
   argTypes: {
     variant: {
       control: "select",
@@ -194,4 +208,97 @@ export const Skeleton: Story = {
       <CnFileFieldSkeleton variant="avatar" files={1} thumbnailSize={88} />
     </Stack>
   ),
+};
+
+const LONG_EXISTING: CnFileValue[] = [
+  {
+    id: "l1",
+    name: "Contrato marco de prestación de servicios profesionales Acme Comercializadora del Centro SA de CV 2026.pdf",
+    url: "https://example.com/contrato.pdf",
+    mime: "application/pdf",
+    size: 4_812_000,
+    pages: 38,
+  },
+  {
+    id: "l2",
+    name: "fotografia_del_inmueble_fachada_principal_tomada_con_dron_alta_resolucion.jpg",
+    url: "https://picsum.photos/id/1040/600/400",
+    mime: "image/jpeg",
+    size: 3_200_000,
+    width: 6000,
+    height: 4000,
+  },
+  { id: "l3", name: "x.zip", url: "https://example.com/x.zip", size: 1 },
+];
+
+const LONG_STATUS = (file: CnFileValue): CnFileStatus | undefined =>
+  file.name.startsWith("Contrato")
+    ? { state: "uploading", progress: 64 }
+    : file.name.startsWith("fotografia")
+      ? {
+          state: "error",
+          message:
+            "No se pudo subir: el servidor respondió con un error de tiempo de espera agotado",
+        }
+      : { state: "success" };
+
+/** Datos extremos (nombres de 100+ caracteres, error largo, sin archivos) en 320, 480 y 1200 px. */
+export const Responsive: Story = {
+  parameters: { layout: "padded" },
+  render: () => (
+    <WidthFrames>
+      {() => (
+        <Stack spacing={3}>
+          <CnFileField
+            label="Expediente (dropzone)"
+            multiple
+            reorderable
+            maxFiles={10}
+            maxSize={20}
+            accept=".pdf,.jpg,.png,.zip"
+            defaultValue={LONG_EXISTING}
+            fileStatus={LONG_STATUS}
+            onRetry={() => undefined}
+          />
+          <CnFileField
+            label="Expediente (card)"
+            variant="card"
+            multiple
+            reorderable
+            defaultValue={LONG_EXISTING}
+          />
+          <CnFileField
+            label="Adjuntos (compact)"
+            variant="compact"
+            multiple
+            defaultValue={LONG_EXISTING}
+          />
+          <CnFileField label="Sin archivos" variant="button" />
+        </Stack>
+      )}
+    </WidthFrames>
+  ),
+};
+
+/** Solo lectura: idéntico a una lista (o cuadrícula en `card`) de `CnDocCard`. */
+export const ReadOnly: Story = {
+  render: () => (
+    <Stack spacing={3} sx={{ maxWidth: 720 }}>
+      <CnFileField label="Documentos del trámite" multiple readOnly defaultValue={LONG_EXISTING} />
+      <CnFileField
+        label="Documentos del trámite (card)"
+        variant="card"
+        multiple
+        readOnly
+        defaultValue={LONG_EXISTING}
+      />
+    </Stack>
+  ),
+};
+
+/** Flujo de subida con `CnFileField` que termina como `CnDocCard` en el expediente. */
+export const FileFieldVsDocCard: Story = {
+  name: "FileField vs DocCard",
+  parameters: { layout: "padded" },
+  render: () => <FileFieldVsDocCardDemo />,
 };

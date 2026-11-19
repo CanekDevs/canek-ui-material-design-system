@@ -12,8 +12,8 @@ import type { CnChipColor } from "../CnChip";
 import { CnChip } from "../CnChip";
 import { CnEmptyState } from "../CnEmptyState";
 import { CnIcon } from "../CnIcon";
-import type { CnTone } from "../CnInfoCard/tones";
-import { CN_TONES, prefersReducedMotion } from "../CnInfoCard/tones";
+import type { CnTone } from "../../utils/tones";
+import { CN_TONES, prefersReducedMotion } from "../../utils/tones";
 import { CnSkeletonGroup, SkLines } from "../CnSkeleton";
 import { CnSectionCardSkeleton } from "./CnSectionCardSkeleton";
 

@@ -2,11 +2,23 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CnDocCard } from "./CnDocCard";
 import { CnDocCardSkeleton } from "./CnDocCardSkeleton";
-import { formatDocDate, getDocKind } from "./doc-utils";
+import {
+  fileExtensionLabel,
+  getFileDisplayKind as getDocKind,
+  getFileKind,
+} from "../../utils/file-utils";
+import { formatDocDate } from "./doc-utils";
 
 afterEach(() => vi.restoreAllMocks());
 
-describe("doc-utils", () => {
+describe("file display kind and dates", () => {
+  it("labels extensions and keeps getFileKind for behavior", () => {
+    expect(fileExtensionLabel("Reporte.final.XLSX")).toBe("XLSX");
+    expect(fileExtensionLabel("sin-extension")).toBe("");
+    expect(getFileKind({ id: 1, url: "", name: "datos.json" })).toBe("text");
+    expect(getDocKind("datos.json")).toBe("code");
+  });
+
   it("detects the kind by mime and extension", () => {
     expect(getDocKind("contrato.pdf")).toBe("pdf");
     expect(getDocKind("reporte.XLSX")).toBe("spreadsheet");
@@ -64,14 +76,14 @@ describe("CnDocCard", () => {
     const onPreview = vi.fn();
     render(<CnDocCard name="Plan.docx" onPreview={onPreview} />);
     fireEvent.click(screen.getByRole("button", { name: "Plan.docx" }));
-    fireEvent.click(screen.getByRole("button", { name: "Ver" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Ver / }));
     expect(onPreview).toHaveBeenCalledTimes(2);
   });
 
   it("opens PDFs in a new tab and images in the viewer by default", () => {
     const open = vi.spyOn(window, "open").mockImplementation(() => null);
     const { unmount } = render(<CnDocCard name="Manual.pdf" url="https://cdn.test/manual.pdf" />);
-    fireEvent.click(screen.getByRole("button", { name: "Ver" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Ver / }));
     expect(open).toHaveBeenCalledWith(
       "https://cdn.test/manual.pdf",
       "_blank",
@@ -80,15 +92,15 @@ describe("CnDocCard", () => {
     unmount();
 
     render(<CnDocCard name="Foto.jpg" url="https://cdn.test/foto.jpg" />);
-    fireEvent.click(screen.getByRole("button", { name: "Ver" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Ver / }));
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("ignores unsafe URLs", () => {
     const open = vi.spyOn(window, "open").mockImplementation(() => null);
     render(<CnDocCard name="x.pdf" url="javascript:alert(1)" />);
-    expect(screen.queryByRole("button", { name: "Ver" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Descargar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Ver / })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Descargar / })).not.toBeInTheDocument();
     expect(open).not.toHaveBeenCalled();
   });
 
@@ -96,8 +108,8 @@ describe("CnDocCard", () => {
     const onDownload = vi.fn();
     const onShare = vi.fn();
     render(<CnDocCard name="Reporte.xlsx" onDownload={onDownload} onShare={onShare} />);
-    fireEvent.click(screen.getByRole("button", { name: "Descargar" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compartir" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Descargar / }));
+    fireEvent.click(screen.getByRole("button", { name: /^Compartir / }));
     expect(onDownload).toHaveBeenCalled();
     expect(onShare).toHaveBeenCalled();
   });
@@ -115,13 +127,13 @@ describe("CnDocCard", () => {
       />,
     );
     expect(container.querySelector("[data-cn-doc-card='grid'] img")).not.toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Más acciones" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Más acciones/ }));
     const menu = screen.getByRole("menu");
     expect(within(menu).getByText("Ver")).toBeInTheDocument();
     expect(within(menu).getByText("Descargar")).toBeInTheDocument();
     fireEvent.click(within(menu).getByText("Compartir"));
     expect(onShare).toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Más acciones" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Más acciones/ }));
     fireEvent.click(within(screen.getByRole("menu")).getByText("Eliminar"));
     expect(onDelete).toHaveBeenCalled();
   });
@@ -145,8 +157,8 @@ describe("CnDocCard", () => {
     );
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "42");
     expect(screen.getByText(/42 %/)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Descargar" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Cancelar subida" }));
+    expect(screen.queryByRole("button", { name: /^Descargar / })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Cancelar subida/ }));
     expect(onCancel).toHaveBeenCalled();
   });
 
@@ -154,7 +166,7 @@ describe("CnDocCard", () => {
     const onRetry = vi.fn();
     render(<CnDocCard name="Roto.pdf" error onRetry={onRetry} />);
     expect(screen.getByRole("alert")).toHaveTextContent("No se pudo procesar el archivo");
-    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Reintentar/ }));
     expect(onRetry).toHaveBeenCalled();
   });
 
@@ -164,8 +176,51 @@ describe("CnDocCard", () => {
     );
     expect(container.querySelector('[data-cn-doc-card="compact"]')).not.toBeNull();
     expect(container.querySelector('[data-cn-doc-thumb="code"]')).not.toBeNull();
-    expect(screen.queryByRole("button", { name: "Ver" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Descargar" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Ver / })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Descargar / })).toBeInTheDocument();
+  });
+
+  it("takes name, size, kind and link from an existing file value", () => {
+    render(
+      <CnDocCard
+        file={{ id: 1, url: "https://cdn.test/acta.docx", name: "acta.docx", size: 2048 }}
+        viewer={false}
+      />,
+    );
+    const link = screen.getByRole("link", { name: "acta.docx" });
+    expect(link).toHaveAttribute("href", "https://cdn.test/acta.docx");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(screen.getByText("2.0 KB")).toBeInTheDocument();
+  });
+
+  it("renders a local File with its own thumbnail and download", () => {
+    const create = vi.fn(() => "blob:local");
+    const revoke = vi.fn();
+    Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke });
+    const photo = new File(["x"], "foto.png", { type: "image/png" });
+    const { container, unmount } = render(<CnDocCard file={photo} />);
+    expect(container.querySelector("img")).toHaveAttribute("src", "blob:local");
+    expect(screen.getByRole("button", { name: "Descargar foto.png" })).toBeInTheDocument();
+    unmount();
+    expect(revoke).toHaveBeenCalledWith("blob:local");
+  });
+
+  it("shows a remove button in every layout, even while uploading", () => {
+    const onRemove = vi.fn();
+    const { rerender } = render(<CnDocCard name="a.pdf" upload onRemove={onRemove} />);
+    fireEvent.click(screen.getByRole("button", { name: "Quitar a.pdf" }));
+    rerender(<CnDocCard name="a.pdf" layout="grid" error onRemove={onRemove} />);
+    fireEvent.click(screen.getByRole("button", { name: "Quitar a.pdf" }));
+    rerender(<CnDocCard name="a.pdf" layout="compact" onRemove={onRemove} />);
+    fireEvent.click(screen.getByRole("button", { name: "Quitar a.pdf" }));
+    expect(onRemove).toHaveBeenCalledTimes(3);
+  });
+
+  it("names each action after the file", () => {
+    render(<CnDocCard name="Informe anual.pdf" url="https://cdn.test/i.pdf" onShare={() => {}} />);
+    expect(screen.getByRole("button", { name: "Ver Informe anual.pdf" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Descargar Informe anual.pdf" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Compartir Informe anual.pdf" })).toBeInTheDocument();
   });
 
   it("renders the skeleton via the skeleton prop", () => {

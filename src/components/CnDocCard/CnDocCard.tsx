@@ -7,8 +7,16 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
-import type { HTMLAttributes, MouseEvent, ReactNode } from "react";
-import { forwardRef, useId, useState } from "react";
+import type { HTMLAttributes, MouseEvent, ReactNode, Ref } from "react";
+import { forwardRef, useCallback, useEffect, useId, useRef, useState } from "react";
+import type { CnFileDisplayKind, CnFileValue } from "../../utils/file-utils";
+import {
+  downloadFile,
+  FILE_KIND_META,
+  getFileDisplayKind,
+  getSafeUrl,
+  isFile,
+} from "../../utils/file-utils";
 import { formatBytes } from "../../utils/number-utils";
 import { CnAvatar } from "../CnAvatar";
 import { CnButton } from "../CnButton";
@@ -17,13 +25,11 @@ import { CnCard } from "../CnCard";
 import type { CnChipColor } from "../CnChip";
 import { CnChip } from "../CnChip";
 import { CnImageViewer } from "../CnDataTable/cells";
-import { downloadFile, FileLightbox } from "../CnFileField/FileLightbox";
-import type { CnExistingFile } from "../CnFileField/file-utils";
-import { getSafeUrl } from "../CnFileField/file-utils";
+import { FileLightbox } from "../CnFileField/FileLightbox";
 import { CnIcon } from "../CnIcon";
 import { CnDocCardSkeleton } from "./CnDocCardSkeleton";
-import type { CnDocKind } from "./doc-utils";
-import { DOC_KIND_META, extensionLabel, formatDocDate, getDocKind } from "./doc-utils";
+import { formatDocDate } from "./doc-utils";
+import { FileThumb, useObjectUrl } from "./FileThumb";
 
 export type CnDocCardLayout = "list" | "grid" | "compact";
 
@@ -54,6 +60,8 @@ export type CnDocCardUpload = {
 
 export type CnDocCardLabels = {
   preview?: string;
+  remove?: string;
+  progress?: string;
   download?: string;
   share?: string;
   more?: string;
@@ -66,7 +74,15 @@ export type CnDocCardLabels = {
 };
 
 export type CnDocCardProps = {
-  name: string;
+  /**
+   * Archivo de origen: el mismo valor que maneja `CnFileField` (`File` local o
+   * `CnExistingFile`). De él se toman nombre, URL, MIME, tamaño, miniatura y
+   * páginas; las props explícitas tienen prioridad. Los `File` locales generan
+   * su propia miniatura (imágenes y, con `videoFrame`, videos).
+   */
+  file?: CnFileValue;
+  /** Nombre visible (obligatorio si no se pasa `file`). */
+  name?: string;
   /** URL del archivo (descarga y vista previa por defecto). */
   url?: string;
   mime?: string;
@@ -75,7 +91,11 @@ export type CnDocCardProps = {
   /** Miniatura (portada del PDF, póster del video…). Las imágenes usan `url` si no se indica. */
   thumbnailUrl?: string;
   /** Fuerza el tipo (si no, se deduce de `mime` / extensión). */
-  kind?: CnDocKind;
+  kind?: CnFileDisplayKind;
+  /** Muestra la miniatura (imagen / video). Con `false`, solo el ícono del tipo. */
+  showThumbnail?: boolean;
+  /** Videos sin `thumbnailUrl`: muestra su primer cuadro (carga los metadatos del video). */
+  videoFrame?: boolean;
   description?: ReactNode;
   updatedAt?: Date | string | number;
   updatedBy?: CnDocCardAuthor;
@@ -98,6 +118,12 @@ export type CnDocCardProps = {
   /** Vista previa propia. Sin ella: imágenes en visor, video/audio en reproductor y el resto en pestaña nueva. */
   onPreview?: () => void;
   previewable?: boolean;
+  /**
+   * Con `true` (por defecto), imágenes, video y audio se abren en el visor
+   * integrado. Con `false`, todo se abre en una pestaña nueva y el nombre es un
+   * enlace real (clic medio, copiar vínculo).
+   */
+  viewer?: boolean;
   /** Descarga propia (por defecto descarga `url`). */
   onDownload?: () => void;
   downloadable?: boolean;
@@ -107,6 +133,8 @@ export type CnDocCardProps = {
   /** Nodos extra en la zona de acciones. */
   extraActions?: ReactNode;
   hideActions?: boolean;
+  /** Botón "Quitar" (siempre visible, también durante la subida o con error). */
+  onRemove?: () => void;
 
   selectable?: boolean;
   selected?: boolean;
@@ -132,9 +160,11 @@ export type CnDocCardProps = {
 
 const DEFAULT_LABELS: Required<CnDocCardLabels> = {
   preview: "Ver",
+  remove: "Quitar",
+  progress: "Progreso de subida",
   download: "Descargar",
   share: "Compartir",
-  more: "Más acciones",
+  more: "Más acciones de",
   select: (name) => `Seleccionar ${name}`,
   uploading: "Subiendo…",
   cancelUpload: "Cancelar subida",
@@ -146,98 +176,32 @@ const DEFAULT_LABELS: Required<CnDocCardLabels> = {
 const authorName = (author: CnDocCardAuthor | undefined) =>
   !author ? undefined : typeof author === "string" ? author : author.name;
 
-/** Miniatura o ícono por tipo. */
-const DocThumb = ({
-  kind,
-  name,
-  src,
-  size,
-  large = false,
-  error = false,
-}: {
-  kind: CnDocKind;
-  name: string;
-  src?: string;
-  size: number;
-  large?: boolean;
-  error?: boolean;
-}) => {
-  const [failed, setFailed] = useState(false);
-  const meta = DOC_KIND_META[kind];
-  const ext = extensionLabel(name);
-  const showImage = Boolean(src) && !failed && !error;
+/** Ancho (px) por debajo del cual la tarjeta compacta sus acciones y metadatos. */
+const NARROW_WIDTH = 520;
 
-  return (
-    <Box
-      data-cn-doc-thumb={kind}
-      aria-hidden
-      sx={{
-        position: "relative",
-        width: large ? "100%" : size,
-        height: large ? "100%" : size,
-        flexShrink: 0,
-        display: "grid",
-        placeItems: "center",
-        overflow: "hidden",
-        borderRadius: large ? 0 : "var(--cn-radius-md, 8px)",
-        color: error ? "var(--cn-color-error-600, #b52f2f)" : meta.color,
-        backgroundColor: error
-          ? "rgba(var(--cn-color-rgb-error-500, 214, 60, 60), 0.08)"
-          : "var(--cn-color-neutral-100, #f4f5f7)",
-        backgroundImage: showImage
-          ? undefined
-          : `linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.4) 100%)`,
-      }}
-    >
-      {showImage ? (
-        <Box
-          component="img"
-          src={src}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          onError={() => setFailed(true)}
-          sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-        />
-      ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-          <CnIcon
-            name={error ? "error_outline" : meta.icon}
-            size={large ? 44 : Math.round(size * 0.55)}
-            color="inherit"
-          />
-          {large && ext && !error && (
-            <Box
-              component="span"
-              sx={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                color: "inherit",
-                opacity: 0.85,
-              }}
-            >
-              {ext}
-            </Box>
-          )}
-        </Box>
-      )}
-      {showImage && kind === "video" && (
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            display: "grid",
-            placeItems: "center",
-            color: "#fff",
-            background: "rgba(0,0,0,0.25)",
-          }}
-        >
-          <CnIcon name="play_circle" size={large ? 40 : 18} color="inherit" />
-        </Box>
-      )}
-    </Box>
+/** Observa el ancho de la tarjeta (no del viewport) para adaptar su contenido. */
+const useNarrow = (threshold: number) => {
+  const [narrow, setNarrow] = useState(false);
+  const observer = useRef<ResizeObserver | null>(null);
+  const ref = useCallback(
+    (node: HTMLElement | null) => {
+      observer.current?.disconnect();
+      observer.current = null;
+      if (!node || typeof ResizeObserver === "undefined") return;
+      const check = (width: number) => setNarrow(width > 0 && width < threshold);
+      check(node.getBoundingClientRect().width);
+      observer.current = new ResizeObserver((entries) => check(entries[0]?.contentRect.width ?? 0));
+      observer.current.observe(node);
+    },
+    [threshold],
   );
+  useEffect(() => () => observer.current?.disconnect(), []);
+  return [narrow, ref] as const;
+};
+
+const assignRef = <T,>(target: Ref<T> | undefined, value: T | null) => {
+  if (typeof target === "function") target(value);
+  else if (target) (target as { current: T | null }).current = value;
 };
 
 /**
@@ -247,12 +211,15 @@ const DocThumb = ({
  */
 export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnDocCard(
   {
-    name,
-    url,
-    mime,
-    size,
-    thumbnailUrl,
+    file,
+    name: nameProp,
+    url: urlProp,
+    mime: mimeProp,
+    size: sizeProp,
+    thumbnailUrl: thumbnailProp,
     kind: kindProp,
+    showThumbnail = true,
+    videoFrame = false,
     description,
     updatedAt,
     updatedBy,
@@ -261,19 +228,21 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
     tags,
     maxTags = 3,
     version,
-    pages,
+    pages: pagesProp,
     meta,
     layout = "list",
     variant = "outlined",
     onClick,
     onPreview,
     previewable = true,
+    viewer = true,
     onDownload,
     downloadable,
     onShare,
     menuActions = [],
     extraActions,
     hideActions = false,
+    onRemove,
     selectable = false,
     selected = false,
     onSelectedChange,
@@ -291,19 +260,42 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
   ref,
 ) {
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
-  const kind = kindProp ?? getDocKind(name, mime);
-  const kindMeta = DOC_KIND_META[kind];
+  const localFile = file && isFile(file) ? file : undefined;
+  const existing = file && !isFile(file) ? file : undefined;
+  const name = nameProp ?? file?.name ?? "";
+  const url = urlProp ?? existing?.url;
+  const mime = mimeProp ?? (localFile ? localFile.type || undefined : existing?.mime);
+  const size = sizeProp ?? (file?.size || undefined);
+  const pages = pagesProp ?? existing?.pages;
+  const thumbnailUrl = thumbnailProp ?? existing?.thumbnailUrl;
+  const kind = kindProp ?? getFileDisplayKind(name, mime);
+  const kindMeta = FILE_KIND_META[kind];
   const nameId = useId();
+  const [narrow, narrowRef] = useNarrow(NARROW_WIDTH);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const [viewer, setViewer] = useState<"image" | "media" | null>(null);
+  const [viewerOpen, setViewer] = useState<"image" | "media" | null>(null);
   const safeUrl = getSafeUrl(url);
-  const thumbSrc = getSafeUrl(thumbnailUrl) ?? (kind === "image" ? safeUrl : undefined);
+  const wantsLocalUrl =
+    showThumbnail && !thumbnailProp && (kind === "image" || (kind === "video" && videoFrame));
+  const localUrl = useObjectUrl(localFile, wantsLocalUrl);
+  const mediaUrl = localUrl ?? safeUrl;
+  const thumbSrc = !showThumbnail
+    ? undefined
+    : (getSafeUrl(thumbnailUrl) ?? (kind === "image" ? mediaUrl : undefined));
+  const videoSrc =
+    showThumbnail && videoFrame && kind === "video" && !thumbSrc ? mediaUrl : undefined;
   const uploadState = upload === true ? {} : upload || undefined;
   const isUploading = Boolean(uploadState);
   const hasError = Boolean(error);
   const busy = isUploading || hasError;
   const isGrid = layout === "grid";
   const isCompact = layout === "compact";
+  // En contenedores angostos, la lista agrupa sus acciones como la compacta.
+  const dense = isCompact || (narrow && !isGrid);
+  const setRootRef = (node: HTMLDivElement | null) => {
+    narrowRef(node);
+    assignRef(ref, node);
+  };
 
   if (skeleton) {
     return (
@@ -323,7 +315,11 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
   }
 
   const canPreview = previewable && !busy && Boolean(onPreview || safeUrl);
-  const canDownload = (downloadable ?? Boolean(onDownload || safeUrl)) && !busy;
+  const canDownload = (downloadable ?? Boolean(onDownload || safeUrl || localFile)) && !busy;
+  const usesViewer = viewer && (kind === "image" || kind === "video" || kind === "audio");
+  // Sin vista previa propia ni visor, el nombre es un enlace real a la URL.
+  const nameHref =
+    !onClick && !onPreview && !usesViewer && canPreview && !disabled ? safeUrl : undefined;
 
   const handlePreview = () => {
     if (onPreview) {
@@ -331,8 +327,7 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
       return;
     }
     if (!safeUrl) return;
-    if (kind === "image") setViewer("image");
-    else if (kind === "video" || kind === "audio") setViewer("media");
+    if (usesViewer) setViewer(kind === "image" ? "image" : "media");
     else window.open(safeUrl, "_blank", "noopener,noreferrer");
   };
 
@@ -341,11 +336,15 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
       onDownload();
       return;
     }
-    if (safeUrl) downloadFile({ id: name, url: safeUrl, name, mime, size });
+    if (localFile) downloadFile(localFile);
+    else if (safeUrl) downloadFile({ id: name, url: safeUrl, name, mime, size });
   };
 
   const primary =
-    disabled || busy ? undefined : (onClick ?? (canPreview ? handlePreview : undefined));
+    disabled || busy || nameHref
+      ? undefined
+      : (onClick ?? (canPreview ? handlePreview : undefined));
+  const interactive = Boolean(primary || nameHref);
 
   const statusConfig: CnDocCardStatus | undefined =
     typeof status === "string" ? { label: status, color: "neutral" } : status;
@@ -359,15 +358,15 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
     if (typeof size === "number") metaParts.push(formatBytes(size));
     if (pages) metaParts.push(`${pages} ${pages === 1 ? "página" : "páginas"}`);
     if (formattedDate) metaParts.push(formattedDate);
-    if (author && !isCompact) metaParts.push(`${labels.by} ${author}`);
+    if (author && !dense) metaParts.push(`${labels.by} ${author}`);
   }
   if (meta) metaParts.push(meta);
 
   // ─── Menú "más" ──────────────────────────────────────────────────────
   type MenuEntry = CnDocCardMenuAction & { key: string };
   const builtIns: MenuEntry[] = [];
-  if (isGrid || isCompact) {
-    if (canPreview && isGrid)
+  if (isGrid || dense) {
+    if (canPreview && !isCompact)
       builtIns.push({
         key: "preview",
         label: labels.preview,
@@ -394,7 +393,13 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
     setMenuAnchor(event.currentTarget);
   };
 
-  const iconAction = (key: string, icon: string, label: string, handler: () => void) => (
+  const iconAction = (
+    key: string,
+    icon: string,
+    label: string,
+    handler: () => void,
+    overlay = false,
+  ) => (
     <CnButton
       key={key}
       iconOnly
@@ -402,7 +407,7 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
       size="small"
       variant="text"
       color="neutral"
-      aria-label={label}
+      aria-label={`${label} ${name}`}
       tooltip
       tooltipProps={{ title: label }}
       disabled={disabled}
@@ -410,8 +415,13 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
         event.stopPropagation();
         handler();
       }}
+      sx={overlay ? { width: 30, height: 30 } : undefined}
     />
   );
+
+  const removeButton = onRemove
+    ? iconAction("remove", "close", labels.remove, onRemove, isGrid)
+    : null;
 
   const moreButton =
     menuEntries.length > 0 ? (
@@ -421,7 +431,7 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
         size="small"
         variant="text"
         color="neutral"
-        aria-label={labels.more}
+        aria-label={`${labels.more} ${name}`}
         aria-haspopup="menu"
         aria-expanded={menuAnchor ? true : undefined}
         disabled={disabled}
@@ -445,17 +455,14 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
       {extraActions}
       {!isGrid &&
         canPreview &&
-        !isCompact &&
+        !dense &&
         iconAction("preview", "visibility", labels.preview, handlePreview)}
       {!isGrid &&
         canDownload &&
         iconAction("download", "download", labels.download, handleDownload)}
-      {!isGrid &&
-        !isCompact &&
-        onShare &&
-        !busy &&
-        iconAction("share", "share", labels.share, onShare)}
+      {!isGrid && !dense && onShare && !busy && iconAction("share", "share", labels.share, onShare)}
       {moreButton}
+      {removeButton}
     </Box>
   );
 
@@ -503,15 +510,18 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
     </Box>
   ) : null;
 
+  const linkProps = nameHref
+    ? { component: "a", href: nameHref, target: "_blank", rel: "noopener noreferrer" }
+    : primary
+      ? { component: "button", type: "button", onClick: primary }
+      : { component: "div" };
   const nameNode = (
     <Typography
       id={nameId}
-      component={primary ? "button" : "div"}
-      type={primary ? "button" : undefined}
-      onClick={primary}
+      {...(linkProps as Record<string, unknown>)}
       title={name}
       sx={{
-        all: primary ? "unset" : undefined,
+        all: interactive ? "unset" : undefined,
         display: isGrid ? "-webkit-box" : "block",
         maxWidth: "100%",
         fontFamily: "inherit",
@@ -521,10 +531,10 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
         lineHeight: 1.35,
         overflow: "hidden",
         textOverflow: "ellipsis",
-        wordBreak: isGrid ? "break-word" : undefined,
+        overflowWrap: isGrid ? "anywhere" : undefined,
         whiteSpace: isGrid ? "normal" : "nowrap",
         ...(isGrid && { WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }),
-        ...(primary && {
+        ...(interactive && {
           cursor: "pointer",
           // Enlace "estirado": toda la tarjeta responde al clic del nombre.
           "&::after": { content: '""', position: "absolute", inset: 0, zIndex: 0 },
@@ -554,6 +564,8 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
       icon={statusConfig.icon}
       variant="soft"
       size="small"
+      title={typeof statusConfig.label === "string" ? statusConfig.label : undefined}
+      sx={{ maxWidth: "100%" }}
     />
   ) : null;
 
@@ -573,11 +585,7 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
       >
         {metaParts.map((part, i) => (
           <Box component="span" key={i}>
-            {i > 0 && (
-              <Box component="span" aria-hidden sx={{ mx: "5px" }}>
-                ·
-              </Box>
-            )}
+            {i > 0 && " · "}
             {part}
           </Box>
         ))}
@@ -612,7 +620,7 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
         <LinearProgress
           variant={typeof progress === "number" ? "determinate" : "indeterminate"}
           value={typeof progress === "number" ? Math.max(0, Math.min(100, progress)) : undefined}
-          aria-label={`${labels.uploading} ${name}`}
+          aria-label={`${labels.progress}: ${name}`}
           sx={{ flex: 1, height: 4, borderRadius: 2 }}
         />
         {uploadState.onCancel && (
@@ -622,7 +630,7 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
             size="small"
             variant="text"
             color="neutral"
-            aria-label={labels.cancelUpload}
+            aria-label={`${labels.cancelUpload} ${name}`}
             onClick={(event) => {
               event.stopPropagation();
               uploadState.onCancel?.();
@@ -662,9 +670,12 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
         color: "var(--cn-color-error-600, #b52f2f)",
       }}
     >
-      <span>{error === true ? labels.error : error}</span>
+      <Box component="span" sx={{ minWidth: 0, overflowWrap: "anywhere" }}>
+        {error === true ? labels.error : error}
+      </Box>
       {onRetry && (
         <CnButton
+          aria-label={`${labels.retry} ${name}`}
           size="small"
           variant="text"
           color="error"
@@ -686,13 +697,13 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
       height: isGrid ? "100%" : "auto",
       transition:
         "border-color var(--cn-duration-fast, 140ms) ease, box-shadow var(--cn-duration-fast, 140ms) ease, background-color var(--cn-duration-fast, 140ms) ease",
-      ...(primary && {
+      ...(interactive && {
         cursor: "pointer",
         "&:hover": {
           borderColor: "var(--cn-color-border-strong, #c5cad0)",
           boxShadow: "var(--cn-shadow-sm, 0 2px 4px rgba(15, 23, 42, 0.06))",
         },
-        "&:focus-within:has(button:focus-visible)": {
+        "&:focus-within:has(button:focus-visible, a:focus-visible)": {
           boxShadow: "var(--cn-shadow-focus, 0 0 0 3px rgba(80, 129, 196, 0.35))",
         },
       }),
@@ -719,10 +730,17 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
             borderBottom: "1px solid var(--cn-color-border-subtle, #e9ecef)",
           }}
         >
-          <DocThumb kind={kind} name={name} src={thumbSrc} size={0} large error={hasError} />
+          <FileThumb
+            kind={kind}
+            name={name}
+            src={thumbSrc}
+            videoSrc={videoSrc}
+            size="fill"
+            error={hasError}
+          />
           {checkbox}
           {dragNode}
-          {!hideActions && (moreButton || extraActions) && (
+          {!hideActions && (moreButton || extraActions || removeButton) && (
             <Box
               onClick={(event) => event.stopPropagation()}
               sx={{
@@ -738,10 +756,15 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
             >
               {extraActions}
               {moreButton}
+              {removeButton}
             </Box>
           )}
           {statusNode && (
-            <Box sx={{ position: "absolute", left: 8, bottom: 8, zIndex: 1 }}>{statusNode}</Box>
+            <Box
+              sx={{ position: "absolute", left: 8, right: 8, bottom: 8, zIndex: 1, minWidth: 0 }}
+            >
+              {statusNode}
+            </Box>
           )}
         </Box>
         <Box
@@ -800,19 +823,20 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: isCompact ? "8px" : "12px",
-          px: isCompact ? "8px" : "12px",
+          gap: dense ? "8px" : "12px",
+          px: dense ? "8px" : "12px",
           py: isCompact ? "6px" : "10px",
           minWidth: 0,
         }}
       >
         {dragNode}
         {checkbox}
-        <DocThumb
+        <FileThumb
           kind={kind}
           name={name}
           src={thumbSrc}
-          size={isCompact ? 28 : 44}
+          videoSrc={videoSrc}
+          size={isCompact ? 28 : narrow ? 36 : 44}
           error={hasError}
         />
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -821,6 +845,7 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
             {versionNode}
           </Box>
           {!isCompact && metaNode}
+          {!isCompact && narrow && statusNode && <Box sx={{ mt: "4px" }}>{statusNode}</Box>}
           {!isCompact && description && (
             <Typography
               component="div"
@@ -840,13 +865,13 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
           {uploadNode}
           {errorNode}
         </Box>
-        {isCompact && metaParts.length > 0 && (
-          <Box sx={{ display: { xs: "none", sm: "block" }, flexShrink: 0, maxWidth: "40%" }}>
-            {metaNode}
-          </Box>
+        {isCompact && !narrow && metaParts.length > 0 && (
+          <Box sx={{ flexShrink: 1, minWidth: 0, maxWidth: "40%" }}>{metaNode}</Box>
         )}
-        {statusNode && (
-          <Box sx={{ flexShrink: 0, display: { xs: "none", sm: "block" } }}>{statusNode}</Box>
+        {statusNode && !narrow && (
+          <Box sx={{ flexShrink: 1, minWidth: 0, maxWidth: "30%", display: "flex" }}>
+            {statusNode}
+          </Box>
         )}
         {actionsNode}
       </Box>
@@ -856,7 +881,7 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
   return (
     <>
       <CnCard
-        ref={ref}
+        ref={setRootRef}
         component="article"
         variant={variant}
         padding="none"
@@ -903,12 +928,12 @@ export const CnDocCard = forwardRef<HTMLDivElement, CnDocCardProps>(function CnD
         ))}
       </Menu>
 
-      {viewer === "image" && safeUrl && (
+      {viewerOpen === "image" && safeUrl && (
         <CnImageViewer images={[safeUrl]} index={0} onClose={() => setViewer(null)} />
       )}
-      {viewer === "media" && safeUrl && (
+      {viewerOpen === "media" && safeUrl && (
         <FileLightbox
-          files={[{ id: name, url: safeUrl, name, mime, size } satisfies CnExistingFile]}
+          files={[{ id: name, url: safeUrl, name, mime, size }]}
           index={0}
           previews={new Map()}
           describe={() =>

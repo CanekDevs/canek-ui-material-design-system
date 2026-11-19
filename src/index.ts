@@ -268,6 +268,9 @@ export {
   downloadFile,
   FileLightbox,
   formatDuration,
+  FILE_KIND_META,
+  fileExtensionLabel,
+  getFileDisplayKind,
   getFileKind,
   getSafeUrl,
   isExistingFile,
@@ -281,6 +284,7 @@ export type {
   CnFileFieldProps,
   CnFileFieldVariant,
   CnFileSizeUnit,
+  CnFileDisplayKind,
   CnFileKind,
   CnFileMetadata,
   CnFileRejection,
@@ -401,7 +405,13 @@ export type {
 } from "./components/CnPageContainer";
 
 export { CnMetricCard, CnSparkline } from "./components/CnMetricCard";
-export type { CnMetricCardProps, CnMetricColor, CnMetricTrend } from "./components/CnMetricCard";
+export type {
+  CnMetricCardProps,
+  CnMetricColor,
+  CnMetricLayout,
+  CnMetricTrend,
+  CnMetricVariant,
+} from "./components/CnMetricCard";
 
 export {
   CN_STATUS_PRESETS,
@@ -672,8 +682,11 @@ export type {
 
 // Tarjetas de contenido y carruseles.
 export * from "./components/CnDocCard";
-export * from "./components/CnInfoCard";
-export * from "./components/CnPersonCard";
+export * from "./components/CnProfileCard";
 export * from "./components/CnSectionCard";
 export * from "./components/CnCarousel";
 export * from "./components/CnContentCarousel";
+
+// Paleta de tonos compartida (tarjetas, carruseles, secciones).
+export { CN_TONE_ICONS, CN_TONES } from "./utils/tones";
+export type { CnTone, CnToneTokens } from "./utils/tones";

@@ -6,6 +6,7 @@ import type { CnMetricCardProps } from "./CnMetricCard";
 type MetricVariant = NonNullable<CnMetricCardProps["variant"]>;
 type MetricSize = NonNullable<CnMetricCardProps["size"]>;
 type MetricSparklineType = NonNullable<CnMetricCardProps["sparklineType"]>;
+type MetricLayout = NonNullable<CnMetricCardProps["layout"]>;
 
 export type CnMetricCardSkeletonProps = CnSkeletonCommonProps & {
   variant?: MetricVariant;
@@ -22,10 +23,17 @@ export type CnMetricCardSkeletonProps = CnSkeletonCommonProps & {
   /** Líneas de descripción. */
   description?: boolean | number;
   footer?: boolean;
+  /** `inline`: tile "etiqueta + valor" con el ícono al lado. */
+  layout?: MetricLayout;
+  iconPosition?: "start" | "end";
+  /** Chip junto al valor. */
+  badge?: boolean;
   width?: number | string;
+  minHeight?: number | string;
 };
 
 const VALUE_SIZE: Record<MetricSize, number> = { sm: 20, md: 26, lg: 34 };
+const INLINE_VALUE_SIZE: Record<MetricSize, number> = { sm: 14, md: 16, lg: 20 };
 const PADDING: Record<MetricSize, number> = { sm: 12, md: 16, lg: 22 };
 
 const SHAPE_BASE = "var(--cn-skeleton-base, #e4e7eb)";
@@ -97,13 +105,21 @@ export const CnMetricCardSkeleton = ({
   progress = false,
   description = false,
   footer = false,
+  layout = "stacked",
+  iconPosition = "start",
+  badge = false,
   width,
+  minHeight,
   animation,
   ariaLabel = "Cargando indicador",
   sx,
   className,
 }: CnMetricCardSkeletonProps) => {
-  const iconBox = size === "sm" ? 30 : 36;
+  const inline = layout === "inline";
+  const iconBox = size === "sm" ? 30 : size === "lg" && inline ? 40 : 36;
+  const iconShape = icon ? (
+    <SkBlock width={iconBox} radius="var(--cn-radius-md, 8px)" sx={{ flexShrink: 0 }} />
+  ) : null;
   const descriptionLines = typeof description === "number" ? description : description ? 1 : 0;
 
   return (
@@ -118,14 +134,21 @@ export const CnMetricCardSkeleton = ({
           flexDirection: "column",
           gap: "10px",
           width: width ?? "100%",
+          minHeight,
+          boxSizing: "border-box",
+          justifyContent: inline ? "center" : "flex-start",
           p: `${PADDING[size]}px`,
           borderRadius: "var(--cn-radius-lg, 12px)",
           border:
-            variant === "outlined"
+            variant === "outlined" || variant === "left-accent"
               ? "1px solid var(--cn-color-border, #dde0e4)"
               : "1px solid transparent",
+          ...(variant === "left-accent" && {
+            borderLeftWidth: "4px",
+            borderLeftColor: "var(--cn-color-border-strong, #c5cad0)",
+          }),
           backgroundColor:
-            variant === "filled"
+            variant === "filled" || variant === "soft"
               ? "var(--cn-color-neutral-100, #f4f5f7)"
               : "var(--cn-color-surface, #ffffff)",
           boxShadow:
@@ -136,34 +159,64 @@ export const CnMetricCardSkeleton = ({
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: "8px",
-        }}
-      >
-        <SkText width="48%" size={12} sx={{ mt: "3px" }} />
-        {icon && <SkBlock width={iconBox} radius="var(--cn-radius-md, 8px)" />}
-      </Box>
+      {inline ? (
+        <Box
+          data-cn-metric-skeleton-inline
+          sx={{ display: "flex", alignItems: "center", gap: size === "sm" ? "10px" : "12px" }}
+        >
+          {iconPosition === "start" && iconShape}
+          <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
+            <SkText width="40%" size={10} />
+            <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <SkText width="60%" size={INLINE_VALUE_SIZE[size]} />
+              {badge && (
+                <Box data-cn-metric-skeleton-badge sx={{ display: "flex", flexShrink: 0 }}>
+                  <SkBlock width={48} height={18} radius={999} />
+                </Box>
+              )}
+            </Box>
+          </Box>
+          {iconPosition === "end" && iconShape}
+        </Box>
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: "8px",
+            }}
+          >
+            <SkText width="48%" size={12} sx={{ mt: "3px" }} />
+            {iconShape}
+          </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          gap: "12px",
-        }}
-      >
-        <SkBlock
-          width="55%"
-          height={Math.round(VALUE_SIZE[size] * 0.9)}
-          radius="var(--cn-radius-sm, 6px)"
-          sx={{ maxWidth: VALUE_SIZE[size] * 6 }}
-        />
-        {sparkline && <SparkShape type={sparklineType} />}
-      </Box>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "space-between",
+              gap: "12px",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, minWidth: 0 }}>
+              <SkBlock
+                width="55%"
+                height={Math.round(VALUE_SIZE[size] * 0.9)}
+                radius="var(--cn-radius-sm, 6px)"
+                sx={{ maxWidth: VALUE_SIZE[size] * 6 }}
+              />
+              {badge && (
+                <Box data-cn-metric-skeleton-badge sx={{ display: "flex", flexShrink: 0 }}>
+                  <SkBlock width={48} height={18} radius={999} />
+                </Box>
+              )}
+            </Box>
+            {sparkline && <SparkShape type={sparklineType} />}
+          </Box>
+        </>
+      )}
 
       {trend && (
         <Box

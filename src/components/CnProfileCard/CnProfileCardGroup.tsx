@@ -4,28 +4,32 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { Fragment, useMemo, useState } from "react";
 import { CnButton } from "../CnButton";
-import type { CnTone } from "../CnInfoCard/tones";
+import type { CnTone } from "../../utils/tones";
 import type { CnSectionCardEmptyState, CnSectionCardVariant } from "../CnSectionCard";
 import { CnSectionCard } from "../CnSectionCard";
 import { CnSkeletonGroup, SkBlock, SkText } from "../CnSkeleton";
-import type { CnPersonCardLayout, CnPersonCardProps, CnPersonCardVariant } from "./CnPersonCard";
-import { CnPersonCard } from "./CnPersonCard";
-import { PersonCardSkeletonBody } from "./CnPersonCardSkeleton";
+import type {
+  CnProfileCardLayout,
+  CnProfileCardProps,
+  CnProfileCardVariant,
+} from "./CnProfileCard";
+import { CnProfileCard } from "./CnProfileCard";
+import { ProfileCardSkeletonBody } from "./CnProfileCardSkeleton";
 import { resolvePersonEvent } from "./person-event";
 
-export type CnPersonCardGroupItem = CnPersonCardProps & { id?: string | number };
+export type CnProfileCardGroupItem = CnProfileCardProps & { id?: string | number };
 
-export type CnPersonCardGroupProps = {
+export type CnProfileCardGroupProps = {
   title?: ReactNode;
   subtitle?: ReactNode;
   icon?: string | ReactNode;
   iconTone?: CnTone;
-  people: CnPersonCardGroupItem[];
+  people: CnProfileCardGroupItem[];
   /** `list`: filas compactas. `grid`: tarjetas verticales en cuadrícula. */
   layout?: "list" | "grid";
   /** Layout de cada tarjeta (por defecto `compact` en lista y `vertical` en cuadrícula). */
-  cardLayout?: CnPersonCardLayout;
-  cardVariant?: CnPersonCardVariant;
+  cardLayout?: CnProfileCardLayout;
+  cardVariant?: CnProfileCardVariant;
   /** Ancho mínimo de cada columna en cuadrícula (px). */
   minCardWidth?: number;
   /** `upcoming`: hoy primero, luego próximos y al final los pasados. */
@@ -44,7 +48,7 @@ export type CnPersonCardGroupProps = {
   variant?: CnSectionCardVariant;
   collapsible?: boolean;
   /** Tarjeta personalizada. */
-  renderItem?: (person: CnPersonCardGroupItem, index: number) => ReactNode;
+  renderItem?: (person: CnProfileCardGroupItem, index: number) => ReactNode;
   today?: Date;
   /** Cargando: skeleton de N personas manteniendo el encabezado. */
   loading?: boolean;
@@ -75,7 +79,7 @@ const bucketOf = (days: number | null): Bucket => {
  * Lista de personas con eventos ("Cumpleaños del mes", "Nuevos ingresos"):
  * ordena por proximidad, filtra por mes, agrupa y resume con "Ver todos".
  */
-export const CnPersonCardGroup = ({
+export const CnProfileCardGroup = ({
   title,
   subtitle,
   icon,
@@ -103,7 +107,7 @@ export const CnPersonCardGroup = ({
   skeleton = false,
   sx,
   className,
-}: CnPersonCardGroupProps) => {
+}: CnProfileCardGroupProps) => {
   const [expanded, setExpanded] = useState(false);
   const isGrid = layout === "grid";
   const resolvedCardLayout = cardLayout ?? (isGrid ? "vertical" : "compact");
@@ -140,14 +144,14 @@ export const CnPersonCardGroup = ({
         isGrid
           ? {
               display: "grid",
-              gridTemplateColumns: `repeat(auto-fill, minmax(${minCardWidth}px, 1fr))`,
+              gridTemplateColumns: `repeat(auto-fill, minmax(min(${minCardWidth}px, 100%), 1fr))`,
               gap: "12px",
             }
           : { display: "flex", flexDirection: "column", gap: "8px" }
       }
     >
       {Array.from({ length: count }, (_, i) => (
-        <PersonCardSkeletonBody key={i} layout={resolvedCardLayout} eyebrow={false} />
+        <ProfileCardSkeletonBody key={i} layout={resolvedCardLayout} eyebrow={false} />
       ))}
     </Box>
   );
@@ -155,7 +159,7 @@ export const CnPersonCardGroup = ({
   if (skeleton) {
     return (
       <CnSkeletonGroup
-        name="person-card-group"
+        name="profile-card-group"
         ariaLabel="Cargando personas"
         className={className}
         sx={[
@@ -192,7 +196,7 @@ export const CnPersonCardGroup = ({
     renderItem ? (
       <Fragment key={entry.person.id ?? entry.index}>{renderItem(entry.person, i)}</Fragment>
     ) : (
-      <CnPersonCard
+      <CnProfileCard
         key={entry.person.id ?? entry.index}
         layout={resolvedCardLayout}
         variant={cardVariant ?? "outlined"}
@@ -209,7 +213,7 @@ export const CnPersonCardGroup = ({
         isGrid
           ? {
               display: "grid",
-              gridTemplateColumns: `repeat(auto-fill, minmax(${minCardWidth}px, 1fr))`,
+              gridTemplateColumns: `repeat(auto-fill, minmax(min(${minCardWidth}px, 100%), 1fr))`,
               gap: "12px",
             }
           : { display: "flex", flexDirection: "column", gap: "8px" }

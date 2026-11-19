@@ -11,31 +11,17 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import type { KeyboardEvent } from "react";
 import { useEffect, useState } from "react";
-import type { CnFileValue } from "./file-utils";
-import { fileKey, getFileKind, getSafeUrl, isFile } from "./file-utils";
+import type { CnFileValue } from "../../utils/file-utils";
+import {
+  downloadFile,
+  fileKey,
+  getFileKind,
+  getSafeUrl,
+  isFile,
+  isViewableFile,
+} from "../../utils/file-utils";
 
-export const isViewableFile = (file: CnFileValue): boolean =>
-  ["image", "video", "audio", "pdf"].includes(getFileKind(file));
-
-/** Descarga un archivo local o existente sin exponer URLs inseguras. */
-export const downloadFile = (file: CnFileValue): void => {
-  const link = document.createElement("a");
-  link.rel = "noopener noreferrer";
-  link.download = file.name;
-  if (isFile(file)) {
-    if (typeof URL.createObjectURL !== "function") return;
-    const url = URL.createObjectURL(file);
-    link.href = url;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    return;
-  }
-  const safe = getSafeUrl(file.url);
-  if (!safe) return;
-  link.href = safe;
-  link.target = "_blank";
-  link.click();
-};
+export { downloadFile, isViewableFile };
 
 type FileLightboxProps = {
   files: CnFileValue[];

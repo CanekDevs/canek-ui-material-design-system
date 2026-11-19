@@ -26,9 +26,17 @@ export type CnMetricTrend = {
   format?: (value: number) => string;
 };
 
+export type CnMetricVariant = "outlined" | "elevated" | "filled" | "soft" | "left-accent";
+export type CnMetricLayout = "stacked" | "inline";
+
 export type CnMetricCardProps = {
+  /** Título del indicador. En `layout="inline"` se muestra como etiqueta pequeña sobre el valor. */
   title: ReactNode;
-  value: number | string | null | undefined;
+  /**
+   * Valor. Los números se formatean (`format` o `es-MX`); `null`/`undefined`/`""`
+   * muestran "—". Acepta nodos (p. ej. un chip o un ID con formato).
+   */
+  value: ReactNode;
   /** Formato del valor (`Intl.NumberFormat`, moneda…). */
   format?: (value: number) => string;
   prefix?: ReactNode;
@@ -44,8 +52,25 @@ export type CnMetricCardProps = {
   sparklineType?: "line" | "area" | "bar";
   /** Contenido al pie (enlace "Ver detalle", fecha de corte…). */
   footer?: ReactNode;
-  variant?: "outlined" | "elevated" | "filled";
+  /**
+   * `soft`: fondo suave del color. `left-accent`: borde izquierdo de color
+   * (tile de dato tipo "bordered").
+   */
+  variant?: CnMetricVariant;
   size?: "sm" | "md" | "lg";
+  /**
+   * `stacked` (KPI): título arriba, ícono a la derecha y valor grande.
+   * `inline` (tile de dato "etiqueta + valor"): ícono al lado y valor compacto.
+   */
+  layout?: CnMetricLayout;
+  /** Lado del ícono en `layout="inline"`. */
+  iconPosition?: "start" | "end";
+  /** Nodo junto al valor (p. ej. `<CnChip size="small" />`). */
+  badge?: ReactNode;
+  /** Convierte la tarjeta en enlace. */
+  href?: string;
+  target?: "_blank" | "_self";
+  minHeight?: number | string;
   /** Muestra el skeleton de la tarjeta (mismas variantes). */
   loading?: boolean;
   /** Alias de `loading`. */
@@ -81,6 +106,7 @@ const PALETTE: Record<CnMetricColor, { main: string; soft: string }> = {
 };
 
 const VALUE_SIZE = { sm: "20px", md: "26px", lg: "34px" };
+const INLINE_VALUE_SIZE = { sm: "14px", md: "16px", lg: "20px" };
 
 const defaultTrendFormat = (value: number) =>
   `${value > 0 ? "+" : ""}${value.toLocaleString("es-MX", { maximumFractionDigits: 1 })} %`;
@@ -202,6 +228,12 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
     footer,
     variant = "outlined",
     size = "md",
+    layout = "stacked",
+    iconPosition = "start",
+    badge,
+    href,
+    target,
+    minHeight,
     loading = false,
     skeleton = false,
     onClick,
@@ -211,6 +243,8 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
   ref,
 ) {
   const tone = PALETTE[color];
+  const inline = layout === "inline";
+  const isFilled = variant === "filled";
   const shown =
     value === null || value === undefined || value === ""
       ? "—"
@@ -241,8 +275,111 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
     ? Math.max(0, Math.min(100, (progress.value / (progress.max ?? 100)) * 100))
     : 0;
 
-  const body = (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+  const iconBox = size === "sm" ? 30 : size === "lg" && inline ? 40 : 36;
+  const iconNode = icon ? (
+    <Box
+      aria-hidden
+      data-cn-metric-icon
+      sx={{
+        width: iconBox,
+        height: iconBox,
+        flexShrink: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "var(--cn-radius-md, 8px)",
+        color: isFilled ? "#fff" : tone.main,
+        backgroundColor: isFilled
+          ? "rgba(255,255,255,0.18)"
+          : variant === "soft"
+            ? "var(--cn-color-surface, #ffffff)"
+            : tone.soft,
+      }}
+    >
+      <CnIcon name={icon} size={size === "sm" ? "sm" : "md"} />
+    </Box>
+  ) : null;
+
+  const mutedColor = isFilled ? "rgba(255,255,255,0.85)" : "var(--cn-color-text-muted, #6e7682)";
+
+  const inlineRow = (
+    <Box
+      data-cn-metric-inline
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: size === "sm" ? "10px" : "12px",
+        minWidth: 0,
+      }}
+    >
+      {iconPosition === "start" && iconNode}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography
+          component="div"
+          sx={{
+            m: 0,
+            mb: "2px",
+            fontSize: size === "lg" ? "11px" : "10.5px",
+            fontWeight: 600,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: mutedColor,
+            lineHeight: 1.3,
+            overflowWrap: "anywhere",
+          }}
+        >
+          {title}
+        </Typography>
+        <Box
+          sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "6px", minWidth: 0 }}
+        >
+          <Box
+            aria-live="polite"
+            data-cn-metric-value
+            sx={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: "4px",
+              minWidth: 0,
+              maxWidth: "100%",
+              fontSize: INLINE_VALUE_SIZE[size],
+              fontWeight: 600,
+              lineHeight: 1.3,
+              fontVariantNumeric: "tabular-nums",
+              color: isFilled ? "#fff" : "var(--cn-color-text, #222831)",
+              overflowWrap: "anywhere",
+            }}
+          >
+            {prefix && (
+              <Box component="span" sx={{ fontSize: "0.85em", fontWeight: 600 }}>
+                {prefix}
+              </Box>
+            )}
+            <Box component="span" sx={{ minWidth: 0 }}>
+              {shown}
+            </Box>
+            {suffix && (
+              <Box component="span" sx={{ fontSize: "0.8em", fontWeight: 600, opacity: 0.8 }}>
+                {suffix}
+              </Box>
+            )}
+          </Box>
+          {badge && (
+            <Box
+              data-cn-metric-badge
+              sx={{ display: "inline-flex", minWidth: 0, maxWidth: "100%" }}
+            >
+              {badge}
+            </Box>
+          )}
+        </Box>
+      </Box>
+      {iconPosition === "end" && iconNode}
+    </Box>
+  );
+
+  const stackedHead = (
+    <>
       <Box
         sx={{
           display: "flex",
@@ -257,30 +394,15 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
             m: 0,
             fontSize: "var(--cn-font-size-sm, 12px)",
             fontWeight: 600,
-            color: "var(--cn-color-text-muted, #6e7682)",
+            color: mutedColor,
             lineHeight: 1.4,
+            minWidth: 0,
+            overflowWrap: "anywhere",
           }}
         >
           {title}
         </Typography>
-        {icon && (
-          <Box
-            aria-hidden
-            sx={{
-              width: size === "sm" ? 30 : 36,
-              height: size === "sm" ? 30 : 36,
-              flexShrink: 0,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "var(--cn-radius-md, 8px)",
-              color: variant === "filled" ? "#fff" : tone.main,
-              backgroundColor: variant === "filled" ? "rgba(255,255,255,0.18)" : tone.soft,
-            }}
-          >
-            <CnIcon name={icon} size={size === "sm" ? "sm" : "md"} />
-          </Box>
-        )}
+        {iconNode}
       </Box>
 
       <Box
@@ -293,9 +415,11 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
       >
         <Box
           aria-live="polite"
+          data-cn-metric-value
           sx={{
             display: "flex",
             alignItems: "baseline",
+            flexWrap: "wrap",
             gap: "4px",
             fontSize: VALUE_SIZE[size],
             fontWeight: 800,
@@ -317,6 +441,19 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
               {suffix}
             </Box>
           )}
+          {badge && (
+            <Box
+              data-cn-metric-badge
+              sx={{
+                display: "inline-flex",
+                alignSelf: "center",
+                fontSize: "var(--cn-font-size-sm, 12px)",
+                fontWeight: 400,
+              }}
+            >
+              {badge}
+            </Box>
+          )}
         </Box>
         {sparkline && sparkline.length > 1 && (
           <Box sx={{ width: 110, flexShrink: 0, color: variant === "filled" ? "#fff" : tone.main }}>
@@ -324,6 +461,12 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
           </Box>
         )}
       </Box>
+    </>
+  );
+
+  const body = (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", minWidth: 0 }}>
+      {inline ? inlineRow : stackedHead}
 
       {trend && (
         <Box sx={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
@@ -449,17 +592,29 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
     padding: size === "sm" ? "12px" : size === "lg" ? "22px" : "16px",
     borderRadius: "var(--cn-radius-lg, 12px)",
     fontFamily: "var(--cn-font-sans, system-ui, sans-serif)",
+    minHeight,
+    minWidth: 0,
+    boxSizing: "border-box",
+    color: "inherit",
+    textDecoration: "none",
+    alignItems: inline ? "center" : "stretch",
     border:
-      variant === "outlined"
+      variant === "outlined" || variant === "left-accent"
         ? "1px solid var(--cn-color-border, #dde0e4)"
         : "1px solid transparent",
-    backgroundColor: variant === "filled" ? tone.main : "var(--cn-color-surface, #ffffff)",
+    ...(variant === "left-accent" && { borderLeftWidth: "4px", borderLeftColor: tone.main }),
+    backgroundColor:
+      variant === "filled"
+        ? tone.main
+        : variant === "soft"
+          ? tone.soft
+          : "var(--cn-color-surface, #ffffff)",
     boxShadow:
       variant === "elevated"
         ? "0 1px 3px rgba(17, 20, 24, 0.08), 0 6px 16px rgba(17, 20, 24, 0.06)"
         : "none",
     transition: "box-shadow 140ms ease, border-color 140ms ease",
-    ...(onClick && {
+    ...((onClick || href) && {
       cursor: "pointer",
       "&:hover": { borderColor: "var(--cn-color-brand-300, #7c9fdc)" },
       "&.Mui-focusVisible": {
@@ -478,6 +633,10 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
         trend={Boolean(trend)}
         sparkline={Boolean(sparkline && sparkline.length > 1)}
         sparklineType={sparklineType}
+        layout={layout}
+        iconPosition={iconPosition}
+        badge={Boolean(badge)}
+        minHeight={minHeight}
         progress={Boolean(progress)}
         description={Boolean(description)}
         footer={Boolean(footer)}
@@ -487,11 +646,17 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
     );
   }
 
-  if (onClick) {
+  if (onClick || href) {
     return (
       <ButtonBase
         ref={ref as never}
         onClick={onClick}
+        {...(href && {
+          LinkComponent: "a",
+          href,
+          target,
+          rel: target === "_blank" ? "noopener noreferrer" : undefined,
+        })}
         className={className}
         data-cn-metric-card={color}
         sx={mergeSx(surfaceSx, sx)}

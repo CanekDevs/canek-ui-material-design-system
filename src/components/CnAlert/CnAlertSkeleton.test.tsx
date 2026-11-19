@@ -31,4 +31,12 @@ describe("CnAlertSkeleton", () => {
     expect(screen.getByRole("status")).toHaveAttribute("data-cn-skeleton", "alert");
     expect(screen.queryByText("Algo falló")).not.toBeInTheDocument();
   });
+
+  it("draws the left-accent surface and the callout pieces", () => {
+    const { container } = render(<CnAlertSkeleton variant="left-accent" actions={2} details />);
+    const surface = screen.getByRole("status").firstElementChild as HTMLElement;
+    expect(getComputedStyle(surface).borderLeftWidth).toBe("4px");
+    expect(container.querySelector("[data-cn-alert-skeleton-details]")).not.toBeNull();
+    expect(container.querySelector("[data-cn-alert-skeleton-actions]")?.children).toHaveLength(2);
+  });
 });

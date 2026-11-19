@@ -1,11 +1,11 @@
 import Box from "@mui/material/Box";
 import type { CnSkeletonCommonProps } from "../CnSkeleton";
 import { CnSkeletonGroup, SkBlock, SkText, useSkeletonGroup } from "../CnSkeleton";
-import type { CnPersonCardLayout, CnPersonCardVariant } from "./CnPersonCard";
+import type { CnProfileCardLayout, CnProfileCardVariant } from "./CnProfileCard";
 
-export type CnPersonCardSkeletonProps = CnSkeletonCommonProps & {
-  layout?: CnPersonCardLayout;
-  variant?: CnPersonCardVariant;
+export type CnProfileCardSkeletonProps = CnSkeletonCommonProps & {
+  layout?: CnProfileCardLayout;
+  variant?: CnProfileCardVariant;
   cover?: boolean;
   status?: boolean;
   eyebrow?: boolean;
@@ -18,7 +18,7 @@ export type CnPersonCardSkeletonProps = CnSkeletonCommonProps & {
   width?: number | string;
 };
 
-const SURFACE: Record<CnPersonCardVariant, Record<string, unknown>> = {
+const SURFACE: Record<CnProfileCardVariant, Record<string, unknown>> = {
   outlined: { border: "1px solid var(--cn-color-border, #dde0e4)" },
   elevated: {
     backgroundColor: "var(--cn-color-surface, #ffffff)",
@@ -31,12 +31,12 @@ const SURFACE: Record<CnPersonCardVariant, Record<string, unknown>> = {
   solid: { backgroundColor: "var(--cn-color-neutral-150, #e9ecef)" },
 };
 
-const AVATAR: Record<CnPersonCardLayout, number> = { compact: 40, horizontal: 48, vertical: 64 };
+const AVATAR: Record<CnProfileCardLayout, number> = { compact: 40, horizontal: 48, vertical: 64 };
 
-type BodyProps = Omit<CnPersonCardSkeletonProps, keyof CnSkeletonCommonProps | "width">;
+type BodyProps = Omit<CnProfileCardSkeletonProps, keyof CnSkeletonCommonProps | "width">;
 
 /** Piezas de la tarjeta sin raíz accesible (para componer otros skeletons). */
-export const PersonCardSkeletonBody = ({
+export const ProfileCardSkeletonBody = ({
   layout = "horizontal",
   variant = "outlined",
   cover = false,
@@ -54,7 +54,7 @@ export const PersonCardSkeletonBody = ({
 
   const avatar = (
     <Box
-      data-cn-person-skeleton-avatar
+      data-cn-profile-skeleton-avatar
       sx={{ position: "relative", display: "flex", flexShrink: 0 }}
     >
       <SkBlock circle width={size} />
@@ -107,7 +107,7 @@ export const PersonCardSkeletonBody = ({
   const actionRow = (withContacts: boolean) =>
     ((withContacts && contacts > 0) || quickActions > 0) && (
       <Box
-        data-cn-person-skeleton-actions
+        data-cn-profile-skeleton-actions
         sx={{
           display: "flex",
           gap: "6px",
@@ -125,7 +125,7 @@ export const PersonCardSkeletonBody = ({
 
   return (
     <Box
-      data-cn-person-skeleton={layout}
+      data-cn-profile-skeleton={layout}
       sx={{
         width: "100%",
         boxSizing: "border-box",
@@ -137,7 +137,7 @@ export const PersonCardSkeletonBody = ({
       {isVertical ? (
         <>
           {cover && (
-            <Box data-cn-person-skeleton-cover>
+            <Box data-cn-profile-skeleton-cover>
               <SkBlock width="100%" height={64} radius={0} />
             </Box>
           )}
@@ -186,17 +186,17 @@ export const PersonCardSkeletonBody = ({
 };
 
 /**
- * Skeleton de `CnPersonCard` en sus tres layouts. Dentro de otro skeleton
+ * Skeleton de `CnProfileCard` en sus tres layouts. Dentro de otro skeleton
  * (`CnSkeletonGroup`) se integra como pieza sin crear otro `role="status"`.
  */
-export const CnPersonCardSkeleton = ({
+export const CnProfileCardSkeleton = ({
   width,
   animation,
   ariaLabel = "Cargando persona",
   sx,
   className,
   ...body
-}: CnPersonCardSkeletonProps) => {
+}: CnProfileCardSkeletonProps) => {
   const group = useSkeletonGroup();
   if (group) {
     return (
@@ -204,19 +204,19 @@ export const CnPersonCardSkeleton = ({
         className={className}
         sx={[{ width: width ?? "100%" }, ...(Array.isArray(sx) ? sx : [sx])]}
       >
-        <PersonCardSkeletonBody {...body} />
+        <ProfileCardSkeletonBody {...body} />
       </Box>
     );
   }
   return (
     <CnSkeletonGroup
-      name="person-card"
+      name="profile-card"
       animation={animation}
       ariaLabel={ariaLabel}
       className={className}
       sx={[{ width: width ?? "100%" }, ...(Array.isArray(sx) ? sx : [sx])]}
     >
-      <PersonCardSkeletonBody {...body} />
+      <ProfileCardSkeletonBody {...body} />
     </CnSkeletonGroup>
   );
 };
