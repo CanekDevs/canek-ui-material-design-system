@@ -1255,107 +1255,114 @@ export type { CnNombreProps } from "./components/CnNombre";
 
 ## Flujo de trabajo
 
-### 1. Crear rama desde `main`
+| Rama | Para qué | Quién sube |
+| --- | --- | --- |
+| `develop` | **Rama por defecto.** Integra el trabajo del día a día. | PR desde `feat/*`, `fix/*`, `chore/*` |
+| `main` | Solo código probado y validado; cada merge es una versión publicada. | PR de release desde `develop` |
+| `feat/*`, `fix/*`, `docs/*`, `chore/*` | Un cambio por rama, siempre desde `develop` actualizado. | Quien desarrolla |
+
+### 1. Crear rama desde `develop`
 
 ```bash
-git checkout main
+git checkout develop
 git pull
-git checkout -b feature/cn-chip
+git checkout -b feat/cn-chip
 ```
 
 ### 2. Desarrollar
 
 ```bash
-# Iterar en Storybook
-npm run storybook
-
-# Correr tests mientras trabajas
-npm run test:watch
+npm run storybook     # iterar en Storybook
+npm run test:watch    # tests mientras trabajas
 ```
 
 ### 3. Verificar todo
 
 ```bash
-npm run typecheck && npm run lint && npm run test && npm run build
+npm run verify   # typecheck + lint + test + build
 ```
 
-### 4. Commitear
+### 4. Commitear (Conventional Commits)
 
 ```bash
-git add src/components/CnChip
-git add src/index.ts
+git add src/components/CnChip src/index.ts
 git commit -m "feat(chip): add CnChip with color variants - por: Angel Rodriguez"
 ```
 
+| Prefijo | Uso | Efecto en la versión |
+| --- | --- | --- |
+| `feat` | Componente, prop o capacidad nueva | `minor` |
+| `fix` | Corrección de un error | `patch` |
+| `perf`, `refactor` | Mejora interna sin cambiar la API | `patch` |
+| `docs`, `test`, `chore`, `ci`, `style` | Sin cambios en el paquete publicado | ninguno |
+| `feat!` / `BREAKING CHANGE:` | API incompatible | `minor` mientras sea `0.x`; `major` desde `1.0` |
+
 Nunca `git add .` si hay archivos que no quieres commitear. Siempre archivos específicos por ruta.
 
-### 5. Push y PR
+### 5. Push y PR hacia `develop`
 
 ```bash
-git push -u origin feature/cn-chip
+git push -u origin feat/cn-chip
 ```
 
-Abre un Pull Request en GitHub hacia `main`:
+Abre el PR hacia **`develop`** (nunca directo a `main`). CI valida tipos, lint, tests, build y
+Storybook. Una vez aprobado: **Squash and merge** y borra la rama.
 
-- **Título:** igual al commit principal (`feat(chip): add CnChip`).
-- **Descripción:** qué hace el componente, qué variantes añade, screenshots del Storybook.
-- **Reviewer:** al menos uno del equipo.
+### 6. Release: `develop` → `main`
 
-### 6. Merge
+Cuando lo acumulado en `develop` está probado y validado (Storybook revisado, CI en verde):
 
-Una vez aprobado y CI en verde:
+1. En `develop`, decide la versión según los commits desde el último tag (tabla de arriba),
+   agrega la entrada en `CHANGELOG.md` y sube la versión **sin** crear tag todavía:
 
-- **Squash and merge** (recomendado) o **Merge commit**. Nunca **Rebase and merge** porque reescribe SHA.
-- Borra la rama después del merge.
+   ```bash
+   npm version minor --no-git-tag-version   # o patch
+   git add package.json package-lock.json CHANGELOG.md
+   git commit -m "chore(release): v0.14.0 - por: Angel Rodriguez"
+   git push
+   ```
 
-### 7. Actualizar local
+2. Abre un PR `develop` → `main` titulado `release: v0.14.0` y haz **merge commit** (no squash).
+3. Crea el tag sobre `main` y súbelo; el workflow **Release** verifica y publica en npm:
 
-```bash
-git checkout main
-git pull
-git branch -d feature/cn-chip
-```
+   ```bash
+   git checkout main && git pull
+   git tag -a v0.14.0 -m "v0.14.0"
+   git push origin v0.14.0
+   ```
+
+4. Regresa `main` a `develop` para que queden iguales: `git checkout develop && git merge main && git push`.
 
 ---
 
 ## Publicación
 
-### Checklist antes de publicar
+La publicación es automática: al subir un tag `vX.Y.Z` que esté en `main`, el workflow
+`.github/workflows/release.yml` comprueba que el tag coincide con `package.json`, corre
+`npm run verify`, publica en npm con *provenance* y crea el GitHub Release con las notas del
+`CHANGELOG.md`.
 
-- [ ] CI en verde en `main`.
-- [ ] Todos los tests pasan (`npm run test`).
-- [ ] El build genera `dist/` sin warnings.
-- [ ] El CHANGELOG o el commit describen los cambios.
-- [ ] La versión se decidió correctamente (ver abajo).
+**Configuración única:** en npm crea un token de publicación (*Granular* con permiso de escritura
+sobre `@canek-ui/material-design-system`, o *Automation*) y guárdalo en GitHub como secret
+`NPM_TOKEN` (Settings → Secrets and variables → Actions).
 
 ### Semantic versioning
 
-| Cambio                                    | Versión a bumpear |
-| ----------------------------------------- | ----------------- |
-| Breaking change (API incompatible)        | `major` (0.x → 1.0) |
-| Nuevo componente o nueva prop no breaking | `minor` (0.2 → 0.3) |
-| Bug fix, corrección interna               | `patch` (0.2.0 → 0.2.1) |
+| Cambio | Versión |
+| --- | --- |
+| Breaking change (API incompatible) | `minor` en `0.x`; `major` desde `1.0` |
+| Nuevo componente, prop o capacidad | `minor` |
+| Bug fix, corrección interna | `patch` |
 
-Mientras la versión sea `0.x.y`, **cada nuevo componente es un minor**. `CnButton` → `v0.1.0`. `CnIcon` → `v0.2.0`. `CnChip` → `v0.3.0`. Cuando cierres la API de los componentes más usados y estés listo para producción, saltas a `v1.0.0`.
+Cuando la API de los componentes más usados esté estable y lista para producción, se salta a `v1.0.0`.
 
-### Publicar
+### Publicar a mano (solo si el workflow no está disponible)
 
 ```bash
-# 1. Actualizar versión (esto crea commit + tag automáticamente)
-npm version minor
-# o
-npm version patch
-# o
-npm version major
-
-# 2. Push con tags
-git push --follow-tags
-
-# 3. Publicar a npm
-npm publish --access public
+git checkout main && git pull
+npm run verify
+npm publish --access public   # pide el OTP de 2FA
 ```
-
-`npm publish` requiere 2FA activo en tu cuenta. Te pedirá OTP de 6 dígitos.
 
 ### Verificar la publicación
 
@@ -1364,16 +1371,10 @@ npm publish --access public
 
 ### Si algo sale mal
 
-**No se puede reemplazar una versión ya publicada.** Si publicaste `0.2.0` con un bug:
+**No se puede reemplazar una versión ya publicada.** Depreca y publica un `patch`:
 
 ```bash
-# Deprecar la versión (los consumidores nuevos no la verán)
-npm deprecate @canek-ui/material-design-system@0.2.0 "Bug en CnIcon. Usar 0.2.1"
-
-# Publicar la versión corregida
-npm version patch
-git push --follow-tags
-npm publish --access public
+npm deprecate @canek-ui/material-design-system@0.13.0 "Bug en CnX. Usar 0.13.1"
 ```
 
 ---
@@ -1397,6 +1398,7 @@ Checklist rápida:
 - [ ] `src/components/CnNuevo/CnNuevo.stories.tsx` con stories de todas las variantes.
 - [ ] `src/components/CnNuevo/CnNuevo.test.tsx` con tests de los comportamientos clave.
 - [ ] `src/components/CnNuevo/index.ts` con los exports.
+- [ ] Entrada en `CHANGELOG.md` (sección *Sin publicar* o la próxima versión).
 - [ ] Exportar en `src/index.ts`.
 - [ ] Agregar a la tabla de [Componentes](#componentes) en este README.
 - [ ] Verificar que `npm run typecheck && npm run lint && npm run test && npm run build` pasan.
