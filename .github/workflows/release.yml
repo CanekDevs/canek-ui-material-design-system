@@ -1,0 +1,51 @@
+name: Release
+
+# Publica en npm cuando se sube un tag de versión (vX.Y.Z) creado desde main.
+# Requiere el secret NPM_TOKEN (token "Automation" o granular con permiso de publicación).
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write # crear el GitHub Release
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: El tag debe estar en main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
+            echo "El tag ${GITHUB_REF_NAME} no está en main. Solo se publica lo validado en main."; exit 1; }
+      - name: La versión del tag coincide con package.json
+        run: |
+          PKG="v$(node -p "require('./package.json').version")"
+          [ "$PKG" = "${GITHUB_REF_NAME}" ] || { echo "Tag ${GITHUB_REF_NAME} ≠ package.json ${PKG}"; exit 1; }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run verify
+      - name: Publicar en npm
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Notas del release desde CHANGELOG.md
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" {found=1; next}
+            found && /^## \[/ {exit}
+            found {print}
+          ' CHANGELOG.md > release-notes.md
+      - name: Crear GitHub Release
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
