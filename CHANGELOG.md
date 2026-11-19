@@ -12,9 +12,7 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 - `CnDocCard`: tarjeta de documento con tipo por mime/extensión, miniatura, metadatos, estado,
   etiquetas, versión, acciones (ver, descargar, compartir, menú), selección, progreso de carga y error;
   vista previa de imágenes, video, audio y PDF.
-- `CnInfoCard`: avisos y datos destacados con tono, cinco variantes, acciones, descartable y
-  detalles plegables.
-- `CnPersonCard` y `CnPersonCardGroup`: personas con contacto (correo, teléfono, WhatsApp) y eventos
+- `CnProfileCard` y `CnProfileCardGroup`: personas con contacto (correo, teléfono, WhatsApp) y eventos
   (cumpleaños, aniversario, nuevo ingreso, ausencia, vacaciones) con cuenta regresiva; grupo con
   orden por fecha, filtro por mes y secciones Hoy/Próximos.
 - `CnSectionCard`: contenedor de sección plegable con encabezado, pie, estados y modo repetible.
@@ -22,6 +20,20 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
   flechas, puntos/progreso/miniaturas, arrastre y teclado.
 - `CnContentCarousel`: banners (hero con imagen o video, CTA, overlay) y fila de tarjetas.
 - Cada uno con su skeleton y prop `skeleton`.
+
+- `CnDialog` (modal general con acciones asíncronas, guarda de cambios sin guardar, tamaños,
+  `useDialog`), `CnDrawer` (panel lateral temporal, persistente o mini, redimensionable),
+  `CnTimeline` (historial, bitácora y seguimiento) y `CnNotificationCenter` (campana con bandeja de
+  notificaciones, pestañas, tiempo real y vista previa flotante).
+- `CnAlert`: variante `left-accent`, `actions`, detalles plegables, `dismissible` y `role="note"`.
+- `CnMetricCard`: `layout="inline"` (dato con etiqueta), `badge`, `href`, variantes `soft` y
+  `left-accent`, `value` como nodo.
+- `CnCarousel`: loop continuo sin salto, progreso sincronizado con el autoplay, deslizamiento por
+  umbral y velocidad, `slideAspectRatio`, `onSlideView` y soporte RTL. `CnContentCarousel`: textos que
+  escalan con el ancho, CTA apilados en pantallas chicas, `imageSrcSet` y placeholder difuminado.
+- `CnFileField` y `CnDocCard` comparten el manejo de tipos de archivo (`src/utils/file-utils.ts`):
+  el campo es la entrada y muestra sus archivos con `CnDocCard`; en `readOnly` se ve igual que una
+  lista de `CnDocCard`.
 
 ### Corregido
 
@@ -31,6 +43,10 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 
 ### Cambiado
 
+- Se quitó `CnInfoCard` (nunca se publicó): sus avisos pasan a `CnAlert` y su modo dato a
+  `CnMetricCard`.
+- `CnFileField` variante `card`: la descarga pasa al menú "⋮"; los nombres accesibles de las
+  acciones incluyen el nombre del archivo.
 - La carpeta local `.claude/` ya no se versiona.
 - El workflow de release publica en npm solo si existe `NPM_TOKEN` y la versión es nueva.
 

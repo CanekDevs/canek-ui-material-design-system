@@ -19,6 +19,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 - [Listas grandes (miles de opciones)](#listas-grandes-miles-de-opciones)
 - [Listas](#listas)
 - [Tarjetas de contenido y carruseles](#tarjetas-de-contenido-y-carruseles)
+- [Diálogos, paneles, historial y notificaciones](#diálogos-paneles-historial-y-notificaciones)
 - [Mapas](#mapas)
 - [Calendario de eventos](#calendario-de-eventos)
 - [Gráficas](#gráficas)
@@ -832,8 +833,7 @@ siempre (carga al montar).
 | Componente | Para qué | Destacado |
 | --- | --- | --- |
 | `CnDocCard` | Documentos y archivos | Tipo por mime/extensión, miniatura, versión, estado, progreso de carga, vista previa (imagen, video, PDF), acciones y selección; vistas lista/cuadrícula/compacta |
-| `CnInfoCard` | Avisos, ayudas y datos destacados | Tonos, variantes `soft`/`outlined`/`filled`/`left-accent`/`elevated`, modo valor, acciones, descartable, detalles plegables |
-| `CnPersonCard` / `CnPersonCardGroup` | Personas y sus eventos | Contacto (correo, teléfono, WhatsApp), cumpleaños/aniversarios/ingresos con cuenta regresiva; grupo por mes y "Hoy / Próximos" |
+| `CnProfileCard` / `CnProfileCardGroup` | Personas y sus eventos | Contacto (correo, teléfono, WhatsApp), cumpleaños/aniversarios/ingresos con cuenta regresiva; grupo por mes y "Hoy / Próximos" |
 | `CnSectionCard` | Secciones de una página | Encabezado con acciones, cuerpo plegable animado, pie, estados, secciones anidadas y repetibles |
 | `CnCarousel` | Cualquier contenido en carrusel | Slides por vista según el ancho del contenedor, autoplay accesible, flechas, puntos/progreso/miniaturas, arrastre y teclado |
 | `CnContentCarousel` | Banners y filas de tarjetas | Hero con imagen o video, CTA, overlay y relación de aspecto; preset de fila de tarjetas |
@@ -842,7 +842,24 @@ siempre (carga al montar).
 <CnContentCarousel
   slides={[{ id: "1", image: "/banner.jpg", title: "Bienvenida", description: "…", actions: [{ label: "Ver más" }] }]}
 />
-<CnPersonCardGroup title="Cumpleaños del mes" people={empleados} month="current" groupByProximity />
+<CnProfileCardGroup title="Cumpleaños del mes" people={empleados} month="current" groupByProximity />
+```
+
+## Diálogos, paneles, historial y notificaciones
+
+| Componente | Para qué | Cuándo NO usarlo |
+| --- | --- | --- |
+| `CnDialog` / `useDialog` | Modal general: formularios, detalle de un registro, asistentes, vistas previas. Acciones asíncronas con carga, "¿Descartar cambios?" con `dirty`, tamaños hasta pantalla completa | Para un "sí/no" usa `CnConfirmDialog`; para un aviso pasajero, `CnToast` |
+| `CnDrawer` | Panel lateral (izquierda, derecha, abajo) para detalle de una fila, filtros o edición rápida sin perder la página; temporal, persistente o mini, redimensionable | Para tareas que deben bloquear la página usa `CnDialog` |
+| `CnTimeline` | Historial, bitácora y seguimiento: agrupado por día, estados completado/actual/pendiente, adjuntos, "Ver más" | Para listas seleccionables usa `CnList`; para una bandeja con leídos/no leídos, `CnNotificationCenter` |
+| `CnNotificationCenter` | Bandeja de notificaciones con campana y contador, pestañas, marcar como leído, tiempo real, vista previa flotante y notificaciones del navegador | Para un aviso pasajero usa `CnToast`; para un mensaje fijo, `CnAlert` |
+
+```tsx
+const dialog = useDialog();
+const ok = await dialog.open({ title: "Editar cliente", content: <ClienteForm />, actions: [...] });
+
+<CnDrawer open={Boolean(row)} title={row?.nombre} onClose={() => setRow(null)} resizable>…</CnDrawer>
+<CnNotificationCenter notifications={items} onMarkRead={markRead} onMarkAllRead={markAll} />
 ```
 
 ## Mapas

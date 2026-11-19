@@ -690,3 +690,67 @@ export * from "./components/CnContentCarousel";
 // Paleta de tonos compartida (tarjetas, carruseles, secciones).
 export { CN_TONE_ICONS, CN_TONES } from "./utils/tones";
 export type { CnTone, CnToneTokens } from "./utils/tones";
+
+// Superposiciones, historial y notificaciones.
+export {
+  CN_DISCARD_CONFIRM_DEFAULTS,
+  CnDialog,
+  CnDialogProvider,
+  CnDialogSkeleton,
+  useDialog,
+} from "./components/CnDialog";
+export type {
+  CnDialogApi,
+  CnDialogContext,
+  CnDialogDensity,
+  CnDialogInitialFocus,
+  CnDialogOpenAction,
+  CnDialogOpenOptions,
+  CnDialogProps,
+  CnDialogSize,
+  CnDialogSkeletonProps,
+  CnDiscardConfirmOptions,
+  CnOverlayAction,
+  CnOverlayActionVariant,
+  CnOverlayCloseReason,
+} from "./components/CnDialog";
+export { CnDrawer, CnDrawerSkeleton } from "./components/CnDrawer";
+export type {
+  CnDrawerAnchor,
+  CnDrawerProps,
+  CnDrawerSize,
+  CnDrawerSkeletonProps,
+  CnDrawerVariant,
+} from "./components/CnDrawer";
+export { CnTimeline, CnTimelineSkeleton } from "./components/CnTimeline";
+export type {
+  CnTimelineAction,
+  CnTimelineAlign,
+  CnTimelineAttachment,
+  CnTimelineItem,
+  CnTimelineOrientation,
+  CnTimelineProps,
+  CnTimelineSize,
+  CnTimelineSkeletonProps,
+  CnTimelineStatus,
+  CnTimelineTag,
+  CnTimelineTimeFormat,
+} from "./components/CnTimeline";
+export {
+  CN_NOTIFICATION_DEFAULT_TABS,
+  CnNotificationCenter,
+  CnNotificationCenterSkeleton,
+  CnNotificationPreview,
+  useBrowserNotifications,
+} from "./components/CnNotificationCenter";
+export type {
+  CnBrowserNotificationPermission,
+  CnBrowserNotificationsApi,
+  CnNotification,
+  CnNotificationAction,
+  CnNotificationCenterProps,
+  CnNotificationCenterSkeletonProps,
+  CnNotificationPanel,
+  CnNotificationPreviewProps,
+  CnNotificationTab,
+} from "./components/CnNotificationCenter";
