@@ -7,3 +7,6 @@ storybook-static/
 .env.local
 coverage/
 .vscode/settings.local.json
+
+# Configuración local de Claude Code (no se versiona)
+.claude/
