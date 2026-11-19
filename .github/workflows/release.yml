@@ -1,7 +1,8 @@
 name: Release
 
-# Publica en npm cuando se sube un tag de versión (vX.Y.Z) creado desde main.
-# Requiere el secret NPM_TOKEN (token "Automation" o granular con permiso de publicación).
+# Al subir un tag de versión (vX.Y.Z) que esté en main: verifica y crea el GitHub Release.
+# Publica en npm solo si existe el secret NPM_TOKEN y la versión aún no está publicada;
+# si se publica a mano (npm publish con 2FA), este paso se omite.
 on:
   push:
     tags: ["v*.*.*"]
@@ -33,7 +34,21 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run verify
+      - name: ¿Publicar en npm?
+        id: npm
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "Sin NPM_TOKEN: la publicación se hace a mano." && echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif npm view "@canek-ui/material-design-system@${VERSION}" version >/dev/null 2>&1; then
+            echo "La versión ${VERSION} ya está en npm." && echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Publicar en npm
+        if: steps.npm.outputs.publish == 'true'
         run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

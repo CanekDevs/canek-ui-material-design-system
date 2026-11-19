@@ -1323,10 +1323,11 @@ Cuando lo acumulado en `develop` está probado y validado (Storybook revisado, C
    ```
 
 2. Abre un PR `develop` → `main` titulado `release: v0.14.0` y haz **merge commit** (no squash).
-3. Crea el tag sobre `main` y súbelo; el workflow **Release** verifica y publica en npm:
+3. Publica en npm desde `main` y sube el tag; el workflow **Release** crea el GitHub Release:
 
    ```bash
    git checkout main && git pull
+   npm publish --access public   # pide el OTP de 2FA
    git tag -a v0.14.0 -m "v0.14.0"
    git push origin v0.14.0
    ```
@@ -1337,14 +1338,13 @@ Cuando lo acumulado en `develop` está probado y validado (Storybook revisado, C
 
 ## Publicación
 
-La publicación es automática: al subir un tag `vX.Y.Z` que esté en `main`, el workflow
-`.github/workflows/release.yml` comprueba que el tag coincide con `package.json`, corre
-`npm run verify`, publica en npm con *provenance* y crea el GitHub Release con las notas del
-`CHANGELOG.md`.
+Al subir un tag `vX.Y.Z` que esté en `main`, el workflow `.github/workflows/release.yml` comprueba
+que el tag coincide con `package.json`, corre `npm run verify` y crea el GitHub Release con las
+notas del `CHANGELOG.md`.
 
-**Configuración única:** en npm crea un token de publicación (*Granular* con permiso de escritura
-sobre `@canek-ui/material-design-system`, o *Automation*) y guárdalo en GitHub como secret
-`NPM_TOKEN` (Settings → Secrets and variables → Actions).
+**npm:** hoy se publica a mano desde `main` (`npm publish --access public`, con el OTP de 2FA). Si
+algún día se guarda un token de publicación como secret `NPM_TOKEN` en GitHub, el mismo workflow
+publica solo (con *provenance*) y omite las versiones que ya estén en npm.
 
 ### Semantic versioning
 
