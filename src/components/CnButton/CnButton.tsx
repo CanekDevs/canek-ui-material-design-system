@@ -354,13 +354,16 @@ export const CnButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, CnButt
         isLink && isIconDisabled,
       );
 
-      const iconButtonSxMerged = {
-        ...(iconButtonSx as Record<string, unknown>),
-        width: sizeTokens.height,
-        minWidth: sizeTokens.height,
-        paddingInline: 0,
-        ...(sx as Record<string, unknown>),
-      };
+      // `sx` puede ser objeto o arreglo: se concatena para no perder ninguno.
+      const iconButtonSxMerged = [
+        {
+          ...(iconButtonSx as Record<string, unknown>),
+          width: sizeTokens.height,
+          minWidth: sizeTokens.height,
+          paddingInline: 0,
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ] as SxProps<Theme>;
 
       const iconButtonNode = (
         <IconButton

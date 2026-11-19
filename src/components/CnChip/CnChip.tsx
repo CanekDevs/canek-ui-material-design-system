@@ -392,12 +392,12 @@ export const CnChip = forwardRef<HTMLDivElement, CnChipProps>(function CnChip(
       textOverflow: multiline ? "clip" : "ellipsis",
     },
     "& .MuiChip-icon": {
-      marginLeft: compact ? tokens.paddingX / 2 : tokens.paddingX,
+      marginLeft: `${compact ? tokens.paddingX / 2 : tokens.paddingX}px`,
       marginRight: 0,
       color: "inherit",
     },
     "& .MuiChip-deleteIcon": {
-      marginRight: compact ? tokens.paddingX / 2 : tokens.paddingX,
+      marginRight: `${compact ? tokens.paddingX / 2 : tokens.paddingX}px`,
       marginLeft: 0,
     },
     "& .MuiChip-avatar": {

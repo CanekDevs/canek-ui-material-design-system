@@ -1692,8 +1692,13 @@ export const CnImageViewer = ({
         if (event.key === "ArrowRight") go(1);
         if (event.key === "ArrowLeft") go(-1);
       }}
-      aria-label="Visor de imágenes"
-      slotProps={{ paper: { sx: { backgroundColor: "rgba(10, 12, 16, 0.96)", color: "#fff" } } }}
+      slotProps={{
+        // El nombre accesible va en el elemento con role="dialog" (el paper).
+        paper: {
+          "aria-label": "Visor de imágenes",
+          sx: { backgroundColor: "rgba(10, 12, 16, 0.96)", color: "#fff" },
+        } as object,
+      }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: "8px", px: "16px", py: "10px" }}>
         <Box sx={{ flex: 1, fontSize: "0.85rem", fontWeight: 600 }}>
