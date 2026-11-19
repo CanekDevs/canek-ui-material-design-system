@@ -816,6 +816,9 @@ describe("CnEventCalendar integrations and interactions", () => {
   });
 
   it("creates events with the quick form and natural-language input", () => {
+    // "12/11" sin año se interpreta como la próxima ocurrencia: se fija la fecha de hoy.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(d("2026-11-09T08:00"));
     const onCreateEvent = vi.fn();
     const categories = [{ id: "trabajo", label: "Trabajo" }];
     render(
