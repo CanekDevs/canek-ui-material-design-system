@@ -5,6 +5,35 @@ Todos los cambios relevantes de `@canek-ui/material-design-system`. El formato s
 [versionado semántico](https://semver.org/lang/es/). Mientras la versión sea `0.x`, un `minor` puede
 incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 
+## [Sin publicar]
+
+### Agregado
+
+- `CnDocCard`: tarjeta de documento con tipo por mime/extensión, miniatura, metadatos, estado,
+  etiquetas, versión, acciones (ver, descargar, compartir, menú), selección, progreso de carga y error;
+  vista previa de imágenes, video, audio y PDF.
+- `CnInfoCard`: avisos y datos destacados con tono, cinco variantes, acciones, descartable y
+  detalles plegables.
+- `CnPersonCard` y `CnPersonCardGroup`: personas con contacto (correo, teléfono, WhatsApp) y eventos
+  (cumpleaños, aniversario, nuevo ingreso, ausencia, vacaciones) con cuenta regresiva; grupo con
+  orden por fecha, filtro por mes y secciones Hoy/Próximos.
+- `CnSectionCard`: contenedor de sección plegable con encabezado, pie, estados y modo repetible.
+- `CnCarousel`: carrusel genérico con slides por vista por ancho del contenedor, autoplay accesible,
+  flechas, puntos/progreso/miniaturas, arrastre y teclado.
+- `CnContentCarousel`: banners (hero con imagen o video, CTA, overlay) y fila de tarjetas.
+- Cada uno con su skeleton y prop `skeleton`.
+
+### Corregido
+
+- `CnButton` con `iconOnly` ignoraba `sx` cuando era un arreglo.
+- `CnChip` con ícono: el margen se multiplicaba por el spacing del tema.
+- `CnImageViewer`: el nombre accesible ahora está en el elemento con `role="dialog"`.
+
+### Cambiado
+
+- La carpeta local `.claude/` ya no se versiona.
+- El workflow de release publica en npm solo si existe `NPM_TOKEN` y la versión es nueva.
+
 ## [0.13.0] - 2026-11-19
 
 ### Agregado
@@ -60,5 +89,6 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 
 Última versión publicada antes de este changelog. Ver el historial de git hasta `v0.12.0`.
 
+[Sin publicar]: https://github.com/CanekDevs/canek-ui-material-design-system/compare/v0.13.0...develop
 [0.13.0]: https://github.com/CanekDevs/canek-ui-material-design-system/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/CanekDevs/canek-ui-material-design-system/releases/tag/v0.12.0

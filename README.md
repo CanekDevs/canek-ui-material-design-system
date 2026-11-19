@@ -18,6 +18,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 - [Tabla de datos](#tabla-de-datos)
 - [Listas grandes (miles de opciones)](#listas-grandes-miles-de-opciones)
 - [Listas](#listas)
+- [Tarjetas de contenido y carruseles](#tarjetas-de-contenido-y-carruseles)
 - [Mapas](#mapas)
 - [Calendario de eventos](#calendario-de-eventos)
 - [Gráficas](#gráficas)
@@ -825,6 +826,24 @@ siempre (carga al montar).
 - **Estados:** skeleton, vacío y error con reintento.
 - **Teclado y accesibilidad:** completo (flechas, Inicio/Fin, búsqueda por tecleo, Ctrl+A); usa los roles
   de lista, listbox o árbol según el caso.
+
+## Tarjetas de contenido y carruseles
+
+| Componente | Para qué | Destacado |
+| --- | --- | --- |
+| `CnDocCard` | Documentos y archivos | Tipo por mime/extensión, miniatura, versión, estado, progreso de carga, vista previa (imagen, video, PDF), acciones y selección; vistas lista/cuadrícula/compacta |
+| `CnInfoCard` | Avisos, ayudas y datos destacados | Tonos, variantes `soft`/`outlined`/`filled`/`left-accent`/`elevated`, modo valor, acciones, descartable, detalles plegables |
+| `CnPersonCard` / `CnPersonCardGroup` | Personas y sus eventos | Contacto (correo, teléfono, WhatsApp), cumpleaños/aniversarios/ingresos con cuenta regresiva; grupo por mes y "Hoy / Próximos" |
+| `CnSectionCard` | Secciones de una página | Encabezado con acciones, cuerpo plegable animado, pie, estados, secciones anidadas y repetibles |
+| `CnCarousel` | Cualquier contenido en carrusel | Slides por vista según el ancho del contenedor, autoplay accesible, flechas, puntos/progreso/miniaturas, arrastre y teclado |
+| `CnContentCarousel` | Banners y filas de tarjetas | Hero con imagen o video, CTA, overlay y relación de aspecto; preset de fila de tarjetas |
+
+```tsx
+<CnContentCarousel
+  slides={[{ id: "1", image: "/banner.jpg", title: "Bienvenida", description: "…", actions: [{ label: "Ver más" }] }]}
+/>
+<CnPersonCardGroup title="Cumpleaños del mes" people={empleados} month="current" groupByProximity />
+```
 
 ## Mapas
 

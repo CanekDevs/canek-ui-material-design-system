@@ -669,3 +669,11 @@ export type {
   CnVirtualListboxConfig,
   CnVirtualListboxProps,
 } from "./components/CnAutocompleteField";
+
+// Tarjetas de contenido y carruseles.
+export * from "./components/CnDocCard";
+export * from "./components/CnInfoCard";
+export * from "./components/CnPersonCard";
+export * from "./components/CnSectionCard";
+export * from "./components/CnCarousel";
+export * from "./components/CnContentCarousel";

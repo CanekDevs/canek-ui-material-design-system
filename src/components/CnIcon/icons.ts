@@ -1,5 +1,11 @@
 import type { SvgIconComponent } from "@mui/icons-material";
 
+import BeachAccess from "@mui/icons-material/BeachAccess";
+import FlightTakeoff from "@mui/icons-material/FlightTakeoff";
+import WavingHand from "@mui/icons-material/WavingHand";
+import ViewCarousel from "@mui/icons-material/ViewCarousel";
+import WhatsApp from "@mui/icons-material/WhatsApp";
+import Lightbulb from "@mui/icons-material/Lightbulb";
 import AddLink from "@mui/icons-material/AddLink";
 import CalendarViewMonth from "@mui/icons-material/CalendarViewMonth";
 import MeetingRoom from "@mui/icons-material/MeetingRoom";
@@ -440,6 +446,12 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 
 export const ICON_REGISTRY: Record<string, SvgIconComponent> = {
+  beach_access: BeachAccess,
+  flight_takeoff: FlightTakeoff,
+  waving_hand: WavingHand,
+  view_carousel: ViewCarousel,
+  whatsapp: WhatsApp,
+  lightbulb: Lightbulb,
   add_link: AddLink,
   calendar_view_month: CalendarViewMonth,
   meeting_room: MeetingRoom,

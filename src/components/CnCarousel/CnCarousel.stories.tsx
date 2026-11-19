@@ -1,0 +1,215 @@
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import type { Meta, StoryObj } from "@storybook/react";
+import { useRef, useState } from "react";
+import { CnButton } from "../CnButton";
+import { CnInfoCard } from "../CnInfoCard";
+import type { CnCarouselActions } from "./CnCarousel";
+import { CnCarousel } from "./CnCarousel";
+import { CnCarouselSkeleton } from "./CnCarouselSkeleton";
+
+const PHOTOS = [
+  "photo-1497366216548-37526070297c",
+  "photo-1522071820081-009f0129c71c",
+  "photo-1552664730-d307ca884978",
+  "photo-1521737604893-d14cc237f11d",
+  "photo-1556761175-5973dc0f32e7",
+  "photo-1517245386807-bb43f82c33c4",
+  "photo-1531482615713-2afd69097998",
+].map((id, i) => ({
+  id,
+  title: `Foto ${i + 1}`,
+  src: `https://images.unsplash.com/${id}?w=1200&h=675&fit=crop`,
+  thumb: `https://images.unsplash.com/${id}?w=160&h=110&fit=crop`,
+}));
+
+const COLORS = [
+  "#254d87",
+  "#3349d6",
+  "#228740",
+  "#b8831a",
+  "#b52f2f",
+  "#2367a8",
+  "#4e5660",
+  "#6d3fc0",
+];
+
+const Tile = ({ n }: { n: number }) => (
+  <Box
+    sx={{
+      height: 140,
+      borderRadius: "var(--cn-radius-lg, 12px)",
+      display: "grid",
+      placeItems: "center",
+      color: "#fff",
+      fontSize: 28,
+      fontWeight: 700,
+      backgroundColor: COLORS[(n - 1) % COLORS.length],
+    }}
+  >
+    {n}
+  </Box>
+);
+
+const tiles = (count: number) =>
+  Array.from({ length: count }, (_, i) => <Tile key={i} n={i + 1} />);
+
+const meta: Meta<typeof CnCarousel> = {
+  title: "Data Display/CnCarousel",
+  component: CnCarousel,
+  tags: ["autodocs"],
+  parameters: { layout: "padded" },
+  args: { slidesPerView: 1, gap: 16, indicators: "dots", arrows: true },
+  argTypes: {
+    indicators: {
+      control: "select",
+      options: ["dots", "progress", "fraction", "thumbnails", "none"],
+    },
+    arrowsPosition: { control: "inline-radio", options: ["inside", "outside", "top"] },
+    arrows: { control: "select", options: [true, false, "hover"] },
+  },
+  decorators: [(Story) => <Box sx={{ maxWidth: 900 }}>{Story()}</Box>],
+};
+
+export default meta;
+type Story = StoryObj<typeof CnCarousel>;
+
+export const Default: Story = {
+  render: (args) => <CnCarousel {...args}>{tiles(6)}</CnCarousel>,
+};
+
+/** Responsivo por ancho del contenedor: 1 → 2 → 3 → 4 diapositivas. */
+export const Responsive: Story = {
+  render: () => (
+    <CnCarousel
+      slidesPerView={{ xs: 1, sm: 2, md: 3, lg: 4 }}
+      slidesPerMove="page"
+      gap={{ xs: 8, md: 16 }}
+    >
+      {tiles(10)}
+    </CnCarousel>
+  ),
+};
+
+/** Vistazo de la siguiente diapositiva (`peek`) y fracciones (`slidesPerView={1.3}`). */
+export const Peek: Story = {
+  render: () => (
+    <Box sx={{ display: "grid", gap: "24px" }}>
+      <CnCarousel peek={64} indicators="fraction">
+        {tiles(6)}
+      </CnCarousel>
+      <CnCarousel slidesPerView={2.4} indicators="progress" arrows="hover">
+        {tiles(8)}
+      </CnCarousel>
+    </Box>
+  ),
+};
+
+/** Ancho fijo por diapositiva (como `itemWidth` de TbContentCarousel). */
+export const FixedSlideWidth: Story = {
+  render: () => (
+    <CnCarousel slideWidth={200} slidesPerMove="page" arrowsPosition="outside" indicators="dots">
+      {tiles(12)}
+    </CnCarousel>
+  ),
+};
+
+export const AutoplayAndLoop: Story = {
+  render: () => (
+    <CnCarousel autoplay interval={3000} autoplayProgress loop indicators="dots">
+      {tiles(5)}
+    </CnCarousel>
+  ),
+};
+
+/** Datos + `renderItem`, miniaturas y carga diferida de imágenes. */
+export const ThumbnailsLazy: Story = {
+  render: () => (
+    <CnCarousel
+      items={PHOTOS}
+      getItemKey={(p) => p.id}
+      getItemLabel={(p) => p.title}
+      renderItem={(photo) => (
+        <Box
+          component="img"
+          src={photo.src}
+          alt={photo.title}
+          loading="lazy"
+          sx={{
+            width: "100%",
+            aspectRatio: "16 / 9",
+            objectFit: "cover",
+            borderRadius: "var(--cn-radius-lg, 12px)",
+            display: "block",
+          }}
+        />
+      )}
+      indicators="thumbnails"
+      renderThumbnail={(photo) => <img src={photo?.thumb} alt="" />}
+      lazy={1}
+    />
+  ),
+};
+
+export const TopToolbar: Story = {
+  render: () => (
+    <CnCarousel
+      arrowsPosition="top"
+      indicators="none"
+      slidesPerView={{ xs: 1.2, sm: 2.2, md: 3 }}
+      slidesPerMove="page"
+      header={<Typography sx={{ fontWeight: 700, fontSize: 14 }}>Avisos importantes</Typography>}
+    >
+      {(["info", "success", "warning", "error", "accent"] as const).map((tone) => (
+        <CnInfoCard
+          key={tone}
+          tone={tone}
+          title={`Aviso ${tone}`}
+          description="Contenido del aviso."
+        />
+      ))}
+    </CnCarousel>
+  ),
+};
+
+/** Índice controlado y acciones imperativas (`actionRef`). */
+export const Controlled: Story = {
+  render: function Render() {
+    const [index, setIndex] = useState(2);
+    const ref = useRef<CnCarouselActions>(null);
+    return (
+      <Box sx={{ display: "grid", gap: "12px" }}>
+        <Box sx={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+          <Typography sx={{ fontSize: 13 }}>Índice: {index}</Typography>
+          <CnButton size="small" variant="outlined" onClick={() => setIndex(0)}>
+            Ir al inicio
+          </CnButton>
+          <CnButton size="small" variant="outlined" onClick={() => ref.current?.next()}>
+            Siguiente (ref)
+          </CnButton>
+        </Box>
+        <CnCarousel index={index} onChange={setIndex} actionRef={ref} slidesPerView={2}>
+          {tiles(7)}
+        </CnCarousel>
+      </Box>
+    );
+  },
+};
+
+export const Empty: Story = {
+  render: () => (
+    <CnCarousel emptyState={{ title: "Sin anuncios", description: "Vuelve más tarde." }} />
+  ),
+};
+
+export const Skeleton: Story = {
+  render: () => (
+    <Box sx={{ display: "grid", gap: "24px" }}>
+      <CnCarousel skeleton skeletonAspectRatio="21 / 9">
+        {tiles(3)}
+      </CnCarousel>
+      <CnCarouselSkeleton slidesPerView={3} height={140} arrowsPosition="top" indicators="none" />
+      <CnCarouselSkeleton indicators="thumbnails" />
+    </Box>
+  ),
+};
