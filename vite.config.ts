@@ -31,6 +31,9 @@ export default defineConfig({
         "src/**/*.test.tsx",
         "src/**/*.spec.ts",
         "src/**/*.spec.tsx",
+        // Catálogo y gobierno: documentación del repo, no API publicada.
+        "src/catalog/**",
+        "src/__governance__/**",
       ],
       insertTypesEntry: true,
     }),

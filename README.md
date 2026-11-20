@@ -12,6 +12,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 
 - [Instalación](#instalación)
 - [Uso](#uso)
+- [Catálogo de componentes](#catálogo-de-componentes)
 - [Componentes](#componentes)
 - [Formularios](#formularios)
 - [Retroalimentación y layout](#retroalimentación-y-layout)
@@ -96,51 +97,164 @@ El import del CSS es **obligatorio**. Los tokens de diseño se exponen como CSS 
 
 ---
 
+## Catálogo de componentes
+
+Índice generado desde `src/catalog` (la misma fuente que las descripciones de Storybook). Para
+regenerarlo: `npm run docs:catalog`. Una prueba de gobierno falla si queda desactualizado.
+
+<!-- catalog:start -->
+
+<!-- Generado por `npm run docs:catalog` desde `src/catalog`. No editar a mano. -->
+
+**86 componentes documentados.** Cada uno tiene en Storybook las secciones _Para qué sirve_, _Cuándo NO usarlo_ y _Relación con vecinos_. El catálogo completo en JSON está en [`docs/catalog.json`](./docs/catalog.json) y los 116 componentes planeados en [`docs/ROADMAP.md`](./docs/ROADMAP.md).
+
+### Fundamentos (2)
+
+| Componente   | Qué es                                                                        | Dominios                        | Estado  |
+| ------------ | ----------------------------------------------------------------------------- | ------------------------------- | ------- |
+| `CnFlagIcon` | Bandera de país por código ISO, sola o con nombre y lada.                     | General, E-commerce, CRM, Pagos | estable |
+| `CnIcon`     | Ícono por nombre desde un registro central, con tamaños y colores semánticos. | General                         | estable |
+
+### Acciones (1)
+
+| Componente | Qué es                                                                             | Dominios | Estado  |
+| ---------- | ---------------------------------------------------------------------------------- | -------- | ------- |
+| `CnButton` | Botón de acción con variantes, tamaños, íconos, estado de carga y modo solo ícono. | General  | estable |
+
+### Formularios (39)
+
+| Componente            | Qué es                                                                                                                     | Dominios                                                     | Estado  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------- |
+| `CnAddressField`      | Domicilio postal completo en un solo campo: calle, números, código postal, colonia, municipio, estado y país.              | ERP, CRM, E-commerce, RR. HH., Pagos, Reservas               | beta    |
+| `CnAutocompleteField` | Campo con búsqueda mientras se escribe para elegir una o varias opciones de listas largas o remotas.                       | General, ERP, CRM, E-commerce, Punto de venta, RR. HH.       | estable |
+| `CnCalendar`          | Calendario incrustado para seleccionar una fecha o un rango, con vistas de día, mes y año.                                 | General, Reservas                                            | estable |
+| `CnCheckboxField`     | Casilla única (booleano) o grupo de casillas (arreglo) con opción de seleccionar todo.                                     | General                                                      | estable |
+| `CnChoiceCardsField`  | Selección única o múltiple presentada como tarjetas con ícono, descripción y dato destacado.                               | E-commerce, Reservas, Pagos, Landing, General                | estable |
+| `CnCodeField`         | Editor de código monoespaciado con números de línea, sangría con Tab y validación/formateo de JSON.                        | General, CMS, IA, ERP                                        | beta    |
+| `CnColorField`        | Selector de color hexadecimal con paleta sugerida y captura manual opcional.                                               | CMS, Landing, General, E-commerce                            | estable |
+| `CnCountryField`      | Autocompletado de países con bandera, nombres localizados y países prioritarios al inicio.                                 | General, E-commerce, CRM, Pagos, RR. HH.                     | estable |
+| `CnCurrencyField`     | Importe monetario con símbolo, separadores de miles, decimales de la moneda y selector de moneda opcional.                 | ERP, Punto de venta, Pagos, E-commerce, CRM                  | estable |
+| `CnDateField`         | Fecha, hora, fecha y hora, mes o año con máscara de captura y calendario o reloj desplegable.                              | General, ERP, CRM, RR. HH., Reservas, Pagos                  | estable |
+| `CnDateRangeField`    | Rango de fechas de inicio a fin con calendario de selección y atajos (últimos 7 días, este mes…).                          | Tableros, ERP, CRM, Reservas, Pagos, RR. HH.                 | estable |
+| `CnDurationField`     | Cantidad de tiempo en días, horas, minutos o segundos, guardada como un número de minutos o segundos.                      | ERP, Reservas, RR. HH., General                              | beta    |
+| `CnFileField`         | Campo para elegir archivos: arrastrar, seleccionar, pegar o usar la cámara, con validación, vista previa y reordenamiento. | General, ERP, CRM, CMS, E-commerce, RR. HH.                  | estable |
+| `CnForm`              | Motor de formularios declarativo: describe los campos en un arreglo y obtén estado, validación, diseño y envío.            | General, ERP, CRM, CMS, E-commerce, RR. HH., Reservas, Pagos | estable |
+| `CnKeyValueField`     | Lista editable de pares clave/valor de texto, como arreglo ordenado u objeto.                                              | E-commerce, CMS, ERP, General                                | estable |
+| `CnLocationField`     | Coordenadas geográficas (latitud/longitud) con mapa de vista previa, pin arrastrable y "Usar mi ubicación".                | ERP, Reservas, E-commerce, CRM, Punto de venta               | beta    |
+| `CnMaskedField`       | Campo de texto con máscara de captura y presets mexicanos y de pagos validados.                                            | General, Pagos, RR. HH., ERP, E-commerce                     | estable |
+| `CnNumberField`       | Campo numérico con pasos, límites, decimales, separador de miles y controles configurables.                                | General, ERP, E-commerce, Punto de venta, Tableros           | estable |
+| `CnNumberRangeField`  | Rango numérico “desde – hasta” con dos campos numéricos validados entre sí.                                                | E-commerce, ERP, CRM, Tableros, General                      | estable |
+| `CnOtpField`          | Captura de códigos de verificación (OTP/2FA) con un recuadro por carácter.                                                 | General, Pagos, E-commerce                                   | estable |
+| `CnPasswordField`     | Contraseña con requisitos visibles, medidor de fortaleza, mostrar/ocultar y generador seguro.                              | General, RR. HH., Pagos                                      | estable |
+| `CnPhoneField`        | Teléfono con selector de país y bandera, formato por país y valor E.164 o nacional.                                        | General, CRM, E-commerce, Reservas, RR. HH.                  | estable |
+| `CnRadioGroupField`   | Grupo de radios para elegir una sola opción visible, en fila, columna o como tarjetas.                                     | General, ERP, CRM, E-commerce, Pagos                         | estable |
+| `CnRatingField`       | Calificación con estrellas (completas o medias) y texto descriptivo por valor.                                             | E-commerce, CRM, Reservas, RR. HH., General                  | estable |
+| `CnRepeaterField`     | Lista editable para agregar, quitar y reordenar elementos de texto o de contenido propio.                                  | General, ERP, CMS, RR. HH., CRM                              | beta    |
+| `CnRichTextField`     | Editor de texto enriquecido con barra configurable, enlaces seguros, imágenes y tablas.                                    | CMS, E-commerce, CRM, RR. HH., General                       | estable |
+| `CnScheduleField`     | Disponibilidad semanal: días habilitados con uno o varios rangos de horas por día.                                         | Reservas, RR. HH., Punto de venta, E-commerce, General       | beta    |
+| `CnSearchField`       | Búsqueda con sugerencias fijas o remotas, búsquedas recientes y navegación con teclado.                                    | General, E-commerce, CRM, ERP, CMS, Tableros                 | beta    |
+| `CnSegmentedField`    | Botones segmentados para elegir entre pocas opciones visibles, simple o múltiple.                                          | General, Tableros, ERP, CRM, Punto de venta                  | estable |
+| `CnSelectField`       | Lista desplegable de selección simple o múltiple, con grupos, chips, búsqueda y opciones remotas.                          | General, ERP, CRM, E-commerce, RR. HH., Punto de venta       | estable |
+| `CnSignatureField`    | Firma autógrafa dibujada con mouse, dedo o lápiz, con alternativa escrita accesible.                                       | RR. HH., ERP, Reservas, Pagos, General                       | estable |
+| `CnSliderField`       | Deslizador para elegir un valor o un rango dentro de una escala, con marcas y valor visible.                               | General, E-commerce, Tableros, ERP                           | estable |
+| `CnSwitchField`       | Interruptor de encendido/apagado con etiqueta y descripción opcional.                                                      | General, ERP, Tableros, CRM                                  | estable |
+| `CnTagsField`         | Lista libre de valores cortos como chips, validados uno por uno.                                                           | General, CRM, CMS, E-commerce, ERP                           | estable |
+| `CnTextField`         | Campo de texto base: una línea o multilínea, tipos, adornos, contador, transformaciones y validación.                      | General                                                      | estable |
+| `CnTimeRangeField`    | Rango de horas “de – a” con duración calculada y soporte de turnos nocturnos.                                              | Reservas, RR. HH., Punto de venta, General                   | beta    |
+| `CnTransferListField` | Lista doble para asignar elementos moviéndolos entre “Disponibles” y “Seleccionados”.                                      | ERP, RR. HH., CRM, Tableros, General                         | estable |
+| `CnTreeSelectField`   | Selector jerárquico con búsqueda, selección simple o múltiple en cascada y ruta visible.                                   | ERP, RR. HH., E-commerce, CMS, General                       | estable |
+| `CnWeekdaysField`     | Selector de días de la semana con atajos (laborables, fin de semana, todos) y límites.                                     | Reservas, RR. HH., Punto de venta, General                   | beta    |
+
+### Datos (7)
+
+| Componente        | Qué es                                                                                                                | Dominios                                                                      | Estado  |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------- |
+| `CnAvatar`        | Foto, iniciales o ícono de una persona o entidad, con estado e insignia; incluye grupo apilado.                       | General, CRM, RR. HH., Reservas                                               | estable |
+| `CnChip`          | Etiqueta compacta para estados, categorías, filtros y elementos removibles.                                           | General, CRM, E-commerce, ERP                                                 | estable |
+| `CnDataTable`     | Tabla de datos con orden, filtros, búsqueda, selección, acciones, agrupación, exportación y más de 50 tipos de celda. | ERP, CRM, CMS, E-commerce, Punto de venta, Reservas, Pagos, RR. HH., Tableros | estable |
+| `CnEventCalendar` | Calendario de eventos con vistas de mes, semana, día, agenda, trimestre, año, varios meses y recursos.                | Reservas, RR. HH., CRM, ERP, General                                          | estable |
+| `CnList`          | Lista de elementos con avatar, ícono, estado, acciones, selección, búsqueda, grupos, árbol y virtualización.          | General, CRM, CMS, E-commerce, RR. HH., IA                                    | estable |
+| `CnMetricCard`    | Tarjeta de indicador: valor destacado con tendencia, mini gráfica, avance a meta o dato con etiqueta.                 | Tableros, ERP, CRM, E-commerce, Punto de venta, Pagos, RR. HH.                | estable |
+| `CnTimeline`      | Línea de tiempo para historiales de actividad, bitácoras de auditoría y seguimiento de procesos.                      | General, ERP, CRM, E-commerce, RR. HH., Pagos                                 | beta    |
+
+### Gráficas (18)
+
+| Componente           | Qué es                                                                                                         | Dominios                                                       | Estado  |
+| -------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------- |
+| `CnAreaChart`        | Áreas con gradiente, apiladas o al 100 %.                                                                      | Tableros, ERP, E-commerce, Pagos                               | estable |
+| `CnBarChart`         | Barras verticales u horizontales, agrupadas, apiladas o al 100 %.                                              | Tableros, ERP, CRM, E-commerce, Punto de venta, Pagos, RR. HH. | estable |
+| `CnCandlestickChart` | Velas (apertura, máximo, mínimo, cierre) con volumen y medias móviles.                                         | Pagos, Tableros, E-commerce                                    | estable |
+| `CnChartCard`        | Tarjeta contenedora de gráficas: encabezado, resumen, periodo, tipo, exportación, pantalla completa y estados. | Tableros, ERP, CRM, E-commerce, Pagos                          | estable |
+| `CnComposedChart`    | Gráfica combinada: cada serie elige barra, línea o área y eje izquierdo o derecho.                             | Tableros, ERP, E-commerce, Pagos                               | estable |
+| `CnFunnelChart`      | Embudo de conversión por pasos con tasas, en trapecios, pirámide o barras centradas.                           | CRM, E-commerce, Tableros, RR. HH., Landing                    | estable |
+| `CnGauge`            | Indicador radial de un valor con segmentos de color, aguja, meta y valor central.                              | Tableros, ERP, Punto de venta, Pagos                           | estable |
+| `CnHeatmap`          | Mapa de calor de categorías (x × y) o calendario de actividad por día.                                         | Tableros, ERP, CRM, Reservas, RR. HH.                          | estable |
+| `CnHistogram`        | Histograma: agrupa valores crudos en intervalos y cuenta cuántos caen en cada uno.                             | Tableros, ERP, RR. HH., E-commerce                             | estable |
+| `CnLineChart`        | Líneas con curvas, marcadores, metas, media móvil y zoom.                                                      | Tableros, ERP, CRM, E-commerce, Pagos                          | estable |
+| `CnPieChart`         | Pastel, dona, media dona y anillos anidados con total central.                                                 | Tableros, ERP, CRM, E-commerce, Pagos                          | estable |
+| `CnRadarChart`       | Radar (araña) para comparar perfiles de una o varias series en varias métricas.                                | Tableros, RR. HH., CRM, E-commerce                             | estable |
+| `CnRadialBarChart`   | Anillos concéntricos de avance hacia metas (círculo o media luna).                                             | Tableros, RR. HH., CRM, ERP                                    | estable |
+| `CnRadialLineChart`  | Líneas o áreas en coordenadas polares para datos cíclicos (horas, días, meses).                                | Tableros, Reservas, E-commerce                                 | estable |
+| `CnSankeyChart`      | Diagrama de Sankey: flujos proporcionales entre etapas o categorías.                                           | Tableros, ERP, Pagos, E-commerce                               | estable |
+| `CnScatterChart`     | Dispersión y burbujas con línea de tendencia y cuadrantes.                                                     | Tableros, CRM, E-commerce, RR. HH.                             | estable |
+| `CnSparkline`        | Mini gráfica de tendencia (línea, área o barras) para tarjetas, tablas y KPIs.                                 | Tableros, ERP, CRM, E-commerce, Pagos                          | estable |
+| `CnTreemap`          | Treemap jerárquico con rectángulos proporcionales y navegación por niveles.                                    | Tableros, ERP, E-commerce, CMS                                 | estable |
+
+### Retroalimentación (7)
+
+| Componente             | Qué es                                                                                                                     | Dominios                                                | Estado  |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------- |
+| `CnAlert`              | Mensaje con semántica de estado (éxito, info, advertencia, error) en línea, como popup o toast.                            | General                                                 | estable |
+| `CnBadge`              | Insignia de contador, punto o etiqueta superpuesta a otro elemento.                                                        | General, Tableros                                       | estable |
+| `CnEmptyState`         | Estado vacío con ícono o ilustración, título, descripción y acción sugerida.                                               | General, Tableros                                       | estable |
+| `CnFormSkeleton`       | Marcador de carga con la forma exacta de un formulario: encabezado, campos por tipo, secciones, pestañas, pasos y botones. | General, ERP, CRM, CMS, E-commerce, RR. HH.             | estable |
+| `CnNotificationCenter` | Bandeja de notificaciones de la aplicación: campana con contador y panel con pestañas, grupos y acciones.                  | General, ERP, CRM, E-commerce, Pagos, RR. HH., Reservas | beta    |
+| `CnSkeleton`           | Marcador de carga (bloque, círculo o líneas de texto) y kit para construir skeletons.                                      | General                                                 | estable |
+| `CnToast`              | Avisos efímeros en cola, lanzados desde cualquier parte con `useToast()`.                                                  | General                                                 | estable |
+
+### Superposiciones (3)
+
+| Componente        | Qué es                                                                                                         | Dominios                      | Estado  |
+| ----------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------- |
+| `CnConfirmDialog` | Diálogo de confirmación con presets, carga asíncrona, errores y confirmación por texto.                        | General                       | estable |
+| `CnDialog`        | Modal de propósito general con encabezado y pie fijos, acciones con carga y guarda de cambios sin guardar.     | General, ERP, CRM             | beta    |
+| `CnDrawer`        | Panel lateral o inferior para trabajar sin perder de vista la página, con variantes modal, persistente y mini. | General, ERP, CRM, E-commerce | beta    |
+
+### Navegación (1)
+
+| Componente | Qué es                                                                                     | Dominios          | Estado  |
+| ---------- | ------------------------------------------------------------------------------------------ | ----------------- | ------- |
+| `CnTabs`   | Pestañas para alternar vistas del mismo contexto, con íconos, contadores, errores y carga. | General, ERP, CRM | estable |
+
+### Layout (3)
+
+| Componente        | Qué es                                                                                                                    | Dominios                                    | Estado  |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------- |
+| `CnCard`          | Tarjeta genérica con encabezado, medio, cuerpo y pie; clicable, con acento y estados de carga y vacío.                    | General, E-commerce, CMS, Landing, Tableros | estable |
+| `CnPageContainer` | Estructura de página con breadcrumbs, título, botón atrás, acciones y contenido con ancho máximo.                         | General, ERP, CRM, CMS, Tableros            | estable |
+| `CnSectionCard`   | Sección con encabezado (ícono, título, insignia, acciones), cuerpo y pie; plegable y con estados de carga, vacío y error. | General, ERP, CRM, RR. HH., Tableros        | beta    |
+
+### Contenido (2)
+
+| Componente      | Qué es                                                                                               | Dominios                        | Estado |
+| --------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------- | ------ |
+| `CnDocCard`     | Tarjeta de un documento o archivo existente: tipo, miniatura, metadatos, estado, versión y acciones. | CMS, ERP, RR. HH., CRM, General | beta   |
+| `CnProfileCard` | Tarjeta de persona con avatar, puesto, contacto, evento con cuenta regresiva y acciones rápidas.     | RR. HH., CRM, General           | beta   |
+
+### Medios (3)
+
+| Componente          | Qué es                                                                                                                 | Dominios                                         | Estado  |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------- |
+| `CnCarousel`        | Carrusel genérico para cualquier contenido: diapositivas por vista, bucle, autoplay accesible, arrastre e indicadores. | E-commerce, Landing, CMS, General                | beta    |
+| `CnContentCarousel` | Carrusel de contenido destacado: banners hero con imagen o video y CTA, o fila de tarjetas con encabezado.             | Landing, E-commerce, CMS, RR. HH., General       | beta    |
+| `CnMap`             | Mapa con marcadores, selector de ubicación, estilos y modo oscuro, que funciona con o sin API key.                     | Reservas, E-commerce, CRM, ERP, Landing, General | estable |
+
+<!-- catalog:end -->
+
 ## Componentes
 
-| Componente            | Categoría   | Descripción                                                                                      |
-| --------------------- | ----------- | ------------------------------------------------------------------------------------------------ |
-| `CnButton`            | Acciones    | Botón con variantes, colores, tamaños, shapes, loading, íconos por nombre y soporte de links.    |
-| `CnIcon`              | Base        | Ícono con registry, tamaños, colores semánticos, spin, pulse y rotate.                           |
-| `CnChip`              | Datos       | Chip con variantes, colores y formas automáticas.                                                |
-| `CnAlert`             | Feedback    | Alerta inline, banner o popup (snackbar) con severidades y cierre.                               |
-| `CnCard`              | Layout      | Tarjeta con variantes, layouts y primitivas de composición.                                     |
-| `CnAvatar`            | Datos       | Avatar y grupo de avatares con estado, badges e iniciales.                                      |
-| `CnEmptyState`        | Feedback    | Estado vacío con ilustraciones, variantes y acciones.                                           |
-| `CnSkeleton`          | Feedback    | Placeholders de carga con variantes y animaciones.                                              |
-| `CnBadge`             | Datos       | Contadores, puntos y etiquetas.                                                                  |
-| `CnTabs`              | Navegación  | Pestañas con variantes, íconos, subtítulos, estados de error y carga.                           |
-| `CnForm`              | Formularios | Formulario declarativo: simple, secciones (repetibles), pestañas, wizard; inline o modal.       |
-| `CnTextField`         | Formularios | Texto, email, url, teléfono, búsqueda, contraseña (con medidor) y textarea.                     |
-| `CnNumberField`       | Formularios | `number \| null` con controles apilados/laterales/en línea, mantener para repetir, Shift/Alt, rueda, ajuste al paso. |
-| `CnQuantityField`     | Formularios | Selector de cantidad "− 2 +" (atajo de `controls="split"`).                                      |
-| `CnCurrencyField`     | Formularios | Montos con formato de moneda y selector de moneda opcional.                                     |
-| `CnPhoneField`        | Formularios | Teléfono con selector de país, máscara por país y valor E.164.                                  |
-| `CnSelectField`       | Formularios | Select simple o múltiple (chips), grupos, descripciones y botón limpiar.                        |
-| `CnAutocompleteField` | Formularios | Búsqueda sin acentos, grupos, múltiple, freeSolo y búsqueda remota.                             |
-| `CnCheckboxField`     | Formularios | Checkbox booleano o grupo de opciones con "seleccionar todo".                                   |
-| `CnRadioGroupField`   | Formularios | Grupo de radios clásico o en tarjetas.                                                          |
-| `CnSwitchField`       | Formularios | Interruptor con descripción.                                                                    |
-| `CnDateField`         | Formularios | Fecha, hora, fecha-hora y mes: captura con máscara + selector propio (calendario, mes/año, hora). |
-| `CnDateRangeField`    | Formularios | Rango de fechas con dos meses, atajos ("Últimos 7 días"…) y duración máxima.                    |
-| `CnCalendar`          | Formularios | Calendario accesible en línea: simple o rango, fechas marcadas, números de semana.              |
-| `CnPasswordField`     | Formularios | Contraseña con checklist de requisitos, medidor y generador seguro.                              |
-| `CnOtpField`          | Formularios | Códigos de verificación / 2FA: un recuadro por carácter, pegado y autocompletado de SMS.        |
-| `CnMaskedField`       | Formularios | Máscaras con presets: tarjeta (Luhn + marca), vencimiento, CVV, CLABE, NSS, CURP, RFC, CP.      |
-| `CnTagsField`         | Formularios | Lista libre de valores como chips (correos, palabras clave) validados uno a uno.               |
-| `CnSegmentedField`    | Formularios | Botones segmentados de selección simple o múltiple, con íconos.                                 |
-| `CnColorField`        | Formularios | Color hex con paleta sugerida y selector nativo.                                                |
-| `CnSignatureField`    | Formularios | Firma dibujada (mouse, dedo, lápiz) o escrita; se guarda como PNG.                              |
-| `CnNumberRangeField`  | Formularios | Rango numérico mínimo–máximo.                                                                   |
-| `CnCountryField`      | Formularios | Países con bandera, búsqueda por nombre/ISO/lada y destacados.                                  |
-| `CnFlagIcon`          | Base        | Banderas SVG integradas (sin CDN externo), con URL propia opcional.                             |
-| `CnFormSkeleton`      | Feedback    | Esqueleto de carga para formularios.                                                            |
-| `CnRichTextField`     | Formularios | Editor enriquecido (tiptap) con tablas, imágenes, enlaces seguros y contador. Entrada aparte.   |
-| `CnSliderField`       | Formularios | Valor único o rango.                                                                            |
-| `CnRatingField`       | Formularios | Calificación con etiquetas por valor.                                                           |
-| `CnFileField`         | Formularios | 6 variantes, metadatos, progreso/reintento, visor multimedia, pegar, cámara, reordenar.         |
-
-Próximos: `CnDataTable`.
+Ejemplos de uso de los componentes básicos. La lista completa y vigente está en el
+[Catálogo de componentes](#catálogo-de-componentes); lo planeado, en [`docs/ROADMAP.md`](./docs/ROADMAP.md).
 
 ### `CnButton`
 
@@ -1076,63 +1190,49 @@ Los tokens se dividen en dos formatos complementarios:
 
 ## Estructura del proyecto
 
+La guía completa de arquitectura y de cómo agregar componentes está en [`AGENTS.md`](./AGENTS.md).
+
 ```
 canek-ui-design-system/
 ├── .github/
-│   └── workflows/
-│       └── ci.yml                 # CI: lint + typecheck + test + build
-├── .storybook/
-│   ├── main.ts                    # configuración del Storybook
-│   └── preview.tsx                # decorators globales (theme, tokens)
+│   ├── workflows/ci.yml           # CI: npm run verify:all (tipos, lint, pruebas, build, Storybook)
+│   ├── workflows/release.yml      # tag vX.Y.Z en main → verify + GitHub Release (+ npm opcional)
+│   ├── ISSUE_TEMPLATE/            # error y solicitud de componente (regla de utilidad)
+│   └── pull_request_template.md   # definición de terminado
+├── .storybook/                    # Storybook 8 (preview con CanekThemeProvider y tokens)
+├── docs/                          # GENERADO por npm run docs:catalog: catalog.json, ROADMAP.md, governance/
 ├── scripts/
+│   ├── new-component.mjs          # andamiaje: npm run new:component -- CnNombre --category <cat>
+│   ├── docs-catalog.mjs           # regenera README (catálogo), docs/catalog.json y docs/ROADMAP.md
 │   └── copy-css.mjs               # copia tokens.css a dist/ después del build
 ├── src/
+│   ├── __governance__/            # pruebas de gobierno: estructura, exports, colores, catálogo, docs
+│   ├── catalog/
+│   │   ├── entries/*.ts           # "Para qué sirve / Cuándo NO usarlo / Relación con vecinos"
+│   │   ├── roadmap.ts             # componentes planeados (genera docs/ROADMAP.md)
+│   │   ├── types.ts
+│   │   └── index.ts               # CN_CATALOG, catalogDocs() para Storybook
 │   ├── components/
-│   │   ├── CnButton/              # cada componente: Cn*.tsx, .stories.tsx, .test.tsx, index.ts
-│   │   ├── CnIcon/                # icons.ts = registry nombre → componente
-│   │   ├── CnForm/
-│   │   │   ├── CnForm.tsx         # orquestador (variantes, modal, envío, resumen de errores)
-│   │   │   ├── CnForm.engine.ts   # resolución de campos, defaults y reglas implícitas (puro)
-│   │   │   ├── CnForm.helpers.ts  # rutas anidadas, FormData, errores del servidor
-│   │   │   ├── CnForm.validation.ts
-│   │   │   ├── CnFormField.tsx    # tipo de campo → componente
-│   │   │   ├── CnFormSection.tsx  # secciones y elementos repetibles
-│   │   │   └── useCnFormState.ts  # estado: valores, touched, errores, dirty
-│   │   ├── CnTextField/ CnNumberField/ CnCurrencyField/ CnPhoneField/
-│   │   ├── CnCalendar/ CnRichTextField/   # CnRichTextField se publica en /rich-text
-│   │   ├── CnSelectField/ CnAutocompleteField/ CnCheckboxField/
-│   │   ├── CnRadioGroupField/ CnSwitchField/ CnDateField/
-│   │   ├── CnSliderField/ CnRatingField/ CnFileField/
-│   │   └── …                      # CnAlert, CnCard, CnTabs, CnChip, etc.
-│   ├── utils/
-│   │   ├── field-control.ts       # CnFieldBaseProps, useFieldControl, useControllableValue
-│   │   ├── field-styles.ts        # estilos compartidos de campos
-│   │   ├── input-utils.ts         # filtros, transformaciones, fortaleza de contraseña
-│   │   ├── number-utils.ts        # parseo y formato numérico
-│   │   ├── phone-countries.ts     # catálogo de países, máscaras y E.164
-│   │   ├── date-utils.ts          # fechas ISO locales, máscaras, matriz del calendario
-│   │   └── use-sortable-list.ts   # reordenar arrastrando (puntero + teclado)
-│   ├── styles/
-│   │   └── tokens.css             # CSS variables (light + dark)
-│   ├── theme/
-│   │   ├── CanekThemeProvider.tsx
-│   │   └── index.ts
-│   ├── tokens/
-│   │   └── index.ts               # tokens como objetos TS
-│   └── index.ts                   # barrel público del paquete
-├── .editorconfig
-├── .gitignore
-├── .npmignore
-├── .nvmrc                         # Node 22
-├── .prettierrc
-├── LICENSE
-├── README.md
-├── eslint.config.js
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-├── vitest.config.ts
-└── vitest.setup.ts
+│   │   ├── CnNombre/              # CnNombre.tsx, CnNombreSkeleton.tsx, .stories.tsx, .test.tsx, index.ts
+│   │   ├── CnSkeleton/            # skeleton-kit.tsx: kit para los skeletons de cada componente
+│   │   ├── CnForm/                # motor de formularios (engine, validación, secciones, estado)
+│   │   ├── CnCharts/              # charts-index.ts se publica en /charts
+│   │   ├── CnRichTextField/       # se publica en /rich-text
+│   │   └── …
+│   ├── utils/                     # campos, fechas, números, máscaras, archivos, listas grandes, tonos
+│   ├── styles/tokens.css          # CSS variables --cn-* (claro + oscuro)
+│   ├── theme/                     # CanekThemeProvider, createCanekTheme
+│   ├── tokens/                    # tokens como objetos TS
+│   ├── index.ts                   # entrada principal
+│   ├── charts.ts                  # entrada /charts (@mui/x-charts)
+│   └── rich-text.tsx              # entrada /rich-text (tiptap)
+├── AGENTS.md                      # guía para personas y agentes de IA
+├── CLAUDE.md                      # apunta a AGENTS.md
+├── CONTRIBUTING.md
+├── CHANGELOG.md
+├── .editorconfig  .gitattributes  .nvmrc  .prettierrc  eslint.config.js
+├── package.json  tsconfig.json  vite.config.ts  vitest.config.ts  vitest.setup.ts
+└── README.md
 ```
 
 ---
@@ -1183,6 +1283,10 @@ npm rebuild esbuild
 | `npm run format`         | Formatea con Prettier.                                           |
 | `npm run format:check`   | Verifica formato sin modificar archivos.                         |
 | `npm run typecheck`      | Ejecuta `tsc --noEmit`.                                          |
+| `npm run verify`         | typecheck + lint + test + build.                                 |
+| `npm run verify:all`     | `verify` + build de Storybook (lo mismo que corre CI).           |
+| `npm run new:component`  | Andamiaje de un componente: `-- CnNombre --category <cat>`.      |
+| `npm run docs:catalog`   | Regenera el catálogo del README, `docs/catalog.json` y `docs/ROADMAP.md`. |
 
 ### Storybook
 
@@ -1197,10 +1301,11 @@ Abre `http://localhost:6006`. Cada componente tiene al menos una story `Default`
 ### Verificación antes de commitear
 
 ```bash
-npm run typecheck && npm run lint && npm run test && npm run build
+npm run docs:catalog   # si cambiaste el catálogo o la hoja de ruta
+npm run verify:all     # tipos, lint, pruebas (incluye gobierno), build y Storybook
 ```
 
-Los cuatro deben pasar. Si alguno falla, no se commitea.
+Todo debe pasar. Si algo falla, no se commitea.
 
 ---
 
@@ -1229,19 +1334,21 @@ chore(deps): bump mui to 7.3.11 - por: Angel Rodriguez
 
 ### Branches
 
-| Rama                 | Propósito                                    |
-| -------------------- | -------------------------------------------- |
-| `main`               | Producción. Solo mergea desde PRs aprobados. |
-| `feature/<nombre>`   | Nueva funcionalidad.                         |
-| `fix/<nombre>`       | Corrección de bug.                           |
-| `chore/<nombre>`     | Mantenimiento, dependencias, configs.        |
-| `docs/<nombre>`      | Solo documentación.                          |
+| Rama             | Propósito                                                |
+| ---------------- | -------------------------------------------------------- |
+| `develop`        | Rama por defecto. Integra el trabajo; los PRs van aquí.  |
+| `main`           | Solo releases validados (PR de release desde `develop`). |
+| `feat/<nombre>`  | Nueva funcionalidad.                                     |
+| `fix/<nombre>`   | Corrección de bug.                                       |
+| `chore/<nombre>` | Mantenimiento, dependencias, configs.                    |
+| `docs/<nombre>`  | Solo documentación.                                      |
 
-Ejemplo: `feature/cn-chip`, `fix/icon-spin-direction`, `chore/upgrade-storybook`.
+Ejemplo: `feat/cn-chip`, `fix/icon-spin-direction`, `chore/upgrade-storybook`. Cada cambio en una
+rama nueva desde `develop` actualizado; no se reutilizan ramas ya fusionadas.
 
 ### Estilo de código
 
-- **Cero comentarios** en código (excepto el return de VMs, no aplica a este repo). Si un bloque necesita comentario, refactorízalo.
+- **JSDoc breve en español** en props y tipos públicos (se ve en Storybook). Evita comentarios que narran el código: si un bloque lo necesita, refactorízalo.
 - **`type` en lugar de `interface`** en TypeScript.
 - **Funciones flecha** en lugar de `function` (excepto `forwardRef` que lo requiere).
 - **`const`** sobre `let`.
@@ -1251,22 +1358,19 @@ Ejemplo: `feature/cn-chip`, `fix/icon-spin-direction`, `chore/upgrade-storybook`
 
 ### Componentes
 
-Cada componente nuevo sigue esta estructura:
+Cada componente nuevo se crea con `npm run new:component -- CnNombre --category <categoria>`, que
+genera esta estructura y lo registra en el catálogo, en `src/index.ts` y en el CHANGELOG:
 
 ```
 src/components/CnNombre/
-├── CnNombre.tsx
-├── CnNombre.stories.tsx
-├── CnNombre.test.tsx
+├── CnNombre.tsx            # componente con prop `skeleton`
+├── CnNombreSkeleton.tsx    # skeleton con el kit de CnSkeleton
+├── CnNombre.stories.tsx    # catalogDocs("CnNombre"), Default, Skeleton, Responsive (320/480/1200)
+├── CnNombre.test.tsx       # comportamiento, a11y, teclado, casos límite
 └── index.ts
 ```
 
-Y se exporta desde `src/index.ts`:
-
-```typescript
-export { CnNombre } from "./components/CnNombre";
-export type { CnNombreProps } from "./components/CnNombre";
-```
+La definición de terminado completa está en [`AGENTS.md`](./AGENTS.md#definición-de-terminado-de-un-componente).
 
 ---
 
@@ -1296,7 +1400,8 @@ npm run test:watch    # tests mientras trabajas
 ### 3. Verificar todo
 
 ```bash
-npm run verify   # typecheck + lint + test + build
+npm run docs:catalog   # si cambió el catálogo o la hoja de ruta
+npm run verify:all     # typecheck + lint + test + build + Storybook (igual que CI)
 ```
 
 ### 4. Commitear (Conventional Commits)
@@ -1398,28 +1503,30 @@ npm deprecate @canek-ui/material-design-system@0.13.0 "Bug en CnX. Usar 0.13.1"
 
 ## Contribuir
 
-1. Fork del repo (si eres externo) o branch directo (si eres del equipo).
-2. Sigue el flujo de trabajo de arriba.
-3. Asegúrate de que tu código cumple las convenciones (cero comentarios, `type` no `interface`, funciones flecha, etc.).
-4. Abre un PR con:
-   - Descripción clara del cambio.
-   - Screenshots del Storybook si es un componente nuevo.
-   - Link al issue relacionado si aplica.
-5. Responde a los reviews.
+Lee [`CONTRIBUTING.md`](./CONTRIBUTING.md) (resumen) y [`AGENTS.md`](./AGENTS.md) (guía completa
+para personas y agentes de IA). En corto:
+
+1. **Utilidad primero**: busca en el [catálogo](#catálogo-de-componentes) y en
+   [`docs/ROADMAP.md`](./docs/ROADMAP.md); si un componente existente puede cubrir el caso con una
+   prop o variante, se extiende.
+2. Rama nueva desde `develop` y sigue el [flujo de trabajo](#flujo-de-trabajo).
+3. PR hacia `develop` con la plantilla completa (es la definición de terminado), capturas de
+   Storybook y el issue relacionado.
 
 ### Agregar un componente nuevo
 
-Checklist rápida:
+```bash
+npm run new:component -- CnNuevo --category formularios   # --dry-run para simular
+```
 
-- [ ] `src/components/CnNuevo/CnNuevo.tsx` con la implementación.
-- [ ] `src/components/CnNuevo/CnNuevo.stories.tsx` con stories de todas las variantes.
-- [ ] `src/components/CnNuevo/CnNuevo.test.tsx` con tests de los comportamientos clave.
-- [ ] `src/components/CnNuevo/index.ts` con los exports.
-- [ ] Entrada en `CHANGELOG.md` (sección *Sin publicar* o la próxima versión).
-- [ ] Exportar en `src/index.ts`.
-- [ ] Agregar a la tabla de [Componentes](#componentes) en este README.
-- [ ] Verificar que `npm run typecheck && npm run lint && npm run test && npm run build` pasan.
-- [ ] Probar en Storybook que todas las stories renderizan sin errores en consola.
+Luego completa lo que imprime el script:
+
+- [ ] Entrada del catálogo con _Para qué sirve_, _Cuándo NO usarlo_ y _Relación con vecinos_.
+- [ ] Historias con variantes, estados y `Responsive` revisada a 320 / 480 / 1200 px con datos extremos.
+- [ ] Skeleton fiel y prop `skeleton`.
+- [ ] Pruebas de comportamiento, accesibilidad, teclado y casos límite.
+- [ ] Exports en la entrada correcta, sección en este README y línea en `CHANGELOG.md`.
+- [ ] `npm run docs:catalog` y `npm run verify:all` en verde.
 
 ---
 

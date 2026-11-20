@@ -67,6 +67,9 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "verify:all": "npm run verify && npm run build-storybook -- --quiet",
+    "new:component": "node scripts/new-component.mjs",
+    "docs:catalog": "node scripts/docs-catalog.mjs",
     "prepublishOnly": "npm run verify"
   },
   "peerDependencies": {

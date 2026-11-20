@@ -1,0 +1,49 @@
+name: Error
+description: Algo no funciona como se espera en un componente.
+labels: ["bug"]
+body:
+  - type: input
+    id: component
+    attributes:
+      label: Componente
+      placeholder: CnDataTable
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión del paquete
+      placeholder: 0.13.0
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      description: Código mínimo o historia de Storybook, con los datos que usaste.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Qué esperabas y qué pasó
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área afectada
+      multiple: true
+      options:
+        - Comportamiento
+        - Accesibilidad o teclado
+        - Diseño responsivo / desbordes
+        - Modo oscuro o tokens
+        - Skeleton / estado de carga
+        - Tipos de TypeScript
+        - Rendimiento
+  - type: input
+    id: environment
+    attributes:
+      label: Navegador y sistema
+      placeholder: Chrome 131, Windows 11, ancho 360 px

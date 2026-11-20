@@ -1,0 +1,60 @@
+name: Solicitud de componente
+description: Proponer un componente nuevo o una capacidad nueva de uno existente.
+labels: ["componente"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de pedir un componente nuevo revisa el catálogo (README, `docs/catalog.json`) y la hoja
+        de ruta (`docs/ROADMAP.md`). La regla del repo es **utilidad primero**: si un componente
+        existente puede cubrirlo con una prop o variante, se extiende.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema de producto
+      description: Qué necesita hacer la persona usuaria, sin nombrar el componente.
+    validations:
+      required: true
+  - type: dropdown
+    id: domains
+    attributes:
+      label: Sistemas donde se usaría
+      multiple: true
+      options:
+        - General
+        - ERP
+        - CRM
+        - CMS
+        - E-commerce
+        - Punto de venta
+        - Reservas
+        - Pagos
+        - RR. HH.
+        - Landing
+        - Tableros
+        - IA
+    validations:
+      required: true
+  - type: input
+    id: closest
+    attributes:
+      label: Componente existente más cercano
+      placeholder: CnChoiceCardsField
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: Por qué no basta una prop, variante o composición del existente
+    validations:
+      required: true
+  - type: input
+    id: roadmap
+    attributes:
+      label: ¿Está en docs/ROADMAP.md?
+      placeholder: Sí, CnPriceTag / No
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Propuesta de API
+      description: Props principales, estados (vacío, carga, error) y comportamiento con teclado.

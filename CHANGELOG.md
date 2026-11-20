@@ -34,6 +34,12 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 - `CnFileField` y `CnDocCard` comparten el manejo de tipos de archivo (`src/utils/file-utils.ts`):
   el campo es la entrada y muestra sus archivos con `CnDocCard`; en `readOnly` se ve igual que una
   lista de `CnDocCard`.
+- Tipos públicos que faltaban en la entrada principal: `CnAlertAction`, `CnRow`, `CnContact`,
+  `CnEmptyContext`, `CnExportKind` y `CnExportRow`.
+- Repositorio: `AGENTS.md` (guía para personas y agentes), `CONTRIBUTING.md`, plantillas de PR e
+  issues, `npm run new:component` (andamiaje con la definición de terminado), `npm run docs:catalog`
+  (catálogo en el README, `docs/catalog.json` y hoja de ruta `docs/ROADMAP.md`), `npm run verify:all`
+  (también en CI) y pruebas de gobierno de estructura, exports, colores y docs generadas.
 
 ### Corregido
 

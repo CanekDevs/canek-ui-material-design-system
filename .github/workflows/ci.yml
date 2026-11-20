@@ -1,6 +1,6 @@
 name: CI
 
-# Valida cada PR y cada push a develop y main: tipos, lint, tests y build.
+# Valida cada PR y cada push a develop y main con `npm run verify:all`.
 on:
   pull_request:
     branches: [develop, main]
@@ -21,8 +21,6 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm run test
-      - run: npm run build
-      - run: npm run build-storybook -- --quiet
+      # El mismo comando que se corre en local: tipos, lint, pruebas (incluye las de gobierno de
+      # src/__governance__), build de la librería y build de Storybook.
+      - run: npm run verify:all
