@@ -197,7 +197,7 @@ describe("CnDataTable", () => {
   });
 });
 
-describe("CnDataTable (Tabantaj parity)", () => {
+describe("CnDataTable (core features)", () => {
   it("filters status columns with a select of options", () => {
     const columns = COLUMNS.map((c) =>
       c.id === "status" ? { ...c, filter: "select" as const } : c,

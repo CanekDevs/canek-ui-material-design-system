@@ -126,7 +126,7 @@ export const Peek: Story = {
   ),
 };
 
-/** Ancho fijo por diapositiva (como `itemWidth` de TbContentCarousel). */
+/** Ancho fijo por diapositiva (`slideWidth`). */
 export const FixedSlideWidth: Story = {
   render: () => (
     <CnCarousel slideWidth={200} slidesPerMove="page" arrowsPosition="outside" indicators="dots">

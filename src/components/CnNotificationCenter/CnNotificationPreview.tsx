@@ -21,7 +21,7 @@ export type CnNotificationPreviewProps = {
 
 /**
  * Vista previa flotante de notificaciones recién llegadas (equivale a
- * `TbNotificationFloater`): rota entre ellas, se pausa al pasar el cursor y
+ * notificaciones flotantes): rota entre ellas, se pausa al pasar el cursor y
  * permite abrir, saltar, ver todas o cerrar.
  */
 export const CnNotificationPreview = ({

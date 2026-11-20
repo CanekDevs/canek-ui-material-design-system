@@ -54,7 +54,7 @@ describe("CnCell rendering", () => {
     expect(screen.getByText("Sin correo")).toBeInTheDocument();
   });
 
-  it("supports Tabantaj empty contexts and custom empty text", () => {
+  it("supports contextual empty states and custom empty text", () => {
     const { rerender } = cell("text", "", { emptyContext: "not_assigned" });
     expect(screen.getByText("Sin asignar")).toBeInTheDocument();
     rerender(<CnCell type="text" value="" emptyText="Por definir" />);

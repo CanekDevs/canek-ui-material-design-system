@@ -54,7 +54,7 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 
 ### Agregado
 
-- **Formularios**: sistema completo `CnForm` (paridad con TbForm y más): secciones, pestañas, pasos,
+- **Formularios**: sistema completo `CnForm`: secciones, pestañas, pasos,
   campos dinámicos y calculados, opciones remotas en cascada, validaciones mexicanas (RFC, CURP, NSS…),
   API imperativa y errores del servidor.
 - **Campos nuevos**: teléfono, país, moneda, rating, slider, OTP, máscara, contraseña con fortaleza,

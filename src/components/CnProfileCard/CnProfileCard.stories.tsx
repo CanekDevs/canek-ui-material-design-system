@@ -183,8 +183,8 @@ export const Variants: Story = {
   ),
 };
 
-/** Equivalente a TbPersonEventCard: portada, fondo sólido, detalle y etiquetas. */
-export const TabantajStyle: Story = {
+/** Portada, fondo sólido, detalle y etiquetas. */
+export const SolidCover: Story = {
   decorators: [(Story) => <Box>{Story()}</Box>],
   render: () => (
     <Box sx={grid}>

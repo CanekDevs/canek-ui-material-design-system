@@ -150,7 +150,7 @@ export const Nested: Story = {
   ),
 };
 
-/** Secciones repetibles (como TbSectionCard): asa, eliminar y añadir. */
+/** Secciones repetibles: asa, eliminar y añadir. */
 export const Repeatable: Story = {
   render: function Render() {
     const [items, setItems] = useState([1, 2]);

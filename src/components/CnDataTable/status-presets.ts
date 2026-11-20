@@ -1,7 +1,7 @@
 import type { CnStatusOption } from "./cells";
 
 /**
- * Presets de estados para `cellOptions.statusMap` (mismos que Tabantaj):
+ * Presets de estados para `cellOptions.statusMap` :
  * `statusMap: CN_STATUS_PRESETS.approval`.
  */
 export const CN_STATUS_PRESETS = {

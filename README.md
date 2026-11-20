@@ -507,14 +507,6 @@ como archivos existentes. `componentProps` llega a todos los tipos.
 - `onSuccess` recibe `(payload, values)`; las pestañas `disabled` ya no se validan.
 - Un `defaultValues` que cambia después de montar reinicia el formulario si no hay cambios (`reinitialize={false}` para el comportamiento anterior); los modales no controlados se limpian al reabrir (`resetOnOpen={false}`).
 
-#### Desde `TbForm` (S4BTabantaj)
-
-- La regla `custom` recibe `(value, formValues, ctx)` (en Tb era `(value, ctx, formValues)`).
-- `exactLength` usa `value` (o `length`); `required` con predicado se escribe `{ type: "required", when }`.
-- `fileAccept`/`fileMultiple`/`fileMaxFiles`/`fileMaxSize` → `accept`/`multiple`/`maxFiles`/`maxSize`; los ids de archivos quitados se obtienen con `removedFilesName`.
-- `disablePast` ya no es el valor por defecto en fechas; actívalo donde haga falta.
-- Para el FormData de Tb usa `formDataOptions={{ arrayFormat: "json", existingFiles: "omit" }}`.
-
 ---
 
 ## Retroalimentación y layout
@@ -572,9 +564,8 @@ y `onClick`.
 
 ## Tabla de datos
 
-`CnDataTable` sigue el lenguaje visual de la tabla de Tabantaj (barra Descargar/Copiar/Imprimir,
-encabezados con orden, asa para mover, menú por columna y filtros subrayados; celdas en píldora con
-botón de copiar) y la supera en funciones. Usa `@tanstack/react-table` como motor (incluido).
+`CnDataTable` es la tabla de datos completa: barra Descargar/Copiar/Imprimir, encabezados con orden,
+asa para mover, menú por columna y filtros subrayados; celdas en píldora con botón de copiar. Usa `@tanstack/react-table` como motor (incluido).
 
 ```tsx
 import { CN_STATUS_PRESETS, CnDataTable, type CnColumn } from "@canek-ui/material-design-system";
@@ -647,7 +638,7 @@ listas con el contenido completo. Las imágenes abren `CnImageViewer` (pantalla 
 miniaturas, descarga). Ambos se exportan para usarse fuera de la tabla (`CnCellDetail`, `CnImageViewer`).
 
 Los vacíos muestran contexto ("Sin teléfono", "Sin correo") o el que elijas con `emptyContext`
-(`not_assigned`, `pending`, `not_applicable`… los 18 de Tabantaj) o `emptyText`. El mismo formato
+(`not_assigned`, `pending`, `not_applicable`… 18 contextos) o `emptyText`. El mismo formato
 se usa para buscar, ordenar y exportar.
 
 **Tabla**
@@ -666,16 +657,6 @@ se usa para buscar, ordenar y exportar.
 - Densidad (3 niveles), pantalla completa, encabezado fijo con `maxHeight`, tarjetas en móvil.
 - Persistencia (`persistKey`): columnas, orden, anchos, fijadas, agrupación, densidad y tamaño de página.
 - Modo servidor: `serverSide={{ rowCount, query, onQueryChange }}` + `fetchAllRows` para exportar todo.
-
-| Tabantaj (`TbDataTable`) | Canek (`CnDataTable`) |
-| --- | --- |
-| `rows`, `columns[].key`/`label`/`render`/`exportText` | `data`, `columns[].id`/`header`/`cell`/`exportValue` |
-| `isLoadingTable`, `caption` | `loading`, `title` |
-| `rowActions={{ actions, position: "last" }}` | `rowActions={[...]}`, `rowActionsPosition="end"` |
-| `features.enableRowSelection` / `enableColumnFilters` | `selectable` / `columnFilters` |
-| `mrtProps.manualPagination` + `rowCount` | `serverSide` |
-| `<TbTableStatusCell config={STATUS_CONFIGS.x}>` | `type: "status", cellOptions: { statusMap: CN_STATUS_PRESETS.x }` |
-| `<TbTableEmptyCell context="pending">` | `cellOptions: { emptyContext: "pending" }` |
 
 ## Listas grandes (miles de opciones)
 

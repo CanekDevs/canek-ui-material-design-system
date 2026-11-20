@@ -65,7 +65,7 @@ export type CnProfileCardProps = {
   event?: CnPersonEvent;
   /** Texto superior (por defecto, la etiqueta del evento). */
   eyebrow?: ReactNode;
-  /** Pares etiqueta / valor (como `detailLabel` / `detailValue` de TbPersonEventCard). */
+  /** Pares etiqueta / valor . */
   details?: CnProfileCardDetail[];
   tags?: string[];
   /** Máximo de etiquetas visibles; el resto se resume en un chip "+N". */

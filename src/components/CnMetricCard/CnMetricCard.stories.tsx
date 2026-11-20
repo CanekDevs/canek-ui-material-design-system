@@ -14,7 +14,7 @@ const meta: Meta<typeof CnMetricCard> = {
     docs: {
       description: {
         component: [
-          '**Para qué sirve:** mostrar un dato destacado. `layout="stacked"` (por defecto) es el KPI con valor grande, tendencia, mini gráfica y avance; `layout="inline"` es el *tile de dato* "etiqueta + valor" con ícono al lado (el patrón de `TbInfoCard` en Tabantaj), con `badge`, `href`, `minHeight` y variantes `soft`/`left-accent`.',
+          '**Para qué sirve:** mostrar un dato destacado. `layout="stacked"` (por defecto) es el KPI con valor grande, tendencia, mini gráfica y avance; `layout="inline"` es el *tile de dato* "etiqueta + valor" con ícono al lado, con `badge`, `href`, `minHeight` y variantes `soft`/`left-accent`.',
           "",
           "**Cuándo NO usarlo:** para avisos o mensajes con estado (info, advertencia, error) usa `CnAlert` (incluye `left-accent`, acciones y detalles plegables); para bloques de contenido con encabezado usa `CnSectionCard`; para tarjetas con imagen o contenido libre usa `CnCard`.",
           "",
@@ -169,7 +169,7 @@ const tileGrid = {
   gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
 };
 
-/** Tiles de dato "etiqueta + valor" (`layout="inline"`), como la ficha de cliente de Tabantaj. */
+/** Tiles de dato "etiqueta + valor" (`layout="inline"`), p. ej. la ficha de un cliente. */
 export const DataTiles: Story = {
   parameters: { maxWidth: 1100 },
   render: () => (

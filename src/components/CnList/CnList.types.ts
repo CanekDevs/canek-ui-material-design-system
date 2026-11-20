@@ -180,7 +180,7 @@ export type CnListProps<T = CnListItemData> = CnListAccessors<T> & {
   /** Chevron en todos los elementos con `href`/`onClick`. */
   showChevron?: boolean;
 
-  // Encabezado y pie (como TbList)
+  // Encabezado y pie
   title?: ReactNode;
   description?: ReactNode;
   headerAction?: ReactNode;
@@ -268,7 +268,7 @@ export type CnListProps<T = CnListItemData> = CnListAccessors<T> & {
   height?: number | string;
   maxHeight?: number | string;
   minHeight?: number | string;
-  /** Alto para mostrar N filas (como TbList). */
+  /** Alto para mostrar N filas. */
   visibleItems?: number;
 
   // Estados
