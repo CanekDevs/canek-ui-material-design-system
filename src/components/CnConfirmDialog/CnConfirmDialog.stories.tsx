@@ -1,5 +1,6 @@
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { useState } from "react";
 import { CnButton } from "../CnButton";
 import type { CnConfirmVariant } from "./CnConfirmDialog";
@@ -10,6 +11,7 @@ const meta: Meta<typeof CnConfirmDialog> = {
   title: "Feedback/CnConfirmDialog",
   component: CnConfirmDialog,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnConfirmDialog") } } },
 };
 
 export default meta;

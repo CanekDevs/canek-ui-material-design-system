@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnSwitchField } from "./CnSwitchField";
 import { CnSwitchFieldSkeleton } from "./CnSwitchFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnSwitchField> = {
   title: "Forms/CnSwitchField",
   component: CnSwitchField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnSwitchField") } } },
   args: { label: "Modo oscuro", description: "Se aplica en todos tus dispositivos" },
 };
 

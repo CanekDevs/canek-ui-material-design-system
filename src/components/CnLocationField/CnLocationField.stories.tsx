@@ -2,13 +2,17 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnLocationField } from "./CnLocationField";
 import { CnLocationFieldSkeleton } from "./CnLocationFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnLocationField> = {
   title: "Forms/CnLocationField",
   component: CnLocationField,
   tags: ["autodocs"],
   args: { label: "Ubicación de la sucursal" },
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: { description: { component: catalogDocs("CnLocationField") } },
+  },
 };
 
 export default meta;

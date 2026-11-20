@@ -2,11 +2,13 @@ import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnTransferListField } from "./CnTransferListField";
 import { CnTransferListFieldSkeleton } from "./CnTransferListFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnTransferListField> = {
   title: "Forms/CnTransferListField",
   component: CnTransferListField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnTransferListField") } } },
   args: {
     label: "Integrantes del equipo",
     defaultValue: [2],

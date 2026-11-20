@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnTagsField } from "./CnTagsField";
 import { CnTagsFieldSkeleton } from "./CnTagsFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnTagsField> = {
   title: "Forms/CnTagsField",
   component: CnTagsField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnTagsField") } } },
   args: { label: "Etiquetas" },
 };
 

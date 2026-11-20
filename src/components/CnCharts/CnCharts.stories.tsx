@@ -11,8 +11,22 @@ import { CnSankeyChart } from "./CnSankeyChart";
 import { CnScatterChart } from "./CnScatterChart";
 import { CnSparkline } from "./CnSparkline";
 import { CnTreemap } from "./CnTreemap";
+import { catalogDocs } from "../../catalog";
 
-const meta: Meta = { title: "Charts/Gallery", parameters: { layout: "padded" } };
+const meta: Meta = {
+  title: "Charts/Gallery",
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: {
+        component: catalogDocs(
+          "CnChartCard",
+          "**Galería.** Reúne `CnPieChart`/`CnDonutChart`, `CnScatterChart`/`CnBubbleChart`, `CnGauge`, `CnRadialBarChart`, `CnRadialLineChart`, `CnRadarChart`, `CnSparkline`, `CnHeatmap`/`CnCalendarHeatmap`, `CnFunnelChart`, `CnSankeyChart`, `CnTreemap` y `CnCandlestickChart`. Para elegir: comparación → `CnBarChart`; tendencia → `CnLineChart`; composición → `CnDonutChart`; distribución → `CnHistogram`; relación → `CnScatterChart`; flujo → `CnSankeyChart` o `CnFunnelChart`; jerarquía → `CnTreemap`; KPI → `CnMetricCard` o `CnGauge`.",
+        ),
+      },
+    },
+  },
+};
 export default meta;
 type Story = StoryObj;
 

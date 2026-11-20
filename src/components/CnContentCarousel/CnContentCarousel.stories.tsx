@@ -8,6 +8,7 @@ import { CnSectionCard } from "../CnSectionCard";
 import type { CnContentSlide } from "./CnContentCarousel";
 import { CnContentCarousel } from "./CnContentCarousel";
 import { CnContentCarouselSkeleton } from "./CnContentCarouselSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const img = (id: string) => `https://images.unsplash.com/${id}?w=1600&h=700&fit=crop`;
 
@@ -67,15 +68,7 @@ const meta: Meta<typeof CnContentCarousel> = {
   parameters: {
     layout: "padded",
     docs: {
-      description: {
-        component: [
-          "**Para qué sirve:** comunicar contenido destacado. Preset `hero`: banners con imagen (`srcSet`/`sizes` y marcador desenfocado), video o degradado, velo que se refuerza en anchos chicos para conservar el contraste, título/descripción con número de líneas y tamaño según el ancho del carrusel (container queries) y CTA que se apilan cuando no caben. Preset `cards`: fila de tarjetas con encabezado, flechas arriba y avance por página.",
-          "",
-          "**Cuándo NO usarlo:** para una galería o un carrusel con contenido arbitrario sin estos presets usa `CnCarousel` directamente; para un aviso único usa `CnAlert`; para una lista de personas con eventos que el usuario debe ver completa usa `CnProfileCardGroup`.",
-          "",
-          "**Relación con vecinos:** se construye sobre `CnCarousel` (hereda bucle continuo, autoplay, deslizamiento, `onSlideView`) y suele llevar `CnProfileCard`, `CnDocCard` o `CnSectionCard` en el preset `cards`.",
-        ].join("\n"),
-      },
+      description: { component: catalogDocs("CnContentCarousel") },
     },
   },
   args: { slides: ANNOUNCEMENTS },

@@ -9,11 +9,13 @@ import { CnList } from "./CnList";
 import type { CnListItemData, CnListProps } from "./CnList.types";
 import { CnListItem, CnListSubheader } from "./CnListItem";
 import { CnListSkeleton } from "./CnListSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnList> = {
   title: "Data Display/CnList",
   component: CnList,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnList") } } },
   argTypes: {
     variant: { control: "select", options: ["plain", "divided", "card", "inset"] },
     density: { control: "select", options: ["compact", "comfortable", "spacious"] },

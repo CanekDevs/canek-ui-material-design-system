@@ -3,11 +3,13 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnSignatureField } from "./CnSignatureField";
 import { CnSignatureFieldSkeleton } from "./CnSignatureFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnSignatureField> = {
   title: "Forms/CnSignatureField",
   component: CnSignatureField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnSignatureField") } } },
   args: { label: "Firma del colaborador", required: true },
 };
 

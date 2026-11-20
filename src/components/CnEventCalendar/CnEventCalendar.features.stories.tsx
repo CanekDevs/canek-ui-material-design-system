@@ -17,11 +17,17 @@ import type {
 } from "./CnEventCalendar.types";
 import { CnEventCalendarSkeleton } from "./CnEventCalendarSkeleton";
 import { applyEventChange, applyEventDelete } from "./recurrence-edit";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnEventCalendar> = {
   title: "Data Display/CnEventCalendar/Integraciones y funciones",
   component: CnEventCalendar,
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: { component: catalogDocs("CnEventCalendar") },
+    },
+  },
 };
 
 export default meta;

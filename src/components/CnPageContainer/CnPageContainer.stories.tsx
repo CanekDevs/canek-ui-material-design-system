@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { CnButton } from "../CnButton";
 import { CnConfirmProvider, useConfirm } from "../CnConfirmDialog";
 import { CnMetricCard } from "../CnMetricCard";
@@ -10,7 +11,10 @@ import { CnPageContainerSkeleton } from "./CnPageContainerSkeleton";
 const meta: Meta<typeof CnPageContainer> = {
   title: "Layout/CnPageContainer",
   component: CnPageContainer,
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: { description: { component: catalogDocs("CnPageContainer") } },
+  },
 };
 
 export default meta;

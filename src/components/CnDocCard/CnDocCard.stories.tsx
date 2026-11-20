@@ -7,6 +7,7 @@ import { CnSectionCard } from "../CnSectionCard";
 import type { CnDocCardProps } from "./CnDocCard";
 import { CnDocCard } from "./CnDocCard";
 import { CnDocCardSkeleton } from "./CnDocCardSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const now = Date.now();
 const hoursAgo = (h: number) => new Date(now - h * 3_600_000);
@@ -75,15 +76,7 @@ const meta: Meta<typeof CnDocCard> = {
   parameters: {
     layout: "padded",
     docs: {
-      description: {
-        component: [
-          `**Para qué:** mostrar *un* documento o archivo ya existente: ícono o miniatura por tipo, nombre, tamaño, páginas, fecha y autor, estado, versión, etiquetas y acciones (ver, descargar, compartir, más). Para repositorios, listas de adjuntos, páginas de detalle y vistas de solo lectura, en layouts \`list\`, \`grid\` y \`compact\`. También muestra la subida o el error de un archivo puntual.`,
-          ``,
-          `**Cuándo NO usarlo:** para que el usuario *elija o suba* archivos en un formulario usa \`CnFileField\` (valida, reordena y entrega el valor del formulario). Para muchos archivos con orden y filtros por columna, \`CnDataTable\`. Para una galería de fotos, \`CnFileField\` (\`grid\`/\`masonry\`) o \`CnCarousel\`.`,
-          ``,
-          `**Relación con CnFileField:** \`CnFileField\` dibuja su lista (\`dropzone\`, \`button\`) y su variante \`card\` con \`CnDocCard\`, por lo que un archivo se ve igual antes y después de guardarse. Acepta el mismo valor del campo con la prop \`file\` (\`File\` local o \`CnExistingFile\`). Tipos, íconos, colores, extensiones y URLs seguras vienen de \`src/utils/file-utils.ts\`, compartido por ambos.`,
-        ].join("\n"),
-      },
+      description: { component: catalogDocs("CnDocCard") },
     },
   },
   args: { ...DOCS[0], onShare: () => alert("Compartir") },

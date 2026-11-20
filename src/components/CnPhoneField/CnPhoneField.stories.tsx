@@ -3,11 +3,13 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnPhoneField } from "./CnPhoneField";
 import { CnPhoneFieldSkeleton } from "./CnPhoneFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnPhoneField> = {
   title: "Forms/CnPhoneField",
   component: CnPhoneField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnPhoneField") } } },
   args: { label: "Teléfono", defaultCountry: "MX" },
   decorators: [(Story) => <div style={{ maxWidth: 380 }}>{Story()}</div>],
 };

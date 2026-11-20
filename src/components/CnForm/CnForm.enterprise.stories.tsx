@@ -3,11 +3,22 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnForm } from "./CnForm";
 import type { CnFormSection, CnFormValues } from "./CnForm.types";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnForm> = {
   title: "Forms/CnForm/Enterprise",
   component: CnForm,
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: {
+        component: catalogDocs(
+          "CnForm",
+          "Ejemplos empresariales: selects en cascada con `dependsOn` y `loadOptions`, búsqueda remota, campos calculados con `compute`, archivos y diseño por secciones.",
+        ),
+      },
+    },
+  },
 };
 
 export default meta;

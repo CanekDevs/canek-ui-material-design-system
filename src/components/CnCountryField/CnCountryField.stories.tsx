@@ -2,10 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { CnCountryField } from "./CnCountryField";
 import Stack from "@mui/material/Stack";
 import { CnCountryFieldSkeleton } from "./CnCountryFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnCountryField> = {
   title: "Forms/CnCountryField",
   component: CnCountryField,
+  parameters: { docs: { description: { component: catalogDocs("CnCountryField") } } },
   tags: ["autodocs"],
   args: { label: "País", priority: ["MX", "US", "CA"] },
   decorators: [(Story) => <div style={{ maxWidth: 360 }}>{Story()}</div>],

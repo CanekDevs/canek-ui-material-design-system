@@ -6,11 +6,13 @@ import { CnCurrencyField } from "../CnCurrencyField";
 import { CnPhoneField } from "../CnPhoneField";
 import { CnNumberField, CnQuantityField } from "./CnNumberField";
 import { CnNumberFieldSkeleton } from "./CnNumberFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnNumberField> = {
   title: "Forms/CnNumberField",
   component: CnNumberField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnNumberField") } } },
   args: { label: "Cantidad", min: 0, max: 100 },
   argTypes: { controls: { control: "select", options: ["stacked", "split", "inline", "none"] } },
 };

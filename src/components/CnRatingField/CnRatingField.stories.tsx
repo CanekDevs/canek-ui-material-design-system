@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnRatingField } from "./CnRatingField";
 import { CnRatingFieldSkeleton } from "./CnRatingFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnRatingField> = {
   title: "Forms/CnRatingField",
   component: CnRatingField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnRatingField") } } },
   args: {
     label: "Satisfacción",
     defaultValue: 3,

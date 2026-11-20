@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { useState } from "react";
 import { CnButton } from "../CnButton";
 import { CnSectionCard } from "./CnSectionCard";
@@ -10,7 +11,10 @@ const meta: Meta<typeof CnSectionCard> = {
   title: "Data Display/CnSectionCard",
   component: CnSectionCard,
   tags: ["autodocs"],
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: { description: { component: catalogDocs("CnSectionCard") } },
+  },
   args: {
     title: "Datos generales",
     subtitle: "Información fiscal y de contacto del cliente",

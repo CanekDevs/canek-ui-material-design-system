@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnSegmentedField } from "./CnSegmentedField";
 import { CnSegmentedFieldSkeleton } from "./CnSegmentedFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnSegmentedField> = {
   title: "Forms/CnSegmentedField",
   component: CnSegmentedField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnSegmentedField") } } },
   args: {
     label: "Periodo",
     defaultValue: "month",

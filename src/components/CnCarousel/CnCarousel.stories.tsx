@@ -7,6 +7,7 @@ import { CnAlert } from "../CnAlert";
 import type { CnCarouselActions } from "./CnCarousel";
 import { CnCarousel } from "./CnCarousel";
 import { CnCarouselSkeleton } from "./CnCarouselSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const PHOTOS = [
   "photo-1497366216548-37526070297c",
@@ -61,15 +62,7 @@ const meta: Meta<typeof CnCarousel> = {
   parameters: {
     layout: "padded",
     docs: {
-      description: {
-        component: [
-          '**Para qué sirve:** motor genérico de carrusel para cualquier contenido (imágenes, tarjetas, nodos propios): diapositivas por vista según el ancho del contenedor, vistazo (`peek`), bucle continuo sin saltos (`loopMode="seamless"`), autoplay accesible con progreso sincronizado (se pausa al pasar el cursor, al enfocar o con el botón), flechas, puntos/progreso/fracción/miniaturas, arrastre y deslizamiento táctil con umbral y velocidad, teclado, RTL, carga diferida, `slideAspectRatio` por breakpoint y `onSlideView` para analítica.',
-          "",
-          "**Cuándo NO usarlo:** para banners de anuncios con imagen, título y CTA o para una fila de tarjetas con encabezado usa `CnContentCarousel` (ya trae esos presets); para navegar entre secciones usa `CnTabs`; para listas largas que el usuario recorre completas usa `CnList` o una cuadrícula.",
-          "",
-          "**Relación con vecinos:** `CnContentCarousel` está construido encima de este componente; `CnProfileCard`, `CnDocCard` o `CnSectionCard` pueden ser sus diapositivas.",
-        ].join("\n"),
-      },
+      description: { component: catalogDocs("CnCarousel") },
     },
   },
   args: { slidesPerView: 1, gap: 16, indicators: "dots", arrows: true },

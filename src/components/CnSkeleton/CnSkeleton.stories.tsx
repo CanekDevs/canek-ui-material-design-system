@@ -1,12 +1,14 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { CnSkeleton } from "./CnSkeleton";
 
 const meta: Meta<typeof CnSkeleton> = {
   title: "Components/CnSkeleton",
   component: CnSkeleton,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnSkeleton") } } },
   argTypes: {
     variant: {
       control: "select",

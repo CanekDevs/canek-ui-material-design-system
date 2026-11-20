@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { CnAvatar } from "./CnAvatar";
 import { CnAvatarGroup } from "./CnAvatarGroup";
 import { CnAvatarGroupSkeleton, CnAvatarSkeleton } from "./CnAvatarSkeleton";
@@ -10,6 +11,7 @@ const meta: Meta<typeof CnAvatar> = {
   title: "Components/CnAvatar",
   component: CnAvatar,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnAvatar") } } },
   argTypes: {
     size: {
       control: "select",

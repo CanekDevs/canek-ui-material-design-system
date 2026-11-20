@@ -6,10 +6,16 @@ import { CN_STATUS_PRESETS } from "./status-presets";
 import { CnDataTable } from "./CnDataTable";
 import { CnDataTableSkeleton } from "./CnDataTableSkeleton";
 import type { CnColumn, CnTableQuery } from "./CnDataTable.types";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta = {
   title: "Data Display/CnDataTable",
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: { component: catalogDocs("CnDataTable") },
+    },
+  },
 };
 
 export default meta;

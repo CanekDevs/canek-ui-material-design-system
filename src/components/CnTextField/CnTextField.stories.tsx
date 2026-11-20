@@ -3,11 +3,13 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnTextField } from "./CnTextField";
 import { CnTextFieldSkeleton } from "./CnTextFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnTextField> = {
   title: "Forms/CnTextField",
   component: CnTextField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnTextField") } } },
   argTypes: {
     type: {
       control: "select",

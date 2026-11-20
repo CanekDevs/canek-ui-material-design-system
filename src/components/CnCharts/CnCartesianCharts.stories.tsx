@@ -7,6 +7,7 @@ import {
   CnHistogram,
   CnLineChart,
 } from "./CnCartesianPresets";
+import { catalogDocs } from "../../catalog";
 
 const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
@@ -30,7 +31,17 @@ const TEAMS = [
 
 const meta: Meta = {
   title: "Charts/Cartesianas",
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: {
+        component: catalogDocs(
+          "CnBarChart",
+          "**Familia cartesiana.** Estas historias muestran también `CnLineChart`, `CnAreaChart`, `CnComposedChart` y `CnHistogram`, que comparten motor (`CnCartesianChart`), ejes, referencias, zoom y selector de tipo. Consulta la entrada de cada una en el catálogo para saber cuándo elegirla.",
+        ),
+      },
+    },
+  },
 };
 export default meta;
 type Story = StoryObj;

@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnOtpField } from "./CnOtpField";
 import { CnOtpFieldSkeleton } from "./CnOtpFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnOtpField> = {
   title: "Forms/CnOtpField",
   component: CnOtpField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnOtpField") } } },
   args: { label: "Código de verificación", helperText: "Te lo enviamos por SMS" },
 };
 

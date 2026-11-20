@@ -2,11 +2,13 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { CnPasswordField } from "./CnPasswordField";
 import Stack from "@mui/material/Stack";
 import { CnPasswordFieldSkeleton } from "./CnPasswordFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnPasswordField> = {
   title: "Forms/CnPasswordField",
   component: CnPasswordField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnPasswordField") } } },
   args: { label: "Nueva contraseña" },
 };
 

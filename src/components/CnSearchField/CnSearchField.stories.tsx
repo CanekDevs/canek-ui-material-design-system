@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CnSearchField } from "./CnSearchField";
 import type { CnSearchSuggestion } from "./CnSearchField";
 import { CnSearchFieldSkeleton } from "./CnSearchFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const CITIES = [
   "Ciudad de México",
@@ -29,6 +30,7 @@ const meta: Meta<typeof CnSearchField> = {
   title: "Forms/CnSearchField",
   component: CnSearchField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnSearchField") } } },
   args: { label: "Buscar ciudad" },
 };
 

@@ -2,10 +2,12 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnCodeField } from "./CnCodeField";
 import { CnCodeFieldSkeleton } from "./CnCodeFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnCodeField> = {
   title: "Forms/CnCodeField",
   component: CnCodeField,
+  parameters: { docs: { description: { component: catalogDocs("CnCodeField") } } },
   tags: ["autodocs"],
   args: { label: "Configuración" },
 };

@@ -12,12 +12,18 @@ import type {
   CnEventCategory,
 } from "./CnEventCalendar.types";
 import { CnEventCalendarSkeleton } from "./CnEventCalendarSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnEventCalendar> = {
   title: "Data Display/CnEventCalendar",
   component: CnEventCalendar,
   tags: ["autodocs"],
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: { component: catalogDocs("CnEventCalendar") },
+    },
+  },
 };
 
 export default meta;

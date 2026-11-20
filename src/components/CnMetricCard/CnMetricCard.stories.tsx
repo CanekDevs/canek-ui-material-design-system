@@ -4,6 +4,7 @@ import Typography from "@mui/material/Typography";
 import { CnChip } from "../CnChip";
 import { CnMetricCard, CnSparkline } from "./CnMetricCard";
 import { CnMetricCardSkeleton } from "./CnMetricCardSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnMetricCard> = {
   title: "Data Display/CnMetricCard",
@@ -12,15 +13,7 @@ const meta: Meta<typeof CnMetricCard> = {
   parameters: {
     layout: "padded",
     docs: {
-      description: {
-        component: [
-          '**Para qué sirve:** mostrar un dato destacado. `layout="stacked"` (por defecto) es el KPI con valor grande, tendencia, mini gráfica y avance; `layout="inline"` es el *tile de dato* "etiqueta + valor" con ícono al lado, con `badge`, `href`, `minHeight` y variantes `soft`/`left-accent`.',
-          "",
-          "**Cuándo NO usarlo:** para avisos o mensajes con estado (info, advertencia, error) usa `CnAlert` (incluye `left-accent`, acciones y detalles plegables); para bloques de contenido con encabezado usa `CnSectionCard`; para tarjetas con imagen o contenido libre usa `CnCard`.",
-          "",
-          '**Relación con vecinos:** recibe el antiguo modo dato de `CnInfoCard` (`label` + `value` → `title` + `value` con `layout="inline"`). Comparte la paleta semántica con `CnAlert` y `CnChip` (útil como `badge`).',
-        ].join("\n"),
-      },
+      description: { component: catalogDocs("CnMetricCard") },
     },
   },
   args: {

@@ -5,11 +5,13 @@ import { BUILT_IN_FLAG_CODES, CnFlagIcon } from "../CnFlagIcon";
 import { CnFormSkeleton } from "../CnFormSkeleton";
 import { CnNumberRangeField } from "./CnNumberRangeField";
 import { CnNumberRangeFieldSkeleton } from "./CnNumberRangeFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnNumberRangeField> = {
   title: "Forms/CnNumberRangeField",
   component: CnNumberRangeField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnNumberRangeField") } } },
   args: { label: "Rango de precio", prefix: "$", thousandSeparator: true, min: 0 },
 };
 

@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnMaskedField } from "./CnMaskedField";
 import { CnMaskedFieldSkeleton } from "./CnMaskedFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnMaskedField> = {
   title: "Forms/CnMaskedField",
   component: CnMaskedField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnMaskedField") } } },
   args: { label: "Tarjeta", preset: "creditCard" },
 };
 

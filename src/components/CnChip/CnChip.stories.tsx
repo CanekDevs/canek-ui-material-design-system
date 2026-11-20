@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { CnChip } from "./CnChip";
 import { CnChipSkeleton } from "./CnChipSkeleton";
 
@@ -9,6 +10,7 @@ const meta: Meta<typeof CnChip> = {
   title: "Components/CnChip",
   component: CnChip,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnChip") } } },
   argTypes: {
     variant: {
       control: "select",

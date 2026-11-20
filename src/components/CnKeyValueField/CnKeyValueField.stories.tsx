@@ -2,10 +2,12 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnKeyValueField } from "./CnKeyValueField";
 import { CnKeyValueFieldSkeleton } from "./CnKeyValueFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnKeyValueField> = {
   title: "Forms/CnKeyValueField",
   component: CnKeyValueField,
+  parameters: { docs: { description: { component: catalogDocs("CnKeyValueField") } } },
   tags: ["autodocs"],
   args: {
     label: "Atributos del producto",

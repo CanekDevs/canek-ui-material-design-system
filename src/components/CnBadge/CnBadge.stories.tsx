@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { CnAvatar } from "../CnAvatar";
 import { CnButton } from "../CnButton";
 import { CnIcon } from "../CnIcon";
@@ -12,6 +13,7 @@ const meta: Meta<typeof CnBadge> = {
   title: "Components/CnBadge",
   component: CnBadge,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnBadge") } } },
   argTypes: {
     variant: {
       control: "select",

@@ -12,6 +12,7 @@ import type {
   CnFormTab,
   CnFormValues,
 } from "./CnForm.types";
+import { catalogDocs } from "../../catalog";
 
 registerRichTextFieldType();
 
@@ -19,7 +20,7 @@ const meta: Meta<typeof CnForm> = {
   title: "Forms/CnForm",
   component: CnForm,
   tags: ["autodocs"],
-  parameters: { layout: "padded" },
+  parameters: { layout: "padded", docs: { description: { component: catalogDocs("CnForm") } } },
 };
 
 export default meta;

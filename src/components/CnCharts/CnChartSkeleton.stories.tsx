@@ -20,11 +20,22 @@ import {
   CnSparklineSkeleton,
   CnTreemapSkeleton,
 } from "./CnChartSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnChartSkeleton> = {
   title: "Charts/Skeletons",
   component: CnChartSkeleton,
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: {
+        component: catalogDocs(
+          "CnChartCard",
+          "**Skeletons.** Cada gráfica tiene un skeleton con su misma forma (barras, líneas, anillos, embudo…) y variantes; `CnChartSkeleton` elige por tipo. Las gráficas lo muestran solas con `loading`; úsalos directamente cuando la gráfica aún no está montada (por ejemplo, mientras se carga la entrada de gráficas).",
+        ),
+      },
+    },
+  },
 };
 export default meta;
 type Story = StoryObj<typeof CnChartSkeleton>;

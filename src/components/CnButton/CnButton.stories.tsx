@@ -3,6 +3,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { CnButton } from "./CnButton";
 import { CnButtonSkeleton } from "./CnButtonSkeleton";
 
@@ -10,6 +11,7 @@ const meta: Meta<typeof CnButton> = {
   title: "Components/CnButton",
   component: CnButton,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnButton") } } },
   argTypes: {
     variant: {
       control: "select",

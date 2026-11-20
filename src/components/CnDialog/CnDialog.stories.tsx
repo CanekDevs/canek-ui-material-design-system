@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { useEffect, useState } from "react";
 import { CnButton } from "../CnButton";
 import { CnTextField } from "../CnTextField";
@@ -8,21 +9,13 @@ import type { CnDialogProps } from "./CnDialog";
 import { CnDialogSkeleton } from "./CnDialogSkeleton";
 import { CnDialogProvider, useDialog } from "./useDialog";
 
-const DESCRIPTION = `
-**Para qué sirve.** Modal de propósito general para tareas que requieren la atención del usuario sin salir de la pantalla: formularios de alta/edición, detalle de un registro, asistentes de pasos, vistas previas. Incluye encabezado y pie fijos, cuerpo con scroll y sombras, acciones con carga, tamaños \`sm\`–\`xl\`/\`fullscreen\`, pantalla completa en móvil, motivos de cierre (\`onClose(reason)\`), confirmación "¿Descartar cambios?" con \`dirty\`, diálogos apilados, apertura asíncrona (\`loading\`) y foco inicial. \`useDialog()\` (con \`CnDialogProvider\`) los abre de forma imperativa y devuelve una promesa.
-
-**Cuándo NO usarlo.** Para pedir un "sí/no" antes de una acción usa \`CnConfirmDialog\` / \`useConfirm()\` (rol \`alertdialog\`, presets, confirmación por texto). Para avisos pasajeros usa \`CnToast\`; para mensajes dentro de la página, \`CnAlert\`. Si el usuario necesita seguir viendo la página (detalle de una fila, filtros), usa \`CnDrawer\`.
-
-**Relación con vecinos.** Comparte encabezado, pie y guarda de cambios con \`CnDrawer\`; la confirmación de descarte reutiliza \`CnConfirmDialog\`. \`CnForm\` puede vivir en su cuerpo (usa \`onSubmit\` + acción \`type: "submit"\`).
-`;
-
 const meta: Meta<typeof CnDialog> = {
   title: "Overlays/CnDialog",
   component: CnDialog,
   tags: ["autodocs"],
   parameters: {
     layout: "padded",
-    docs: { description: { component: DESCRIPTION } },
+    docs: { description: { component: catalogDocs("CnDialog") } },
   },
   argTypes: {
     size: { control: "inline-radio", options: ["sm", "md", "lg", "xl", "fullscreen"] },

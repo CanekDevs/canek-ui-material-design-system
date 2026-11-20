@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnTimeRangeField } from "./CnTimeRangeField";
 import { CnTimeRangeFieldSkeleton } from "./CnTimeRangeFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnTimeRangeField> = {
   title: "Forms/CnTimeRangeField",
   component: CnTimeRangeField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnTimeRangeField") } } },
   args: { label: "Horario de atención" },
 };
 

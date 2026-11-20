@@ -5,6 +5,7 @@ import type { CnFileStatus, CnFileValue } from "../../utils/file-utils";
 import { CnFileField } from "./CnFileField";
 import { CnFileFieldSkeleton } from "./CnFileFieldSkeleton";
 import { FileFieldVsDocCardDemo, WidthFrames } from "./FileFieldVsDocCard.demo";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnFileField> = {
   title: "Forms/CnFileField",
@@ -14,13 +15,7 @@ const meta: Meta<typeof CnFileField> = {
   parameters: {
     docs: {
       description: {
-        component: [
-          `**Para qué:** campo de formulario para *elegir* archivos: arrastrar, seleccionar, pegar o usar la cámara; valida tipo, tamaño, cantidad y dimensiones, permite reordenar y quitar, y entrega \`File[]\` / \`CnExistingFile[]\` como valor del formulario (con progreso y reintento si el consumidor sube los archivos).`,
-          ``,
-          `**Cuándo NO usarlo:** para *mostrar* documentos ya guardados (repositorios, listas de adjuntos, detalle de un registro) usa \`CnDocCard\`; para firmas, \`CnSignatureField\`; para una galería de solo consulta, \`CnCarousel\`.`,
-          ``,
-          `**Relación con CnDocCard:** las variantes \`dropzone\` y \`button\` dibujan cada archivo con \`CnDocCard\` (layout \`list\`) y \`card\` con \`CnDocCard\` (layout \`grid\`), así que un archivo se ve y se comporta igual antes y después de guardarse (progreso, error/reintento, quitar, vista previa, asa para reordenar). Con \`readOnly\` el campo es exactamente una lista o cuadrícula de \`CnDocCard\`. \`compact\` (chips), \`grid\`/\`masonry\` (galería de fotos) y \`avatar\` son visuales propios del campo. Tipos, íconos, URLs seguras y metadatos vienen de \`src/utils/file-utils.ts\`, compartido por ambos.`,
-        ].join("\n"),
+        component: catalogDocs("CnFileField"),
       },
     },
   },

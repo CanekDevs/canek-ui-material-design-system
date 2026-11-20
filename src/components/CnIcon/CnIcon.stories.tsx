@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { CnIcon } from "./CnIcon";
 import { CnIconSkeleton } from "./CnIconSkeleton";
 import { ICON_REGISTRY } from "./icons";
@@ -10,6 +11,7 @@ const meta: Meta<typeof CnIcon> = {
   title: "Components/CnIcon",
   component: CnIcon,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnIcon") } } },
   argTypes: {
     size: {
       control: "select",

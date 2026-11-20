@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { CnTreeSelectField } from "./CnTreeSelectField";
 import type { CnTreeOption } from "./CnTreeSelectField";
 import { CnTreeSelectFieldSkeleton } from "./CnTreeSelectFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const AREAS: CnTreeOption[] = [
   {
@@ -35,6 +36,7 @@ const meta: Meta<typeof CnTreeSelectField> = {
   title: "Forms/CnTreeSelectField",
   component: CnTreeSelectField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnTreeSelectField") } } },
   args: { label: "Área", options: AREAS, placeholder: "Selecciona un área", showPath: true },
 };
 

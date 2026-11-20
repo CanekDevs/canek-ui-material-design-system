@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { CnButton } from "../CnButton";
 import { CnEmptyState } from "./CnEmptyState";
 import { CnEmptyStateSkeleton } from "./CnEmptyStateSkeleton";
@@ -9,6 +10,7 @@ const meta: Meta<typeof CnEmptyState> = {
   title: "Components/CnEmptyState",
   component: CnEmptyState,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnEmptyState") } } },
   argTypes: {
     variant: {
       control: "select",

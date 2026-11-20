@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnRadioGroupField } from "./CnRadioGroupField";
 import { CnRadioGroupFieldSkeleton } from "./CnRadioGroupFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnRadioGroupField> = {
   title: "Forms/CnRadioGroupField",
   component: CnRadioGroupField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnRadioGroupField") } } },
   args: {
     label: "Frecuencia",
     options: [

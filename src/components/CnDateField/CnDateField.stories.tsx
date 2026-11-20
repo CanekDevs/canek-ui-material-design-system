@@ -11,10 +11,21 @@ import type { CnDateRangeValue } from "./CnDateRangeField";
 import { CnDateRangeField } from "./CnDateRangeField";
 import { CnDateFieldSkeleton } from "./CnDateFieldSkeleton";
 import { CnDateRangeFieldSkeleton } from "./CnDateRangeFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnDateField> = {
   title: "Forms/CnDateField",
   component: CnDateField,
+  parameters: {
+    docs: {
+      description: {
+        component: catalogDocs(
+          "CnDateField",
+          `### CnDateRangeField\n\n${catalogDocs("CnDateRangeField")}`,
+        ),
+      },
+    },
+  },
   tags: ["autodocs"],
   args: { label: "Fecha" },
   argTypes: {

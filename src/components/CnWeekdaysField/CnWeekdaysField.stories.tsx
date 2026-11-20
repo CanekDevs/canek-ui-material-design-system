@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnWeekdaysField } from "./CnWeekdaysField";
 import { CnWeekdaysFieldSkeleton } from "./CnWeekdaysFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnWeekdaysField> = {
   title: "Forms/CnWeekdaysField",
   component: CnWeekdaysField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnWeekdaysField") } } },
   args: { label: "Días de servicio" },
 };
 

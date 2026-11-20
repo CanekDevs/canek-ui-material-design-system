@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { CnSelectValue } from "./CnSelectField";
 import { CnSelectField } from "./CnSelectField";
 import { CnSelectFieldSkeleton } from "./CnSelectFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const options = [
   { value: "mx", label: "México", group: "América" },
@@ -16,6 +17,7 @@ const meta: Meta<typeof CnSelectField> = {
   title: "Forms/CnSelectField",
   component: CnSelectField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnSelectField") } } },
   args: { label: "País", options, placeholder: "Selecciona un país" },
   argTypes: { size: { control: "select", options: ["sm", "md", "lg"] } },
 };

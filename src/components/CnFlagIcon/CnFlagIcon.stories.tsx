@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { BUILT_IN_FLAG_CODES, CnFlagIcon } from "./CnFlagIcon";
 import { CnFlagIconSkeleton } from "./CnFlagIconSkeleton";
 
@@ -7,6 +8,7 @@ const meta: Meta<typeof CnFlagIcon> = {
   title: "Data Display/CnFlagIcon",
   component: CnFlagIcon,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnFlagIcon") } } },
   args: { code: "MX", size: 32 },
 };
 

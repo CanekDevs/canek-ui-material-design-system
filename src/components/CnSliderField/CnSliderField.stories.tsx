@@ -2,11 +2,13 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnSliderField } from "./CnSliderField";
 import { CnSliderFieldSkeleton } from "./CnSliderFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnSliderField> = {
   title: "Forms/CnSliderField",
   component: CnSliderField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnSliderField") } } },
   args: { label: "Descuento", defaultValue: 15, min: 0, max: 50, step: 5, showValue: true },
   decorators: [(Story) => <div style={{ maxWidth: 420 }}>{Story()}</div>],
 };

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CnAddressField } from "./CnAddressField";
 import type { CnAddressValue, CnPostalCodeLookupResult } from "./CnAddressField";
 import { CnAddressFieldSkeleton } from "./CnAddressFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 /** Catálogo de ejemplo (en una app real: SEPOMEX, Copomex o la API propia). */
 const POSTAL_CODES: Record<string, CnPostalCodeLookupResult> = {
@@ -35,7 +36,10 @@ const meta: Meta<typeof CnAddressField> = {
   component: CnAddressField,
   tags: ["autodocs"],
   args: { label: "Domicilio" },
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: { description: { component: catalogDocs("CnAddressField") } },
+  },
 };
 
 export default meta;

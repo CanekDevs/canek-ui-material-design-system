@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { useState } from "react";
 import { CnTabs } from "./CnTabs";
 import { CnTabsSkeleton } from "./CnTabsSkeleton";
@@ -10,6 +11,7 @@ const meta: Meta<typeof CnTabs> = {
   title: "Components/CnTabs",
   component: CnTabs,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnTabs") } } },
   argTypes: {
     variant: {
       control: "select",

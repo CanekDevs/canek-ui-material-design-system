@@ -3,11 +3,13 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnRichTextField } from "./CnRichTextField";
 import { CnRichTextFieldSkeleton } from "./CnRichTextFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnRichTextField> = {
   title: "Forms/CnRichTextField",
   component: CnRichTextField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnRichTextField") } } },
   args: { label: "Descripción", placeholder: "Escribe la descripción del producto…" },
   argTypes: { toolbar: { control: "select", options: ["basic", "standard", "full"] } },
 };

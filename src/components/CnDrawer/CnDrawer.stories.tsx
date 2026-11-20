@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { useEffect, useState } from "react";
 import { CnButton } from "../CnButton";
 import { CnDataTable } from "../CnDataTable";
@@ -7,19 +8,11 @@ import { CnDrawer } from "./CnDrawer";
 import type { CnDrawerAnchor, CnDrawerSize } from "./CnDrawer";
 import { CnDrawerSkeleton } from "./CnDrawerSkeleton";
 
-const DESCRIPTION = `
-**Para qué sirve.** Panel lateral (izquierda, derecha o abajo) para trabajar sin perder de vista la página: detalle de una fila de tabla, filtros, edición rápida, bitácora, carrito. Variantes \`temporary\` (modal), \`persistent\` (empuja el contenido) y \`mini\` (franja con íconos al contraerse); tamaños \`sm\`–\`xl\`/\`full\` o medida propia, ancho ajustable arrastrando el borde (\`resizable\`, también con teclado), paneles anidados con \`onBack\`, y el mismo encabezado, cuerpo con scroll, pie con acciones, \`loading\`/\`skeleton\` y "¿Descartar cambios?" que \`CnDialog\`.
-
-**Cuándo NO usarlo.** Si la tarea exige toda la atención o es corta y bloqueante, usa \`CnDialog\`; para confirmar una acción, \`CnConfirmDialog\`. Para navegación principal de la app usa el layout/menú de la aplicación, no un drawer de contenido.
-
-**Relación con vecinos.** Reutiliza las piezas de \`CnDialog\` (encabezado, pie, guarda de cambios con \`CnConfirmDialog\`). Combina con \`CnDataTable\` (\`onRowClick\` → abrir el detalle) y \`CnTimeline\` (historial dentro del panel). \`CnNotificationCenter\` lo usa como panel en móvil.
-`;
-
 const meta: Meta<typeof CnDrawer> = {
   title: "Overlays/CnDrawer",
   component: CnDrawer,
   tags: ["autodocs"],
-  parameters: { layout: "padded", docs: { description: { component: DESCRIPTION } } },
+  parameters: { layout: "padded", docs: { description: { component: catalogDocs("CnDrawer") } } },
 };
 
 export default meta;

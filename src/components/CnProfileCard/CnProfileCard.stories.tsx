@@ -7,6 +7,7 @@ import { CnProfileCard } from "./CnProfileCard";
 import type { CnProfileCardGroupItem } from "./CnProfileCardGroup";
 import { CnProfileCardGroup } from "./CnProfileCardGroup";
 import { CnProfileCardSkeleton } from "./CnProfileCardSkeleton";
+import { catalogDocs } from "../../catalog";
 
 /** Fecha ISO relativa a hoy (para que las cuentas regresivas tengan sentido). */
 const shift = (days: number, yearsAgo = 0) => {
@@ -69,15 +70,7 @@ const meta: Meta<typeof CnProfileCard> = {
   parameters: {
     layout: "padded",
     docs: {
-      description: {
-        component: [
-          '**Para qué sirve:** mostrar a una persona (avatar con estado, puesto, área, ubicación) con sus vías de contacto (correo, teléfono, WhatsApp) y, opcionalmente, un evento con cuenta regresiva (cumpleaños, aniversario, ingreso, vacaciones, incapacidad, promoción) y acciones rápidas ("Felicitar"). `CnProfileCardGroup` las agrupa por proximidad (Hoy / Próximos días / …), filtra por mes y resume con "Ver todos".',
-          "",
-          "**Cuándo NO usarlo:** para un usuario en una fila de tabla o lista densa usa `CnAvatar` + `CnList`; para un bloque de información genérico con título usa `CnSectionCard`; para archivos, `CnDocCard`; para un KPI, `CnMetricCard`.",
-          "",
-          '**Relación con vecinos:** se construye sobre `CnCard`, `CnAvatar` y `CnChip`; el grupo usa `CnSectionCard` como contenedor y la tarjeta encaja en `CnContentCarousel` (preset `cards`). Se adapta al **ancho de su contenedor** (ResizeObserver): trunca nombres a 2 líneas, reduce el avatar, baja los contactos a la fila de acciones y agrupa las acciones que no caben en un menú "Más acciones".',
-        ].join("\n"),
-      },
+      description: { component: catalogDocs("CnProfileCard") },
     },
   },
   args: {

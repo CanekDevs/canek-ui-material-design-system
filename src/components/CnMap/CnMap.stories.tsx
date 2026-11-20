@@ -11,6 +11,7 @@ import { CnMapsProvider } from "./CnMapsProvider";
 import type { CnMapStyleRule } from "./google-maps-types";
 import type { CnMapStylePreset } from "./map-styles";
 import { getStaticMapUrl } from "./map-styles";
+import { catalogDocs } from "../../catalog";
 
 /*
  * Las historias leen la key de `STORYBOOK_GOOGLE_MAPS_KEY` (y el map ID de
@@ -46,10 +47,10 @@ const meta: Meta<typeof CnMap> = {
     layout: "padded",
     docs: {
       description: {
-        component:
-          "Mapa de Google con estilos del Styling Wizard, presets, `mapId`, marcadores y selector. " +
-          "Define `STORYBOOK_GOOGLE_MAPS_KEY` (y opcionalmente `STORYBOOK_GOOGLE_MAPS_MAP_ID`) en " +
-          "`.env.local` para ver el mapa interactivo; sin key se usa el iframe embebido.",
+        component: catalogDocs(
+          "CnMap",
+          "**En Storybook.** Define `STORYBOOK_GOOGLE_MAPS_KEY` (y opcionalmente `STORYBOOK_GOOGLE_MAPS_MAP_ID`) en `.env.local` para ver el mapa interactivo con estilos; sin key se usa el mapa embebido. Las rutas (embebido, estilos JSON, `mapId`, imagen estática) se explican en `src/components/CnMap/MAPS.md`.",
+        ),
       },
     },
   },

@@ -4,6 +4,7 @@ import type { CnFieldOption } from "../CnForm/CnForm.types";
 import { CnAutocompleteField } from "./CnAutocompleteField";
 import Stack from "@mui/material/Stack";
 import { CnAutocompleteFieldSkeleton } from "./CnAutocompleteFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const cities: CnFieldOption[] = [
   { value: "cdmx", label: "Ciudad de México", group: "México", searchText: "CDMX DF" },
@@ -17,6 +18,16 @@ const cities: CnFieldOption[] = [
 const meta: Meta<typeof CnAutocompleteField> = {
   title: "Forms/CnAutocompleteField",
   component: CnAutocompleteField,
+  parameters: {
+    docs: {
+      description: {
+        component: catalogDocs(
+          "CnAutocompleteField",
+          "Para listas de miles de registros consulta también la historia *Forms/Large lists*.",
+        ),
+      },
+    },
+  },
   tags: ["autodocs"],
   args: { label: "Ciudad", options: cities, placeholder: "Busca sin acentos: bogota, medellin…" },
 };

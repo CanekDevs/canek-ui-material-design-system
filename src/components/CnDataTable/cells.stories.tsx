@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { CnCellOptions, CnCellType } from "./cells";
 import { CnCell, formatCellText } from "./cells";
 import { CN_STATUS_PRESETS } from "./status-presets";
+import { catalogDocs } from "../../catalog";
 
 /**
  * Cada tipo de celda de `CnDataTable` por separado, con sus variantes y
@@ -13,7 +14,17 @@ import { CN_STATUS_PRESETS } from "./status-presets";
  */
 const meta: Meta = {
   title: "Data Display/Cells",
-  parameters: { layout: "padded" },
+  parameters: {
+    layout: "padded",
+    docs: {
+      description: {
+        component: catalogDocs(
+          "CnDataTable",
+          "**Celdas.** `CnCell` dibuja cualquier tipo de columna (`type`) fuera de la tabla con el mismo formato, orden y texto de exportación; `CnCellDetail` es la píldora que abre una ficha con copiar y acciones, y `CnImageViewer` el visor a pantalla completa de las celdas `image` y `file`.",
+        ),
+      },
+    },
+  },
 };
 export default meta;
 

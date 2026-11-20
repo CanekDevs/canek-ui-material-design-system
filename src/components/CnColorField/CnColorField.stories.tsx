@@ -2,10 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { CnColorField } from "./CnColorField";
 import Stack from "@mui/material/Stack";
 import { CnColorFieldSkeleton } from "./CnColorFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnColorField> = {
   title: "Forms/CnColorField",
   component: CnColorField,
+  parameters: { docs: { description: { component: catalogDocs("CnColorField") } } },
   tags: ["autodocs"],
   args: { label: "Color de la marca", defaultValue: "#254d87" },
 };

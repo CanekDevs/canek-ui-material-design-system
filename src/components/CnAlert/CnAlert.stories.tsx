@@ -3,6 +3,7 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { useState } from "react";
 import { CnAlert } from "./CnAlert";
 import { CnAlertSkeleton } from "./CnAlertSkeleton";
@@ -14,13 +15,7 @@ const meta: Meta<typeof CnAlert> = {
   parameters: {
     docs: {
       description: {
-        component: [
-          "**Para qué sirve:** comunicar un mensaje con semántica de estado (éxito, info, advertencia, error) en línea, como popup o toast. También cubre el *callout* de contenido: variante `left-accent`, fila de `actions` (botones o enlaces que hacen wrap), `details` plegables y cierre autogestionado (`dismissible`).",
-          "",
-          '**Cuándo NO usarlo:** para mostrar un dato o KPI (etiqueta + valor) usa `CnMetricCard` (`layout="inline"` para tiles de dato); para agrupar contenido con encabezado y cuerpo usa `CnSectionCard`; para tarjetas con imagen, clic o enlace usa `CnCard`; para notificaciones globales en cola usa `CnToast`.',
-          "",
-          "**Relación con vecinos:** sustituye al antiguo `CnInfoCard` (sus avisos/callouts migran aquí y su modo dato a `CnMetricCard`). `CnToast` usa la misma semántica de severidad para avisos efímeros.",
-        ].join("\n"),
+        component: catalogDocs("CnAlert"),
       },
     },
   },

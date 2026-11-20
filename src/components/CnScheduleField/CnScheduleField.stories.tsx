@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CnScheduleField } from "./CnScheduleField";
 import type { CnScheduleValue } from "./CnScheduleField";
 import { CnScheduleFieldSkeleton } from "./CnScheduleFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const OFFICE: CnScheduleValue = {
   mon: {
@@ -24,6 +25,7 @@ const meta: Meta<typeof CnScheduleField> = {
   title: "Forms/CnScheduleField",
   component: CnScheduleField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnScheduleField") } } },
   args: { label: "Horario de atención" },
 };
 

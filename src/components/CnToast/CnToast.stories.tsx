@@ -1,5 +1,6 @@
 import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
+import { catalogDocs } from "../../catalog";
 import { CnButton } from "../CnButton";
 import type { CnToastPosition } from "./CnToast";
 import { CnToastProvider, useToast } from "./CnToast";
@@ -9,6 +10,7 @@ const meta: Meta<typeof CnToastProvider> = {
   title: "Feedback/CnToast",
   component: CnToastProvider,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnToast") } } },
   args: { position: "top-right", max: 4 },
   argTypes: {
     position: {

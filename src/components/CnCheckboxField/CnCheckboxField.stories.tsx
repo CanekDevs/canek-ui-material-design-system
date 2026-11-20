@@ -2,6 +2,7 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnCheckboxField } from "./CnCheckboxField";
 import { CnCheckboxFieldSkeleton } from "./CnCheckboxFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const options = [
   { value: "email", label: "Correo", description: "Resumen semanal" },
@@ -12,6 +13,7 @@ const options = [
 const meta: Meta<typeof CnCheckboxField> = {
   title: "Forms/CnCheckboxField",
   component: CnCheckboxField,
+  parameters: { docs: { description: { component: catalogDocs("CnCheckboxField") } } },
   tags: ["autodocs"],
 };
 

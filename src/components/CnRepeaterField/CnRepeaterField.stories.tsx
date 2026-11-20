@@ -5,11 +5,13 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { CnRepeaterField } from "./CnRepeaterField";
 import { CnRepeaterFieldSkeleton } from "./CnRepeaterFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnRepeaterField> = {
   title: "Forms/CnRepeaterField",
   component: CnRepeaterField,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnRepeaterField") } } },
   args: { label: "Pasos a seguir", itemLabel: "Paso", placeholder: "Describe el paso" },
 };
 

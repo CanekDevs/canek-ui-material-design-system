@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnFormSkeleton } from "./CnFormSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnFormSkeleton> = {
   title: "Feedback/CnFormSkeleton",
   component: CnFormSkeleton,
+  parameters: { docs: { description: { component: catalogDocs("CnFormSkeleton") } } },
   tags: ["autodocs"],
   args: { rows: 4, columns: 2, showHeader: true, showActions: true },
   decorators: [(Story) => <div style={{ maxWidth: 720 }}>{Story()}</div>],

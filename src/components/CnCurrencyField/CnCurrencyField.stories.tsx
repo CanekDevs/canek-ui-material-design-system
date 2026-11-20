@@ -2,10 +2,12 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnCurrencyField } from "./CnCurrencyField";
 import { CnCurrencyFieldSkeleton } from "./CnCurrencyFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnCurrencyField> = {
   title: "Forms/CnCurrencyField",
   component: CnCurrencyField,
+  parameters: { docs: { description: { component: catalogDocs("CnCurrencyField") } } },
   tags: ["autodocs"],
   args: { label: "Importe", defaultValue: 1250.5, currency: "MXN" },
   argTypes: {

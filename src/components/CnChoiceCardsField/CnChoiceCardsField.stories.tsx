@@ -2,10 +2,12 @@ import Stack from "@mui/material/Stack";
 import type { Meta, StoryObj } from "@storybook/react";
 import { CnChoiceCardsField } from "./CnChoiceCardsField";
 import { CnChoiceCardsFieldSkeleton } from "./CnChoiceCardsFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnChoiceCardsField> = {
   title: "Forms/CnChoiceCardsField",
   component: CnChoiceCardsField,
+  parameters: { docs: { description: { component: catalogDocs("CnChoiceCardsField") } } },
   tags: ["autodocs"],
   args: {
     label: "Método de envío",

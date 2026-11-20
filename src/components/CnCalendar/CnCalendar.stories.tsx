@@ -4,11 +4,13 @@ import { useState } from "react";
 import type { CnCalendarRange } from "./CnCalendar";
 import { CnCalendar } from "./CnCalendar";
 import { CnCalendarSkeleton } from "./CnCalendarSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnCalendar> = {
   title: "Forms/CnCalendar",
   component: CnCalendar,
   tags: ["autodocs"],
+  parameters: { docs: { description: { component: catalogDocs("CnCalendar") } } },
 };
 
 export default meta;

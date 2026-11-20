@@ -4,10 +4,12 @@ import { useState } from "react";
 import { CnDurationField, formatDuration } from "./CnDurationField";
 import type { CnDurationValue } from "./CnDurationField";
 import { CnDurationFieldSkeleton } from "./CnDurationFieldSkeleton";
+import { catalogDocs } from "../../catalog";
 
 const meta: Meta<typeof CnDurationField> = {
   title: "Forms/CnDurationField",
   component: CnDurationField,
+  parameters: { docs: { description: { component: catalogDocs("CnDurationField") } } },
   tags: ["autodocs"],
   args: { label: "Duración estimada" },
 };
