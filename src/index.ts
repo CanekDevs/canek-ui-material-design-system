@@ -22,6 +22,7 @@ export type {
 
 export { CnAlert } from "./components/CnAlert";
 export type {
+  CnAlertAction,
   CnAlertCloseReason,
   CnAlertColor,
   CnAlertIconMode,
@@ -446,9 +447,14 @@ export type {
   CnCellTone,
   CnCellType,
   CnColumn,
+  CnContact,
   CnDataTableProps,
+  CnEmptyContext,
   CnExportColumn,
   CnExportFormat,
+  CnExportKind,
+  CnExportRow,
+  CnRow,
   CnRowAction,
   CnServerSide,
   CnSortItem,
@@ -722,11 +728,22 @@ export type {
   CnDrawerSkeletonProps,
   CnDrawerVariant,
 } from "./components/CnDrawer";
-export { CnTimeline, CnTimelineSkeleton } from "./components/CnTimeline";
+export {
+  CnTimeline,
+  CnTimelineSkeleton,
+  downloadTimeline,
+  timelineFiltersBy,
+  timelineToCsv,
+  timelineToJson,
+} from "./components/CnTimeline";
 export type {
   CnTimelineAction,
   CnTimelineAlign,
   CnTimelineAttachment,
+  CnTimelineChange,
+  CnTimelineExportFormat,
+  CnTimelineFilter,
+  CnTimelineItemKind,
   CnTimelineItem,
   CnTimelineOrientation,
   CnTimelineProps,
@@ -738,6 +755,7 @@ export type {
 } from "./components/CnTimeline";
 export {
   CN_NOTIFICATION_DEFAULT_TABS,
+  CN_NOTIFICATION_SNOOZE_OPTIONS,
   CnNotificationCenter,
   CnNotificationCenterSkeleton,
   CnNotificationPreview,
@@ -748,9 +766,16 @@ export type {
   CnBrowserNotificationsApi,
   CnNotification,
   CnNotificationAction,
+  CnNotificationCategorySetting,
   CnNotificationCenterProps,
   CnNotificationCenterSkeletonProps,
+  CnNotificationConnection,
+  CnNotificationGroupBy,
   CnNotificationPanel,
+  CnNotificationPriority,
+  CnNotificationProgress,
   CnNotificationPreviewProps,
+  CnNotificationSettings,
+  CnNotificationSnoozeOption,
   CnNotificationTab,
 } from "./components/CnNotificationCenter";

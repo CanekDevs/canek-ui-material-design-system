@@ -7,6 +7,8 @@ export type CnNotificationCenterSkeletonProps = CnSkeletonCommonProps & {
   mode?: "button" | "inline";
   rows?: number;
   tabs?: number;
+  /** Caja de búsqueda bajo las pestañas. */
+  search?: boolean;
 };
 
 /** Skeleton de `CnNotificationCenter` (campana o panel en línea). */
@@ -14,6 +16,7 @@ export const CnNotificationCenterSkeleton = ({
   mode = "button",
   rows = 5,
   tabs = 3,
+  search = false,
   animation,
   ariaLabel = "Cargando notificaciones",
   sx,
@@ -68,6 +71,11 @@ export const CnNotificationCenterSkeleton = ({
           {Array.from({ length: tabs }, (_, i) => (
             <SkText key={i} width={56 + (i % 2) * 14} size={12} />
           ))}
+        </Box>
+      )}
+      {search && (
+        <Box sx={{ px: "12px", pt: "8px", pb: "4px" }}>
+          <SkBlock width="100%" height={34} radius={17} />
         </Box>
       )}
       {Array.from({ length: rows }, (_, i) => (

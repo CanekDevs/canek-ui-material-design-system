@@ -3,6 +3,7 @@ import ButtonBase from "@mui/material/ButtonBase";
 import Popper from "@mui/material/Popper";
 import { useEffect, useState } from "react";
 import { CN_TONES } from "../../utils/tones";
+import { CnAvatar } from "../CnAvatar";
 import { CnButton } from "../CnButton";
 import { CnIcon } from "../CnIcon";
 import { formatRelative, toValidDate } from "../CnTimeline/timeline-utils";
@@ -48,7 +49,7 @@ export const CnNotificationPreview = ({
   }, [paused, total, rotateMs]);
 
   if (!current || !anchorEl) return null;
-  const tone = CN_TONES[current.tone ?? "info"];
+  const tone = CN_TONES[current.tone ?? (current.priority === "urgent" ? "error" : "info")];
   const date = toValidDate(current.time);
 
   return (
@@ -80,6 +81,12 @@ export const CnNotificationPreview = ({
           borderRadius: "var(--cn-radius-lg, 12px)",
           border: "1px solid var(--cn-color-border, #dde0e4)",
           boxShadow: "var(--cn-shadow-lg, 0 12px 32px rgba(15, 23, 42, 0.18))",
+          animation: "cn-notification-preview-in 220ms ease-out",
+          "@keyframes cn-notification-preview-in": {
+            from: { opacity: 0, transform: "translateY(-6px) scale(0.98)" },
+            to: { opacity: 1, transform: "none" },
+          },
+          "@media (prefers-reduced-motion: reduce)": { animation: "none" },
         }}
       >
         <Box aria-hidden sx={{ width: 4, flexShrink: 0, backgroundColor: tone.main }} />
@@ -94,22 +101,26 @@ export const CnNotificationPreview = ({
           }}
         >
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: "10px", minWidth: 0 }}>
-            <Box
-              aria-hidden
-              sx={{
-                width: 32,
-                height: 32,
-                flexShrink: 0,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: tone.main,
-                backgroundColor: tone.soft,
-              }}
-            >
-              <CnIcon name={current.icon ?? "notifications"} size="sm" />
-            </Box>
+            {current.avatar ? (
+              <CnAvatar name={current.avatar.name} src={current.avatar.src} size={32} />
+            ) : (
+              <Box
+                aria-hidden
+                sx={{
+                  width: 32,
+                  height: 32,
+                  flexShrink: 0,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: tone.main,
+                  backgroundColor: tone.soft,
+                }}
+              >
+                <CnIcon name={current.icon ?? "notifications"} size="sm" />
+              </Box>
+            )}
             <ButtonBase
               onClick={() => onOpen(current)}
               data-cn-notification-preview-open

@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import type { CnSkeletonCommonProps } from "../CnSkeleton";
 import { CnSkeletonGroup, SkBlock, SkText, varyWidth } from "../CnSkeleton";
-import type { CnTimelineAlign, CnTimelineOrientation, CnTimelineSize } from "./CnTimeline";
+import type { CnTimelineAlign, CnTimelineOrientation, CnTimelineSize } from "./CnTimeline.types";
 
 export type CnTimelineSkeletonProps = CnSkeletonCommonProps & {
   count?: number;
@@ -10,6 +10,8 @@ export type CnTimelineSkeletonProps = CnSkeletonCommonProps & {
   size?: CnTimelineSize;
   /** Encabezados de día. */
   groups?: boolean;
+  /** Barra de búsqueda y filtros. */
+  toolbar?: boolean;
   /** Líneas de descripción por elemento. */
   lines?: number;
 };
@@ -23,6 +25,7 @@ export const CnTimelineSkeleton = ({
   align = "left",
   size = "md",
   groups = false,
+  toolbar = false,
   lines = 1,
   animation,
   ariaLabel = "Cargando actividad",
@@ -30,6 +33,16 @@ export const CnTimelineSkeleton = ({
   className,
 }: CnTimelineSkeletonProps) => {
   const marker = MARKER[size];
+  const toolbarNode = toolbar && (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "8px", mb: "16px" }}>
+      <SkBlock width="min(100%, 280px)" height={34} radius={17} />
+      <Box sx={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+        {[64, 82, 56].map((w, i) => (
+          <SkBlock key={i} width={w} height={24} radius={12} />
+        ))}
+      </Box>
+    </Box>
+  );
   const text = (i: number, right = false) => (
     <Box
       sx={{
@@ -58,6 +71,7 @@ export const CnTimelineSkeleton = ({
         className={className}
         sx={sx}
       >
+        {toolbarNode}
         <Box sx={{ display: "flex", overflow: "hidden" }}>
           {Array.from({ length: count }, (_, i) => (
             <Box key={i} sx={{ flex: "1 0 auto", width: size === "sm" ? 168 : 208, pr: "16px" }}>
@@ -120,6 +134,7 @@ export const CnTimelineSkeleton = ({
       className={className}
       sx={sx}
     >
+      {toolbarNode}
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
         {groups && <SkText width={64} size={11} sx={{ mb: "8px" }} />}
         {Array.from({ length: count }, (_, i) => (
