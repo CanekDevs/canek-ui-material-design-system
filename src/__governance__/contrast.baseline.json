@@ -1,0 +1,10 @@
+{
+  "claro: text-muted / bg": 4.42,
+  "claro: text-muted / surface-sunken": 4.2,
+  "claro: text-subtle / bg": 2.51,
+  "claro: text-subtle / surface": 2.6,
+  "claro: text-subtle / surface-elevated": 2.6,
+  "claro: text-subtle / surface-sunken": 2.39,
+  "claro: border / surface": 1.32,
+  "oscuro: border / surface": 1.28
+}
