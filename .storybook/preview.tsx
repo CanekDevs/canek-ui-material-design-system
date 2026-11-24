@@ -1,4 +1,6 @@
 import type { Preview } from "@storybook/react";
+import "../src/styles/tokens.ref.css";
+import "../src/styles/tokens.sys.css";
 import "../src/styles/tokens.css";
 import { CanekThemeProvider } from "../src/theme";
 

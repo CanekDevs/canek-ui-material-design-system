@@ -9,6 +9,11 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 
 ### Agregado
 
+- Tokens en capas: capa `ref` (`--cn-ref-*`, 439 variables) generada desde
+  `tokens/base.tokens.json` y capa `sys` (`--cn-sys-*`) con 47 roles de color para claro y oscuro
+  (`[data-cn-theme="dark"]`) y 15 roles de texto. `npm run tokens` los regenera; se exportan `ref`,
+  `refVar`, `sys`, `sysVar` y `typeAlias`, y `styles.css` los incluye. Pruebas de contraste AA para
+  cada par texto/fondo de la capa `sys`.
 - `CnDocCard`: tarjeta de documento con tipo por mime/extensión, miniatura, metadatos, estado,
   etiquetas, versión, acciones (ver, descargar, compartir, menú), selección, progreso de carga y error;
   vista previa de imágenes, video, audio y PDF.

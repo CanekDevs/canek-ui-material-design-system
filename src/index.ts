@@ -503,8 +503,33 @@ export type { CnPhoneCountry } from "./utils/phone-countries";
 export { CanekThemeProvider, createCanekTheme } from "./theme";
 export type { CanekThemeMode, CanekThemeProviderProps } from "./theme";
 
-export { colors, motion, radii, shadows, spacing, typography, zIndex } from "./tokens";
-export type { CnColorScale, CnColorStep, CnRadius, CnShadow, CnSpacing } from "./tokens";
+export {
+  colors,
+  motion,
+  radii,
+  ref,
+  refSource,
+  refVar,
+  shadows,
+  spacing,
+  sys,
+  sysVar,
+  typeAlias,
+  typography,
+  zIndex,
+} from "./tokens";
+export type {
+  CnColorScale,
+  CnColorStep,
+  CnRadius,
+  CnRefColor,
+  CnRefTypeStyle,
+  CnShadow,
+  CnSpacing,
+  CnSysColor,
+  CnSysTypeRole,
+  CnThemeMode,
+} from "./tokens";
 
 // ─── Skeletons (estado de carga de cada componente) ─────────────────
 export { CnAlertSkeleton } from "./components/CnAlert";

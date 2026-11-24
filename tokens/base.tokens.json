@@ -1,0 +1,2149 @@
+{
+  "name": "Canek base",
+  "version": 2,
+  "meta": {
+    "source": "producto de origen (repositorio interno)",
+    "ref": "develop@b7fe93e",
+    "synced": "2026-11-04T20:44:56Z",
+    "precedence": "Regla de diseño > código > sitio en vivo. Cada token cambiado guarda el valor del código en `code`."
+  },
+  "color": {
+    "themes": [
+      {
+        "id": "light",
+        "name": "Claro"
+      }
+    ],
+    "tokens": [
+      {
+        "name": "color-neutral-050",
+        "value": "#fafafa",
+        "usage": "Rampa neutral, paso 050. Grises Material. 050–200 fondos y separadores suaves; 300 bordes (`color-border-default`); 600–650 texto secundario; 800 texto principal."
+      },
+      {
+        "name": "color-neutral-100",
+        "value": "#f5f5f5",
+        "usage": "Rampa neutral, paso 100. Grises Material. 050–200 fondos y separadores suaves; 300 bordes (`color-border-default`); 600–650 texto secundario; 800 texto principal."
+      },
+      {
+        "name": "color-neutral-200",
+        "value": "#eeeeee",
+        "usage": "Rampa neutral, paso 200. Grises Material. 050–200 fondos y separadores suaves; 300 bordes (`color-border-default`); 600–650 texto secundario; 800 texto principal."
+      },
+      {
+        "name": "color-neutral-300",
+        "value": "#e0e0e0",
+        "usage": "Divisor MUI y borde 1px de Paper, DataTable y controles outlined neutros."
+      },
+      {
+        "name": "color-neutral-400",
+        "value": "#bdbdbd",
+        "usage": "Rampa neutral, paso 400. Grises Material. 050–200 fondos y separadores suaves; 300 bordes (`color-border-default`); 600–650 texto secundario; 800 texto principal."
+      },
+      {
+        "name": "color-neutral-500",
+        "value": "#9e9e9e",
+        "usage": "Rampa neutral, paso 500. Grises Material. 050–200 fondos y separadores suaves; 300 bordes (`color-border-default`); 600–650 texto secundario; 800 texto principal."
+      },
+      {
+        "name": "color-neutral-600",
+        "value": "#757575",
+        "usage": "Rampa neutral, paso 600. Grises Material. 050–200 fondos y separadores suaves; 300 bordes (`color-border-default`); 600–650 texto secundario; 800 texto principal."
+      },
+      {
+        "name": "color-neutral-650",
+        "value": "#616161",
+        "usage": "Texto secundario. Sobre blanco: 6.19:1."
+      },
+      {
+        "name": "color-neutral-700",
+        "value": "#575757",
+        "usage": "Rampa neutral, paso 700. Grises Material. 050–200 fondos y separadores suaves; 300 bordes (`color-border-default`); 600–650 texto secundario; 800 texto principal."
+      },
+      {
+        "name": "color-neutral-800",
+        "value": "#424242",
+        "usage": "Texto principal y fondo de Tooltip. Sobre `color-app-bg`: 9.17:1."
+      },
+      {
+        "name": "color-neutral-900",
+        "value": "#212121",
+        "usage": "Rampa neutral, paso 900. Grises Material. 050–200 fondos y separadores suaves; 300 bordes (`color-border-default`); 600–650 texto secundario; 800 texto principal."
+      },
+      {
+        "name": "color-transparent",
+        "value": "#00000000",
+        "usage": "Transparente explícito."
+      },
+      {
+        "name": "color-white",
+        "value": "#ffffff",
+        "usage": "Superficie de tarjetas, Paper, tablas e inputs; texto sobre rellenos sólidos."
+      },
+      {
+        "name": "color-sky-050",
+        "value": "#e1f5fe",
+        "usage": "Rampa sky, paso 050. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-sky-100",
+        "value": "#b3e5fc",
+        "usage": "Rampa sky, paso 100. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-sky-200",
+        "value": "#81d4fa",
+        "usage": "Rampa sky, paso 200. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-sky-300",
+        "value": "#4fc3f7",
+        "usage": "Rampa sky, paso 300. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-sky-400",
+        "value": "#29b6f6",
+        "usage": "Rampa sky, paso 400. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-sky-500",
+        "value": "#03a9f4",
+        "usage": "Rampa sky, paso 500. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-sky-600",
+        "value": "#039be5",
+        "usage": "Rampa sky, paso 600. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-sky-700",
+        "value": "#0288d1",
+        "usage": "Rampa sky, paso 700. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-sky-800",
+        "value": "#0277bd",
+        "usage": "Rampa sky, paso 800. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-sky-900",
+        "value": "#01579b",
+        "usage": "Rampa sky, paso 900. Info: botón y alerta `info`, capacitaciones en calendario, serie `info` de gráficas."
+      },
+      {
+        "name": "color-amber-050",
+        "value": "#fff8e1",
+        "usage": "Rampa amber, paso 050. Advertencia (MUI `warning` = 700). 100/700 también pintan los módulos Documentos, Timesheet, Normativa y Centro de atención."
+      },
+      {
+        "name": "color-amber-100",
+        "value": "#ffecb3",
+        "usage": "Rampa amber, paso 100. Advertencia (MUI `warning` = 700). 100/700 también pintan los módulos Documentos, Timesheet, Normativa y Centro de atención."
+      },
+      {
+        "name": "color-amber-200",
+        "value": "#ffe082",
+        "usage": "Rampa amber, paso 200. Advertencia (MUI `warning` = 700). 100/700 también pintan los módulos Documentos, Timesheet, Normativa y Centro de atención."
+      },
+      {
+        "name": "color-amber-300",
+        "value": "#ffd54f",
+        "usage": "Rampa amber, paso 300. Advertencia (MUI `warning` = 700). 100/700 también pintan los módulos Documentos, Timesheet, Normativa y Centro de atención."
+      },
+      {
+        "name": "color-amber-400",
+        "value": "#ffca28",
+        "usage": "Rampa amber, paso 400. Advertencia (MUI `warning` = 700). 100/700 también pintan los módulos Documentos, Timesheet, Normativa y Centro de atención."
+      },
+      {
+        "name": "color-amber-500",
+        "value": "#ffc107",
+        "usage": "Rampa amber, paso 500. Advertencia (MUI `warning` = 700). 100/700 también pintan los módulos Documentos, Timesheet, Normativa y Centro de atención."
+      },
+      {
+        "name": "color-amber-600",
+        "value": "#ffb300",
+        "usage": "Rampa amber, paso 600. Advertencia (MUI `warning` = 700). 100/700 también pintan los módulos Documentos, Timesheet, Normativa y Centro de atención."
+      },
+      {
+        "name": "color-amber-700",
+        "value": "#ffa000",
+        "usage": "MUI warning.main. El tema pone texto blanco encima (2.04:1, valor de origen conservado: no usar para texto)."
+      },
+      {
+        "name": "color-amber-800",
+        "value": "#ff8f00",
+        "usage": "Rampa amber, paso 800. Advertencia (MUI `warning` = 700). 100/700 también pintan los módulos Documentos, Timesheet, Normativa y Centro de atención."
+      },
+      {
+        "name": "color-amber-900",
+        "value": "#ff6f00",
+        "usage": "Rampa amber, paso 900. Advertencia (MUI `warning` = 700). 100/700 también pintan los módulos Documentos, Timesheet, Normativa y Centro de atención."
+      },
+      {
+        "name": "color-red-050",
+        "value": "#ffebee",
+        "usage": "Rampa red, paso 050. Error (MUI `error` = 600). 050/500 pintan los módulos Comunicación y Riesgos."
+      },
+      {
+        "name": "color-red-100",
+        "value": "#ffcdd2",
+        "usage": "Rampa red, paso 100. Error (MUI `error` = 600). 050/500 pintan los módulos Comunicación y Riesgos."
+      },
+      {
+        "name": "color-red-200",
+        "value": "#ef9a9a",
+        "usage": "Rampa red, paso 200. Error (MUI `error` = 600). 050/500 pintan los módulos Comunicación y Riesgos."
+      },
+      {
+        "name": "color-red-300",
+        "value": "#e57373",
+        "usage": "Rampa red, paso 300. Error (MUI `error` = 600). 050/500 pintan los módulos Comunicación y Riesgos."
+      },
+      {
+        "name": "color-red-400",
+        "value": "#ef5350",
+        "usage": "Rampa red, paso 400. Error (MUI `error` = 600). 050/500 pintan los módulos Comunicación y Riesgos."
+      },
+      {
+        "name": "color-red-500",
+        "value": "#f44336",
+        "usage": "Rampa red, paso 500. Error (MUI `error` = 600). 050/500 pintan los módulos Comunicación y Riesgos."
+      },
+      {
+        "name": "color-red-600",
+        "value": "#e53935",
+        "usage": "MUI error.main: borde, label y helper text de inputs con error."
+      },
+      {
+        "name": "color-red-700",
+        "value": "#d32f2f",
+        "usage": "Rampa red, paso 700. Error (MUI `error` = 600). 050/500 pintan los módulos Comunicación y Riesgos."
+      },
+      {
+        "name": "color-red-800",
+        "value": "#c62828",
+        "usage": "Rampa red, paso 800. Error (MUI `error` = 600). 050/500 pintan los módulos Comunicación y Riesgos."
+      },
+      {
+        "name": "color-red-900",
+        "value": "#b71c1c",
+        "usage": "Rampa red, paso 900. Error (MUI `error` = 600). 050/500 pintan los módulos Comunicación y Riesgos."
+      },
+      {
+        "name": "color-green-050",
+        "value": "#e8f5e9",
+        "usage": "Rampa green, paso 050. Éxito (MUI `success` = 700): estados Activo/Aprobado, ingresos en calendario."
+      },
+      {
+        "name": "color-green-100",
+        "value": "#c8e6c9",
+        "usage": "Rampa green, paso 100. Éxito (MUI `success` = 700): estados Activo/Aprobado, ingresos en calendario."
+      },
+      {
+        "name": "color-green-200",
+        "value": "#a5d6a7",
+        "usage": "Rampa green, paso 200. Éxito (MUI `success` = 700): estados Activo/Aprobado, ingresos en calendario."
+      },
+      {
+        "name": "color-green-300",
+        "value": "#81c784",
+        "usage": "Rampa green, paso 300. Éxito (MUI `success` = 700): estados Activo/Aprobado, ingresos en calendario."
+      },
+      {
+        "name": "color-green-400",
+        "value": "#66bb6a",
+        "usage": "Rampa green, paso 400. Éxito (MUI `success` = 700): estados Activo/Aprobado, ingresos en calendario."
+      },
+      {
+        "name": "color-green-500",
+        "value": "#4caf50",
+        "usage": "Rampa green, paso 500. Éxito (MUI `success` = 700): estados Activo/Aprobado, ingresos en calendario."
+      },
+      {
+        "name": "color-green-600",
+        "value": "#43a047",
+        "usage": "Rampa green, paso 600. Éxito (MUI `success` = 700): estados Activo/Aprobado, ingresos en calendario."
+      },
+      {
+        "name": "color-green-700",
+        "value": "#388e3c",
+        "usage": "MUI success.main."
+      },
+      {
+        "name": "color-green-800",
+        "value": "#2e7d32",
+        "usage": "Rampa green, paso 800. Éxito (MUI `success` = 700): estados Activo/Aprobado, ingresos en calendario."
+      },
+      {
+        "name": "color-green-900",
+        "value": "#1b5e20",
+        "usage": "Rampa green, paso 900. Éxito (MUI `success` = 700): estados Activo/Aprobado, ingresos en calendario."
+      },
+      {
+        "name": "color-teal-050",
+        "value": "#e2f5f8",
+        "usage": "Rampa teal, paso 050. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-teal-100",
+        "value": "#b7e4ee",
+        "usage": "Rampa teal, paso 100. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-teal-300",
+        "value": "#8bd2e4",
+        "usage": "Rampa teal, paso 300. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-teal-400",
+        "value": "#67c0da",
+        "usage": "Rampa teal, paso 400. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-teal-500",
+        "value": "#50b3d4",
+        "usage": "Rampa teal, paso 500. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-teal-600",
+        "value": "#41a7cf",
+        "usage": "Rampa teal, paso 600. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-teal-700",
+        "value": "#3999c1",
+        "usage": "Rampa teal, paso 700. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-teal-800",
+        "value": "#3086af",
+        "usage": "Rampa teal, paso 800. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-teal-850",
+        "value": "#2d769b",
+        "usage": "Rampa teal, paso 850. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-teal-900",
+        "value": "#22577a",
+        "usage": "Rampa teal, paso 900. Módulos Gestión de talento y Configurar capital humano (100/700); eventos en calendario."
+      },
+      {
+        "name": "color-brand-050",
+        "value": "#e7f3fc",
+        "usage": "Fondo de inputs deshabilitados."
+      },
+      {
+        "name": "color-brand-100",
+        "value": "#c4e2f8",
+        "usage": "Fondo del icono de módulos azules (Mi perfil, Capacitaciones, Calendario, Solicitudes, Administración)."
+      },
+      {
+        "name": "color-brand-300",
+        "value": "#a2d0f3",
+        "usage": "Rampa brand, paso 300. Azul de marca."
+      },
+      {
+        "name": "color-brand-350",
+        "value": "#84bded",
+        "usage": "Rampa brand, paso 350. Azul de marca."
+      },
+      {
+        "name": "color-brand-450",
+        "value": "#6fafe9",
+        "usage": "Icono de módulos azules sobre `color-brand-100`."
+      },
+      {
+        "name": "color-brand-500",
+        "value": "#61a2e5",
+        "usage": "primary-light; anillo de foco `.tb-focus-ring` y cursor de gráficas."
+      },
+      {
+        "name": "color-brand-550",
+        "value": "#5993d7",
+        "usage": "Rampa brand, paso 550. Azul de marca."
+      },
+      {
+        "name": "color-brand-600",
+        "value": "#5081c4",
+        "usage": "Relleno de Button y Chip `primary`; marcador de navegación activo. Texto blanco encima: 3.98:1, por debajo de 4.5:1 en 14px (valor de origen conservado)."
+      },
+      {
+        "name": "color-brand-700",
+        "value": "#4870b2",
+        "usage": "PRIMARY del tema MUI: botón contenido, borde de input en hover/foco, label enfocado, tab activa. Texto blanco encima: 4.96:1."
+      },
+      {
+        "name": "color-brand-900",
+        "value": "#3b5391",
+        "usage": "primary-dark y MUI `secondary`; texto de reuniones en calendario."
+      },
+      {
+        "name": "color-indigo-300",
+        "value": "#8c9eff",
+        "usage": "Rampa indigo, paso 300. Acento: `accent` en MUI, Button y Chip."
+      },
+      {
+        "name": "color-indigo-400",
+        "value": "#536dfe",
+        "usage": "Rampa indigo, paso 400. Acento: `accent` en MUI, Button y Chip."
+      },
+      {
+        "name": "color-indigo-500",
+        "value": "#3d5afe",
+        "usage": "MUI accent.main."
+      },
+      {
+        "name": "color-indigo-600",
+        "value": "#304ffe",
+        "usage": "Rampa indigo, paso 600. Acento: `accent` en MUI, Button y Chip."
+      },
+      {
+        "name": "color-cyan-050",
+        "value": "#e0f7fa",
+        "usage": "Rampa cyan, paso 050. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-cyan-100",
+        "value": "#b2ebf2",
+        "usage": "Rampa cyan, paso 100. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-cyan-200",
+        "value": "#80deea",
+        "usage": "Rampa cyan, paso 200. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-cyan-300",
+        "value": "#4dd0e1",
+        "usage": "Rampa cyan, paso 300. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-cyan-400",
+        "value": "#26c6da",
+        "usage": "Rampa cyan, paso 400. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-cyan-500",
+        "value": "#00bcd4",
+        "usage": "Rampa cyan, paso 500. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-cyan-600",
+        "value": "#00acc1",
+        "usage": "Rampa cyan, paso 600. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-cyan-700",
+        "value": "#0097a7",
+        "usage": "Rampa cyan, paso 700. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-cyan-800",
+        "value": "#00838f",
+        "usage": "Rampa cyan, paso 800. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-cyan-900",
+        "value": "#006064",
+        "usage": "Rampa cyan, paso 900. Rampa disponible para gráficas y InfoCard `cyan`."
+      },
+      {
+        "name": "color-purple-050",
+        "value": "#f3e5f5",
+        "usage": "Rampa purple, paso 050. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-purple-100",
+        "value": "#e1bee7",
+        "usage": "Rampa purple, paso 100. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-purple-200",
+        "value": "#ce93d8",
+        "usage": "Rampa purple, paso 200. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-purple-300",
+        "value": "#ba68c8",
+        "usage": "Rampa purple, paso 300. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-purple-400",
+        "value": "#ab47bc",
+        "usage": "Rampa purple, paso 400. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-purple-500",
+        "value": "#9c27b0",
+        "usage": "Rampa purple, paso 500. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-purple-600",
+        "value": "#8e24aa",
+        "usage": "Rampa purple, paso 600. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-purple-700",
+        "value": "#7b1fa2",
+        "usage": "Rampa purple, paso 700. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-purple-800",
+        "value": "#6a1b9a",
+        "usage": "Rampa purple, paso 800. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-purple-900",
+        "value": "#4a148c",
+        "usage": "Rampa purple, paso 900. Button `secondary`; recordatorios en calendario."
+      },
+      {
+        "name": "color-deep-purple-050",
+        "value": "#ede7f6",
+        "usage": "Rampa deep-purple, paso 050. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-deep-purple-100",
+        "value": "#d1c4e9",
+        "usage": "Rampa deep-purple, paso 100. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-deep-purple-200",
+        "value": "#b39ddb",
+        "usage": "Rampa deep-purple, paso 200. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-deep-purple-300",
+        "value": "#9575cd",
+        "usage": "Rampa deep-purple, paso 300. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-deep-purple-400",
+        "value": "#7e57c2",
+        "usage": "Rampa deep-purple, paso 400. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-deep-purple-500",
+        "value": "#673ab7",
+        "usage": "Rampa deep-purple, paso 500. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-deep-purple-600",
+        "value": "#5e35b1",
+        "usage": "Rampa deep-purple, paso 600. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-deep-purple-700",
+        "value": "#512da8",
+        "usage": "Rampa deep-purple, paso 700. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-deep-purple-800",
+        "value": "#4527a0",
+        "usage": "Rampa deep-purple, paso 800. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-deep-purple-900",
+        "value": "#311b92",
+        "usage": "Rampa deep-purple, paso 900. Módulos Gestión contractual, Visitantes y Configurar organización (100/400)."
+      },
+      {
+        "name": "color-pink-050",
+        "value": "#fce4ec",
+        "usage": "Rampa pink, paso 050. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-pink-100",
+        "value": "#f8bbd0",
+        "usage": "Rampa pink, paso 100. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-pink-200",
+        "value": "#f48fb1",
+        "usage": "Rampa pink, paso 200. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-pink-300",
+        "value": "#f06292",
+        "usage": "Rampa pink, paso 300. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-pink-400",
+        "value": "#ec407a",
+        "usage": "Rampa pink, paso 400. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-pink-500",
+        "value": "#e91e63",
+        "usage": "Rampa pink, paso 500. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-pink-600",
+        "value": "#d81b60",
+        "usage": "Rampa pink, paso 600. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-pink-700",
+        "value": "#c2185b",
+        "usage": "Rampa pink, paso 700. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-pink-800",
+        "value": "#ad1457",
+        "usage": "Rampa pink, paso 800. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-pink-900",
+        "value": "#880e4f",
+        "usage": "Rampa pink, paso 900. Cumpleaños en calendario; InfoCard `pink`."
+      },
+      {
+        "name": "color-orange-050",
+        "value": "#fff3e0",
+        "usage": "Rampa orange, paso 050. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-orange-100",
+        "value": "#ffe0b2",
+        "usage": "Rampa orange, paso 100. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-orange-200",
+        "value": "#ffcc80",
+        "usage": "Rampa orange, paso 200. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-orange-300",
+        "value": "#ffb74d",
+        "usage": "Rampa orange, paso 300. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-orange-400",
+        "value": "#ffa726",
+        "usage": "Rampa orange, paso 400. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-orange-500",
+        "value": "#ff9800",
+        "usage": "Rampa orange, paso 500. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-orange-600",
+        "value": "#fb8c00",
+        "usage": "Rampa orange, paso 600. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-orange-700",
+        "value": "#f57c00",
+        "usage": "Rampa orange, paso 700. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-orange-800",
+        "value": "#ef6c00",
+        "usage": "Rampa orange, paso 800. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-orange-900",
+        "value": "#e65100",
+        "usage": "Rampa orange, paso 900. Días festivos en calendario; InfoCard `orange`."
+      },
+      {
+        "name": "color-lavender-050",
+        "value": "#f4eeff",
+        "usage": "Rampa lavender, paso 050. Tinte lila muy claro."
+      },
+      {
+        "name": "color-app-bg",
+        "value": "#f2f4ff",
+        "usage": "Fondo de página de toda la app (`body`, MUI background.default). Lila-azulado muy claro, nunca blanco puro."
+      },
+      {
+        "name": "color-brand-primary",
+        "value": "{color-brand-700}",
+        "usage": "Alias semántico del primario. Úsalo cuando el rol es \"marca\"."
+      },
+      {
+        "name": "color-brand-primary-dark",
+        "value": "{color-brand-900}",
+        "usage": "Primario oscuro."
+      },
+      {
+        "name": "color-brand-primary-light",
+        "value": "{color-brand-500}",
+        "usage": "Primario claro: foco y realces."
+      },
+      {
+        "name": "color-text-primary",
+        "value": "{color-neutral-900}",
+        "usage": "Texto principal (#212121, estilo «Texto Normal» del Figma). Cuerpo de tarjetas, celdas, correos.",
+        "code": "{color-neutral-800}",
+        "rule": "Colores · Texto Normal"
+      },
+      {
+        "name": "color-text-secondary",
+        "value": "{color-neutral-650}",
+        "usage": "Texto secundario, captions y labels sobre `color-white` (6.2:1)."
+      },
+      {
+        "name": "color-border-default",
+        "value": "{color-neutral-300}",
+        "usage": "Bordes de tarjetas, Paper y tablas (1px)."
+      },
+      {
+        "name": "tb-primary",
+        "value": "{color-brand-primary}",
+        "usage": "Alias heredado `--tb-primary`."
+      },
+      {
+        "name": "tb-module-bg",
+        "value": "{color-app-bg}",
+        "usage": "Alias heredado `--tb-module-bg`: fondo de módulos y de `body`."
+      },
+      {
+        "name": "color-input-border",
+        "value": "#b5b5b5",
+        "usage": "Borde 1.5px de inputs en reposo y deshabilitados. Es un literal en `theme.ts`, no una variable CSS del código."
+      },
+      {
+        "name": "cal-birthday-bg",
+        "value": "rgba(233,30,99,0.10)",
+        "usage": "Cumpleaños en Calendar: fondo de la píldora del evento."
+      },
+      {
+        "name": "cal-birthday-text",
+        "value": "{color-pink-700}",
+        "usage": "Cumpleaños: texto sobre `cal-birthday-bg`."
+      },
+      {
+        "name": "cal-birthday-dot",
+        "value": "{color-pink-500}",
+        "usage": "Cumpleaños: punto indicador y leyenda."
+      },
+      {
+        "name": "cal-birthday-border",
+        "value": "rgba(233,30,99,0.15)",
+        "usage": "Cumpleaños: borde de la píldora."
+      },
+      {
+        "name": "cal-holiday-bg",
+        "value": "rgba(255,152,0,0.12)",
+        "usage": "Días festivos en Calendar: fondo de la píldora del evento."
+      },
+      {
+        "name": "cal-holiday-text",
+        "value": "{color-orange-900}",
+        "usage": "Días festivos: texto sobre `cal-holiday-bg`."
+      },
+      {
+        "name": "cal-holiday-dot",
+        "value": "{color-orange-500}",
+        "usage": "Días festivos: punto indicador y leyenda."
+      },
+      {
+        "name": "cal-holiday-border",
+        "value": "rgba(255,152,0,0.15)",
+        "usage": "Días festivos: borde de la píldora."
+      },
+      {
+        "name": "cal-meeting-bg",
+        "value": "rgba(72,112,178,0.12)",
+        "usage": "Reuniones en Calendar: fondo de la píldora del evento."
+      },
+      {
+        "name": "cal-meeting-text",
+        "value": "{color-brand-900}",
+        "usage": "Reuniones: texto sobre `cal-meeting-bg`."
+      },
+      {
+        "name": "cal-meeting-dot",
+        "value": "{color-brand-700}",
+        "usage": "Reuniones: punto indicador y leyenda."
+      },
+      {
+        "name": "cal-meeting-border",
+        "value": "rgba(72,112,178,0.15)",
+        "usage": "Reuniones: borde de la píldora."
+      },
+      {
+        "name": "cal-event-bg",
+        "value": "rgba(65,167,207,0.12)",
+        "usage": "Eventos en Calendar: fondo de la píldora del evento."
+      },
+      {
+        "name": "cal-event-text",
+        "value": "{color-teal-850}",
+        "usage": "Eventos: texto sobre `cal-event-bg`."
+      },
+      {
+        "name": "cal-event-dot",
+        "value": "{color-teal-600}",
+        "usage": "Eventos: punto indicador y leyenda."
+      },
+      {
+        "name": "cal-event-border",
+        "value": "rgba(65,167,207,0.15)",
+        "usage": "Eventos: borde de la píldora."
+      },
+      {
+        "name": "cal-reminder-bg",
+        "value": "rgba(156,39,176,0.12)",
+        "usage": "Recordatorios en Calendar: fondo de la píldora del evento."
+      },
+      {
+        "name": "cal-reminder-text",
+        "value": "{color-purple-800}",
+        "usage": "Recordatorios: texto sobre `cal-reminder-bg`."
+      },
+      {
+        "name": "cal-reminder-dot",
+        "value": "{color-purple-500}",
+        "usage": "Recordatorios: punto indicador y leyenda."
+      },
+      {
+        "name": "cal-reminder-border",
+        "value": "rgba(156,39,176,0.15)",
+        "usage": "Recordatorios: borde de la píldora."
+      },
+      {
+        "name": "cal-ingreso-bg",
+        "value": "rgba(67,160,71,0.12)",
+        "usage": "Ingresos de colaboradores en Calendar: fondo de la píldora del evento."
+      },
+      {
+        "name": "cal-ingreso-text",
+        "value": "{color-green-800}",
+        "usage": "Ingresos de colaboradores: texto sobre `cal-ingreso-bg`."
+      },
+      {
+        "name": "cal-ingreso-dot",
+        "value": "{color-green-500}",
+        "usage": "Ingresos de colaboradores: punto indicador y leyenda."
+      },
+      {
+        "name": "cal-ingreso-border",
+        "value": "rgba(67,160,71,0.15)",
+        "usage": "Ingresos de colaboradores: borde de la píldora."
+      },
+      {
+        "name": "cal-training-bg",
+        "value": "rgba(3,169,244,0.12)",
+        "usage": "Capacitaciones en Calendar: fondo de la píldora del evento."
+      },
+      {
+        "name": "cal-training-text",
+        "value": "{color-sky-900}",
+        "usage": "Capacitaciones: texto sobre `cal-training-bg`."
+      },
+      {
+        "name": "cal-training-dot",
+        "value": "{color-sky-500}",
+        "usage": "Capacitaciones: punto indicador y leyenda."
+      },
+      {
+        "name": "cal-training-border",
+        "value": "rgba(3,169,244,0.15)",
+        "usage": "Capacitaciones: borde de la píldora."
+      },
+      {
+        "name": "cal-task-bg",
+        "value": "rgba(117,117,117,0.10)",
+        "usage": "Tareas en Calendar: fondo de la píldora del evento."
+      },
+      {
+        "name": "cal-task-text",
+        "value": "{color-neutral-800}",
+        "usage": "Tareas: texto sobre `cal-task-bg`."
+      },
+      {
+        "name": "cal-task-dot",
+        "value": "{color-neutral-500}",
+        "usage": "Tareas: punto indicador y leyenda."
+      },
+      {
+        "name": "cal-task-border",
+        "value": "rgba(117,117,117,0.15)",
+        "usage": "Tareas: borde de la píldora."
+      },
+      {
+        "name": "chart-grid",
+        "value": "{color-neutral-200}",
+        "usage": "Rejilla horizontal punteada (3 3) de gráficas Recharts."
+      },
+      {
+        "name": "chart-axis",
+        "value": "{color-neutral-400}",
+        "usage": "Ejes de gráficas."
+      },
+      {
+        "name": "chart-text",
+        "value": "{color-neutral-700}",
+        "usage": "Etiquetas de ejes y leyendas."
+      },
+      {
+        "name": "chart-tooltip-border",
+        "value": "{color-neutral-300}",
+        "usage": "Borde del tooltip de gráficas (fondo blanco)."
+      },
+      {
+        "name": "color-core-negro",
+        "value": "#2e2e2e",
+        "usage": "Variable «Negro». Títulos de diálogos y alertas (22px).",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-gris",
+        "value": "#747474",
+        "usage": "Variable «Gris». Descripción de diálogos y alertas (16px), iconos de fila (⋮).",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-azul-claro",
+        "value": "#d8e1ec",
+        "usage": "Variable «Azul claro». Fondos suaves de marca.",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-alertas",
+        "value": "#d6edff",
+        "usage": "Variable «Alertas». Fondo de avisos informativos.",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-fondo",
+        "value": "#eaebf3",
+        "usage": "Variable «Fondo». OJO: el marco de Colores y el código usan #f2f4ff como lienzo; ver VERIFICACION.md.",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-seleccion",
+        "value": "#eef4ff",
+        "usage": "Variable «Selección lateral». Ítem activo del menú lateral.",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-azul-cards",
+        "value": "#1e94a8",
+        "usage": "Variable «Azul cards».",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-verde-insignia",
+        "value": "#2abf7e",
+        "usage": "Variable «Verde insignia» (Recompensas).",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-morado-insignia",
+        "value": "#4c00ff",
+        "usage": "Variable «Morado insignia» (Recompensas).",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-table-head",
+        "value": "#f8f8f8",
+        "usage": "Fondo del encabezado de Tabla básica (5790:989).",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-table-line",
+        "value": "#e5e5e5",
+        "usage": "Borde del encabezado de Tabla básica.",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-row-selected",
+        "value": "#d8deff",
+        "usage": "Fila seleccionada de Tabla básica.",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-mail-border",
+        "value": "#d1d1d1",
+        "usage": "Borde 1px de la tarjeta de correo (Correos 5789:484).",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-mail-muted",
+        "value": "#707070",
+        "usage": "URL del pie de correo.",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-module-label",
+        "value": "#37474f",
+        "usage": "Etiqueta de los tiles del menú de módulos (Modulos 5095:5381).",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-core-badge",
+        "value": "#f59e0b",
+        "usage": "Contador de notificaciones del Navbar. Fuera de la paleta Material; ver VERIFICACION.md.",
+        "rule": "Figma"
+      },
+      {
+        "name": "color-canvas",
+        "value": "{color-app-bg}",
+        "usage": "Lienzo de toda pantalla (#f2f4ff, marco Colores).",
+        "rule": "Colores"
+      },
+      {
+        "name": "color-surface",
+        "value": "{color-white}",
+        "usage": "Tarjetas, tablas, diálogos, correos.",
+        "rule": "Cards"
+      },
+      {
+        "name": "color-surface-soft",
+        "value": "{color-neutral-050}",
+        "usage": "Panel de módulos y alertas de confirmación (#fafafa).",
+        "rule": "Modulos · Alertas"
+      },
+      {
+        "name": "color-heading",
+        "value": "{color-brand-700}",
+        "usage": "Color de h1–subtitle1 y del título de tarjeta (muestras azules del marco Tipografía).",
+        "rule": "Tipografía"
+      },
+      {
+        "name": "color-text-title",
+        "value": "{color-core-negro}",
+        "usage": "Título de diálogo y alerta.",
+        "rule": "Modales · Alertas"
+      },
+      {
+        "name": "color-text-muted",
+        "value": "{color-core-gris}",
+        "usage": "Descripción de diálogo y alerta.",
+        "rule": "Alertas"
+      },
+      {
+        "name": "color-text-caption",
+        "value": "{color-neutral-500}",
+        "usage": "Texto caption (16px gris, «Textos especiales»).",
+        "rule": "Tipografía"
+      },
+      {
+        "name": "color-action",
+        "value": "{color-indigo-500}",
+        "usage": "Relleno de botón primario, borde y texto del secundario, enlaces de correo (#3D5AFE «Action Normal»).",
+        "rule": "Colores · Tipografía · Alertas · Correos"
+      },
+      {
+        "name": "color-action-hover",
+        "value": "{color-indigo-600}",
+        "usage": "Hover/pressed del botón primario (#304FFE).",
+        "rule": "Colores"
+      },
+      {
+        "name": "color-link-data",
+        "value": "{color-teal-800}",
+        "usage": "Código/folio enlazado en tablas (#3086AF «Titulos e iconos»).",
+        "rule": "Tabla"
+      },
+      {
+        "name": "color-status-default",
+        "value": "{color-brand-700}",
+        "usage": "Chip de estado neutro de marca: Elaboración, Todos.",
+        "rule": "Componentes · Tabla"
+      },
+      {
+        "name": "color-status-success",
+        "value": "{color-green-500}",
+        "usage": "Aprobado, Publicado, Alta; toast de confirmación usa este mismo verde.",
+        "rule": "Componentes · Modales"
+      },
+      {
+        "name": "color-status-warning",
+        "value": "{color-amber-700}",
+        "usage": "Pendiente, En revisión; toast de advertencia.",
+        "rule": "Componentes · Modales"
+      },
+      {
+        "name": "color-status-error",
+        "value": "{color-red-500}",
+        "usage": "Rechazado, Baja; botón destructivo; toast de error.",
+        "rule": "Componentes · Modales"
+      },
+      {
+        "name": "color-status-info",
+        "value": "{color-sky-600}",
+        "usage": "Activo (chip chico), toast neutral/informativo.",
+        "rule": "Tabla básica · Modales"
+      },
+      {
+        "name": "color-status-draft",
+        "value": "{color-neutral-500}",
+        "usage": "Borrador.",
+        "rule": "Componentes"
+      },
+      {
+        "name": "color-status-inactive",
+        "value": "{color-neutral-650}",
+        "usage": "Inactivo, Archivado (chip chico).",
+        "rule": "Tabla básica"
+      },
+      {
+        "name": "color-navbar",
+        "value": "{color-brand-700}",
+        "usage": "Fondo del Navbar (85px).",
+        "rule": "Componentes"
+      },
+      {
+        "name": "tint-brand-700-12",
+        "value": "rgba(72,112,178,0.12)",
+        "usage": "brand-700 al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-status-success-12",
+        "value": "rgba(76,175,80,0.12)",
+        "usage": "status-success al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-status-warning-12",
+        "value": "rgba(255,160,0,0.12)",
+        "usage": "status-warning al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-status-error-12",
+        "value": "rgba(244,67,54,0.12)",
+        "usage": "status-error al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-neutral-600-12",
+        "value": "rgba(117,117,117,0.12)",
+        "usage": "neutral-600 al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-brand-700-10",
+        "value": "rgba(72,112,178,0.1)",
+        "usage": "brand-700 al 10%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-status-info-25",
+        "value": "rgba(3,155,229,0.25)",
+        "usage": "status-info al 25%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-status-success-25",
+        "value": "rgba(76,175,80,0.25)",
+        "usage": "status-success al 25%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-status-warning-25",
+        "value": "rgba(255,160,0,0.25)",
+        "usage": "status-warning al 25%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-status-error-25",
+        "value": "rgba(244,67,54,0.25)",
+        "usage": "status-error al 25%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-brand-700-8",
+        "value": "rgba(72,112,178,0.08)",
+        "usage": "brand-700 al 8%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-white-15",
+        "value": "rgba(255,255,255,0.15)",
+        "usage": "white al 15%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-white-30",
+        "value": "rgba(255,255,255,0.3)",
+        "usage": "white al 30%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-white-50",
+        "value": "rgba(255,255,255,0.5)",
+        "usage": "white al 50%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-white-12",
+        "value": "rgba(255,255,255,0.12)",
+        "usage": "white al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-white-25",
+        "value": "rgba(255,255,255,0.25)",
+        "usage": "white al 25%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-white-40",
+        "value": "rgba(255,255,255,0.4)",
+        "usage": "white al 40%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-white-20",
+        "value": "rgba(255,255,255,0.2)",
+        "usage": "white al 20%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-white-18",
+        "value": "rgba(255,255,255,0.18)",
+        "usage": "white al 18%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-pink-500-12",
+        "value": "rgba(233,30,99,0.12)",
+        "usage": "pink-500 al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-orange-500-12",
+        "value": "rgba(255,152,0,0.12)",
+        "usage": "orange-500 al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-teal-600-12",
+        "value": "rgba(65,167,207,0.12)",
+        "usage": "teal-600 al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-sky-500-12",
+        "value": "rgba(3,169,244,0.12)",
+        "usage": "sky-500 al 12%: fondos y bordes translúcidos (chips soft, avisos, controles sobre banners).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "tint-black-50",
+        "value": "rgba(0,0,0,0.5)",
+        "usage": "Velo negro al 50% sobre imágenes y video (MediaCard, VideoPlayer).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "color-navbar-avatar",
+        "value": "#8b9ab5",
+        "usage": "Fondo del avatar en el Navbar.",
+        "rule": "Componentes"
+      },
+      {
+        "name": "color-text-on-brand-muted",
+        "value": "rgba(255,255,255,0.6)",
+        "usage": "Texto secundario blanco al 60% sobre fondos de marca (GreetingBanner).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "gradient-006947",
+        "value": "#006947",
+        "usage": "Parada de degradado de banners y skeleton.",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "gradient-cf1226",
+        "value": "#cf1226",
+        "usage": "Parada de degradado de banners y skeleton.",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "gradient-000000-75",
+        "value": "rgba(0,0,0,0.75)",
+        "usage": "Parada de degradado de banners y skeleton.",
+        "rule": "Auditoría Figma"
+      }
+    ]
+  },
+  "type": {
+    "fonts": [
+      {
+        "family": "Roboto",
+        "file": "fonts/roboto-normal-latin.woff2",
+        "weight": "300 700",
+        "style": "normal"
+      },
+      {
+        "family": "Roboto",
+        "file": "fonts/roboto-italic-latin.woff2",
+        "weight": "300 700",
+        "style": "italic"
+      }
+    ],
+    "families": {
+      "sans": "Roboto, \"Segoe UI\", Helvetica, Arial, sans-serif",
+      "icons": "\"Material Symbols Outlined\""
+    },
+    "groups": [
+      {
+        "name": "Encabezados",
+        "family": "sans",
+        "styles": [
+          {
+            "name": "h1",
+            "fontSize": "36px",
+            "lineHeight": 1.2,
+            "fontWeight": 400,
+            "sample": "Gestión de talento",
+            "usage": "Título h1 en `color-heading`. Cualquier peso de la regla; por defecto Regular.",
+            "code": "2.25rem / 300"
+          },
+          {
+            "name": "h3",
+            "fontSize": "32px",
+            "lineHeight": 1.2,
+            "fontWeight": 400,
+            "sample": "Planes de trabajo",
+            "usage": "Título h3 en `color-heading`.",
+            "code": "2rem / 300"
+          },
+          {
+            "name": "h4",
+            "fontSize": "28px",
+            "lineHeight": 1.2,
+            "fontWeight": 400,
+            "sample": "Requisiciones",
+            "usage": "Título h4 en `color-heading`.",
+            "code": "1.75rem / 300"
+          },
+          {
+            "name": "h5",
+            "fontSize": "26px",
+            "lineHeight": 1.2,
+            "fontWeight": 400,
+            "sample": "Documentos",
+            "usage": "Título h5 en `color-heading`.",
+            "code": "1.625rem / 300"
+          },
+          {
+            "name": "page-title",
+            "fontSize": "26px",
+            "lineHeight": 1.2,
+            "fontWeight": 700,
+            "sample": "Portal de comunicación",
+            "usage": "Título de página (PageContainer): h5 en Bold. El sitio lo pinta a 800; la regla tope es 700.",
+            "code": "1.625rem / 800"
+          },
+          {
+            "name": "h2",
+            "fontSize": "36px",
+            "lineHeight": 1.2,
+            "fontWeight": 400,
+            "sample": "Sin uso",
+            "usage": "El Figma no define h2. Se conserva del código; no lo uses en diseños nuevos.",
+            "code": "2.25rem / 400"
+          },
+          {
+            "name": "h6",
+            "fontSize": "18px",
+            "lineHeight": 1.2,
+            "fontWeight": 500,
+            "sample": "Sin uso",
+            "usage": "El Figma no define h6. Equivale a subtitle2 Medium.",
+            "code": "1.625rem / 500"
+          }
+        ]
+      },
+      {
+        "name": "Tarjetas",
+        "family": "sans",
+        "styles": [
+          {
+            "name": "card-title",
+            "fontSize": "22px",
+            "lineHeight": 1.2,
+            "fontWeight": 700,
+            "sample": "Comunicados recientes",
+            "usage": "Título de Card Tipo 1 (Roboto Bold 22, `color-heading`).",
+            "code": "22px / 500"
+          },
+          {
+            "name": "card-subtitle",
+            "fontSize": "18px",
+            "lineHeight": 1.4,
+            "fontWeight": 500,
+            "sample": "Subtítulo",
+            "usage": "Subtítulo de tarjeta (Medium 18, `color-text-primary`).",
+            "code": "16px / 400"
+          },
+          {
+            "name": "card-subtitle2",
+            "fontSize": "14px",
+            "lineHeight": 1.4,
+            "fontWeight": 500,
+            "sample": "Subtítulo 2",
+            "usage": "Segundo subtítulo (Medium 14, `color-text-secondary`)."
+          },
+          {
+            "name": "card-description",
+            "fontSize": "16px",
+            "lineHeight": 1.5,
+            "fontWeight": 400,
+            "sample": "Texto de la tarjeta",
+            "usage": "Cuerpo de tarjeta (Regular 16, `color-text-primary`).",
+            "code": "14px / 400"
+          },
+          {
+            "name": "card-data",
+            "fontSize": "12px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Publicado: 10/10/26",
+            "usage": "Datos y metadatos (Regular 12, `color-text-secondary`)."
+          },
+          {
+            "name": "card-data-min",
+            "fontSize": "10px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Procedimientos",
+            "usage": "Datos más pequeños (Regular 10)."
+          }
+        ]
+      },
+      {
+        "name": "Texto",
+        "family": "sans",
+        "styles": [
+          {
+            "name": "subtitle1",
+            "fontSize": "22px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Subtítulo de sección",
+            "usage": "subtitle1 en `color-heading`.",
+            "code": "1.375rem / 300"
+          },
+          {
+            "name": "subtitle2",
+            "fontSize": "18px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Subtítulo",
+            "usage": "subtitle2 en `color-text-primary`.",
+            "code": "1.125rem / 300"
+          },
+          {
+            "name": "body1",
+            "fontSize": "16px",
+            "lineHeight": 1.5,
+            "fontWeight": 400,
+            "sample": "Texto general",
+            "usage": "Texto general.",
+            "code": "1rem / 400"
+          },
+          {
+            "name": "body2",
+            "fontSize": "14px",
+            "lineHeight": 1.5,
+            "fontWeight": 400,
+            "sample": "Texto general 2",
+            "usage": "Inputs, celdas de Tabla básica, menús.",
+            "code": "0.875rem / 400"
+          },
+          {
+            "name": "small",
+            "fontSize": "12px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Texto pequeño",
+            "usage": "Celdas de tabla compacta, metadatos, paginación."
+          },
+          {
+            "name": "minimum",
+            "fontSize": "10px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Texto mínimo",
+            "usage": "Chip chico, etiquetas de banner. Nunca menos de 10px."
+          },
+          {
+            "name": "button",
+            "fontSize": "14px",
+            "lineHeight": 1.5,
+            "fontWeight": 500,
+            "sample": "GUARDAR CAMBIOS",
+            "usage": "Texto de botón: 14 Medium en MAYÚSCULAS («Textos especiales»). El código usa textTransform none; ver VERIFICACION.md.",
+            "textTransform": "uppercase",
+            "code": "0.875rem / 500"
+          },
+          {
+            "name": "caption",
+            "fontSize": "16px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Texto de apoyo",
+            "usage": "Caption: 16 Regular en `color-text-caption`.",
+            "code": "0.75rem / 400"
+          },
+          {
+            "name": "overline",
+            "fontSize": "10px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Etiqueta",
+            "usage": "Overline 10 Regular.",
+            "code": "0.6875rem / 400"
+          },
+          {
+            "name": "helper-text",
+            "fontSize": "12px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Campo obligatorio",
+            "usage": "Texto de ayuda de inputs.",
+            "code": "0.75rem / 400"
+          }
+        ]
+      },
+      {
+        "name": "Componentes",
+        "family": "sans",
+        "styles": [
+          {
+            "name": "dialog-title",
+            "fontSize": "22px",
+            "lineHeight": 1.3,
+            "fontWeight": 500,
+            "sample": "Eliminar este elemento",
+            "usage": "Título de modal (Medium 22, `color-text-title`)."
+          },
+          {
+            "name": "dialog-body",
+            "fontSize": "16px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "¿Estás seguro de querer eliminar este registro?",
+            "usage": "Descripción de modal (`color-text-muted`)."
+          },
+          {
+            "name": "toast-title",
+            "fontSize": "14px",
+            "lineHeight": 1.15,
+            "fontWeight": 700,
+            "sample": "Notificación",
+            "usage": "Título de sweet alert (Bold 14)."
+          },
+          {
+            "name": "toast-body",
+            "fontSize": "12px",
+            "lineHeight": 1.15,
+            "fontWeight": 400,
+            "sample": "Detalle de la notificación",
+            "usage": "Cuerpo de sweet alert (Regular 12)."
+          },
+          {
+            "name": "table-head",
+            "fontSize": "14px",
+            "lineHeight": 1.4,
+            "fontWeight": 500,
+            "sample": "Nombre",
+            "usage": "Encabezado de Tabla básica (Medium 14). Tabla compacta: 12 Bold."
+          },
+          {
+            "name": "mail-title",
+            "fontSize": "26px",
+            "lineHeight": 1.2,
+            "fontWeight": 500,
+            "sample": "Título de la acción",
+            "usage": "Título de correo (Medium 26)."
+          },
+          {
+            "name": "mail-crumb",
+            "fontSize": "16px",
+            "lineHeight": 1.2,
+            "fontWeight": 500,
+            "sample": "Módulo / Sub módulo",
+            "usage": "Ruta del correo (Medium 16, `color-heading`)."
+          },
+          {
+            "name": "mail-footer",
+            "fontSize": "13px",
+            "lineHeight": 1.4,
+            "fontWeight": 400,
+            "sample": "Si tienes algún problema…",
+            "usage": "Pie de correo (Regular 13)."
+          },
+          {
+            "name": "module-label",
+            "fontSize": "14px",
+            "lineHeight": 1.2,
+            "fontWeight": 400,
+            "sample": "Capacitaciones",
+            "usage": "Etiqueta de tile de módulo (`color-core-module-label`)."
+          }
+        ]
+      },
+      {
+        "name": "Pesos",
+        "family": "sans",
+        "styles": [
+          {
+            "name": "w12-medium",
+            "fontSize": "12px",
+            "lineHeight": 1.2,
+            "fontWeight": 500,
+            "sample": "Gestión de talento",
+            "usage": "Tamaño 12 de la escala en peso 500. Estilo de la escala «Pesos/…»."
+          },
+          {
+            "name": "w10-bold",
+            "fontSize": "10px",
+            "lineHeight": 1.2,
+            "fontWeight": 700,
+            "sample": "Gestión de talento",
+            "usage": "Tamaño 10 de la escala en peso 700. Estilo de la escala «Pesos/…»."
+          },
+          {
+            "name": "w12-bold",
+            "fontSize": "12px",
+            "lineHeight": 1.2,
+            "fontWeight": 700,
+            "sample": "Gestión de talento",
+            "usage": "Tamaño 12 de la escala en peso 700. Estilo de la escala «Pesos/…»."
+          },
+          {
+            "name": "w18-medium-upper",
+            "fontSize": "18px",
+            "lineHeight": 1.2,
+            "fontWeight": 500,
+            "textTransform": "uppercase",
+            "sample": "Gestión de talento",
+            "usage": "Tamaño 18 de la escala en peso 500. Estilo de la escala «Pesos/…»."
+          },
+          {
+            "name": "w16-bold",
+            "fontSize": "16px",
+            "lineHeight": 1.2,
+            "fontWeight": 700,
+            "sample": "Gestión de talento",
+            "usage": "Tamaño 16 de la escala en peso 700. Estilo de la escala «Pesos/…»."
+          },
+          {
+            "name": "w28-bold",
+            "fontSize": "28px",
+            "lineHeight": 1.2,
+            "fontWeight": 700,
+            "sample": "Gestión de talento",
+            "usage": "Tamaño 28 de la escala en peso 700. Estilo de la escala «Pesos/…»."
+          },
+          {
+            "name": "w18-bold",
+            "fontSize": "18px",
+            "lineHeight": 1.2,
+            "fontWeight": 700,
+            "sample": "Gestión de talento",
+            "usage": "Tamaño 18 de la escala en peso 700. Estilo de la escala «Pesos/…»."
+          },
+          {
+            "name": "w13-italic",
+            "fontSize": "13px",
+            "lineHeight": 1.2,
+            "fontWeight": 400,
+            "fontStyle": "italic",
+            "sample": "Gestión de talento",
+            "usage": "Tamaño 13 de la escala en peso 400 itálica (enlace de soporte en correos). Estilo de la escala «Pesos/…»."
+          }
+        ]
+      }
+    ],
+    "note": "Escala fija del marco «Escala tipográfica» (Roboto). Pesos permitidos: 300, 400, 500, 700 (marco Tipografía). No uses 600, 800 ni 900. En código los tamaños siguen siendo los clamp() de globals.css, cuyo máximo coincide con esta escala salvo «minimum» (código 11px, regla 10px)."
+  },
+  "spacing": {
+    "note": "Medidas de los marcos de reglas (las cotas en azul y morado del Figma): 4 · 8 · 12 · 14 · 16 · 18 · 20 · 24 · 30 · 40 · 60. No inventes pasos intermedios.",
+    "tokens": [
+      {
+        "name": "space-0-5",
+        "value": "4px",
+        "usage": "Gap icono-texto en chips, breadcrumbs y tabs pequeñas; margen superior del helper text."
+      },
+      {
+        "name": "space-1",
+        "value": "8px",
+        "usage": "Padding `xs` de Card; gap de tabs medianas; padding vertical de MenuItem."
+      },
+      {
+        "name": "space-1-5",
+        "value": "12px",
+        "usage": "Padding `small` de Card y SectionCard; padding horizontal de celdas de tabla."
+      },
+      {
+        "name": "space-2",
+        "value": "16px",
+        "usage": "Padding por defecto (`medium`) de Card, SectionCard y MetricCard md; padding horizontal de MenuItem."
+      },
+      {
+        "name": "space-2-5",
+        "value": "20px",
+        "usage": "Padding `large` de tarjetas; padding horizontal de tabs medianas."
+      },
+      {
+        "name": "space-3",
+        "value": "24px",
+        "usage": "Padding `xl` de Card y MetricCard xl."
+      },
+      {
+        "name": "space-1-75",
+        "value": "14px",
+        "usage": "Gap entre bloques de Card Tipo 1 y entre párrafos de correo.",
+        "rule": "Cards · Correos"
+      },
+      {
+        "name": "space-2-25",
+        "value": "18px",
+        "usage": "Padding de Card Tipo 2 (documento).",
+        "rule": "Cards"
+      },
+      {
+        "name": "space-3-75",
+        "value": "30px",
+        "usage": "Separación texto → botones en modales.",
+        "rule": "Modales"
+      },
+      {
+        "name": "space-5",
+        "value": "40px",
+        "usage": "Márgenes de correo (arriba, lados, entre bloques).",
+        "rule": "Correos"
+      },
+      {
+        "name": "space-7-5",
+        "value": "60px",
+        "usage": "Padding de modales y alertas (arriba, abajo y lados).",
+        "rule": "Modales · Alertas"
+      }
+    ]
+  },
+  "radius": {
+    "tokens": [
+      {
+        "name": "tb-radius",
+        "value": "12px",
+        "usage": "Radio global `--tb-radius` (MUI shape): Paper, Card, Dialog, Popover, Chip, Tooltip, Snackbar, ToggleButton, IconButton, DataTable, Alert."
+      },
+      {
+        "name": "radius-input",
+        "value": "8px",
+        "usage": "Inputs outlined (TextField, Select, pickers)."
+      },
+      {
+        "name": "radius-button",
+        "value": "8px",
+        "usage": "Botones de la app (Modales, Tabla básica). Correos usan `radius-mail-button`.",
+        "code": "7px",
+        "rule": "Modales · Tabla básica"
+      },
+      {
+        "name": "radius-code",
+        "value": "4px",
+        "usage": "Código en línea del editor Tiptap."
+      },
+      {
+        "name": "radius-pill",
+        "value": "999px",
+        "usage": "Button `shape=\"pill\"`, Tabs `pill`."
+      },
+      {
+        "name": "radius-card",
+        "value": "12px",
+        "usage": "Cards, tablas, modales, banners (marco Cards: «Redondeo de bordes 12px»).",
+        "rule": "Cards"
+      },
+      {
+        "name": "radius-toast",
+        "value": "10px",
+        "usage": "Sweet alerts.",
+        "rule": "Modales y Alertas"
+      },
+      {
+        "name": "radius-panel",
+        "value": "16px",
+        "usage": "Panel del menú de módulos.",
+        "rule": "Modulos"
+      },
+      {
+        "name": "radius-status",
+        "value": "20px",
+        "usage": "Chip de estado mediano (29px).",
+        "rule": "Componentes"
+      },
+      {
+        "name": "radius-status-sm",
+        "value": "11px",
+        "usage": "Chip de estado chico (18px).",
+        "rule": "Tabla básica"
+      },
+      {
+        "name": "radius-mail-button",
+        "value": "4px",
+        "usage": "Botones dentro de correos.",
+        "rule": "Correos"
+      }
+    ]
+  },
+  "shadow": {
+    "note": "Elevaciones del marco «Elevaciones y redondeo»: 0–4 y outlined. Por defecto las tarjetas van en elevación 1. Las s1–s5 del código se conservan para Card `shadow`.",
+    "tokens": [
+      {
+        "name": "shadow-s1",
+        "value": "0 1px 2px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.05)",
+        "usage": "Card `shadow=\"s1\"`."
+      },
+      {
+        "name": "shadow-s2",
+        "value": "0 2px 4px rgba(0,0,0,0.05), 0 4px 8px rgba(0,0,0,0.05)",
+        "usage": "Card `shadow=\"s2\"`."
+      },
+      {
+        "name": "shadow-s3",
+        "value": "0 4px 8px rgba(0,0,0,0.05), 0 8px 16px rgba(0,0,0,0.05)",
+        "usage": "Card `shadow=\"s3\"`."
+      },
+      {
+        "name": "shadow-s4",
+        "value": "0 8px 16px rgba(0,0,0,0.05), 0 16px 24px rgba(0,0,0,0.05)",
+        "usage": "Card `shadow=\"s4\"`."
+      },
+      {
+        "name": "shadow-s5",
+        "value": "0 12px 24px rgba(0,0,0,0.08), 0 24px 32px rgba(0,0,0,0.08)",
+        "usage": "Card `shadow=\"s5\"`."
+      },
+      {
+        "name": "shadow-card-lift",
+        "value": "0 6px 20px rgba(0,0,0,0.1)",
+        "usage": "Hover de `.tb-card-lift`, junto con translateY(-2px)."
+      },
+      {
+        "name": "shadow-metric",
+        "value": "0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
+        "usage": "MetricCard por defecto, con borde 1px `color-neutral-200`."
+      },
+      {
+        "name": "shadow-metric-elevated",
+        "value": "0 8px 24px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.04)",
+        "usage": "MetricCard `variant=\"elevated\"`."
+      },
+      {
+        "name": "shadow-section-1",
+        "value": "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
+        "usage": "SectionCard `elevation={1}`."
+      },
+      {
+        "name": "shadow-section-2",
+        "value": "0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05)",
+        "usage": "SectionCard `elevation={2}`."
+      },
+      {
+        "name": "shadow-section-3",
+        "value": "0 10px 15px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.05)",
+        "usage": "SectionCard `elevation={3}`."
+      },
+      {
+        "name": "elevation-0",
+        "value": "none",
+        "usage": "Card plana (sin sombra ni borde).",
+        "rule": "Cards"
+      },
+      {
+        "name": "elevation-1",
+        "value": "0 2px 3px rgba(0,0,0,0.08)",
+        "usage": "Elevación por defecto de las cards.",
+        "rule": "Cards"
+      },
+      {
+        "name": "elevation-2",
+        "value": "0 4px 4px rgba(0,0,0,0.25)",
+        "usage": "Card elevada 2.",
+        "rule": "Cards"
+      },
+      {
+        "name": "elevation-3",
+        "value": "0 5px 6px rgba(0,0,0,0.25)",
+        "usage": "Card elevada 3.",
+        "rule": "Cards"
+      },
+      {
+        "name": "elevation-4",
+        "value": "0 7px 12px rgba(0,0,0,0.25)",
+        "usage": "Card elevada 4 (máxima).",
+        "rule": "Cards"
+      },
+      {
+        "name": "elevation-soft",
+        "value": "0 3px 6px rgba(0,0,0,0.16)",
+        "usage": "Card Tipo 2, sweet alerts, banner informativo de Tabla básica.",
+        "rule": "Cards · Modales · Tabla básica"
+      },
+      {
+        "name": "elevation-dialog",
+        "value": "0 2px 6px rgba(0,0,0,0.16)",
+        "usage": "Modales.",
+        "rule": "Modales"
+      },
+      {
+        "name": "elevation-subheader",
+        "value": "0 3px 6px rgba(0,0,0,0.25)",
+        "usage": "Barra superior (subheader) bajo el Navbar.",
+        "rule": "Componentes"
+      },
+      {
+        "name": "elevation-module-icon",
+        "value": "0 1.5px 6px",
+        "usage": "Sombra del icono de módulo; el color es el del icono al 13%.",
+        "rule": "Modulos"
+      },
+      {
+        "name": "elevation-switch-thumb",
+        "value": "0 1px 2px rgba(0,0,0,0.2)",
+        "usage": "Perilla del Switch.",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "elevation-navbar",
+        "value": "0 10px 22px rgba(0,0,0,0.18)",
+        "usage": "Navbar tal como está en el sitio (Navbar/Sitio).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "elevation-avatar",
+        "value": "0 3px 3px rgba(0,0,0,0.16)",
+        "usage": "Avatar de 83 px (perfil).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "elevation-module-morado",
+        "value": "0 1.5px 6px rgba(126,87,194,0.13)",
+        "usage": "Icono del módulo (morado): color del icono al 13% (marco Modulos).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "elevation-module-rojo",
+        "value": "0 1.5px 6px rgba(244,67,54,0.13)",
+        "usage": "Icono del módulo (rojo): color del icono al 13% (marco Modulos).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "elevation-module-verde",
+        "value": "0 1.5px 6px rgba(102,187,106,0.13)",
+        "usage": "Icono del módulo (verde): color del icono al 13% (marco Modulos).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "elevation-module-azul",
+        "value": "0 1.5px 6px rgba(111,175,233,0.13)",
+        "usage": "Icono del módulo (azul): color del icono al 13% (marco Modulos).",
+        "rule": "Auditoría Figma"
+      },
+      {
+        "name": "elevation-module-ambar",
+        "value": "0 1.5px 6px rgba(255,160,0,0.13)",
+        "usage": "Icono del módulo (ambar): color del icono al 13% (marco Modulos).",
+        "rule": "Auditoría Figma"
+      }
+    ]
+  },
+  "size": {
+    "note": "Alturas de control fijas del tema MUI y de los componentes Tb.",
+    "tokens": [
+      {
+        "name": "input-height",
+        "value": "45px",
+        "usage": "Altura mínima de OutlinedInput, FilledInput, MenuItem y ToggleButton."
+      },
+      {
+        "name": "chip-height",
+        "value": "32px",
+        "usage": "Chip mediano (small 28px, large 40px)."
+      },
+      {
+        "name": "tab-height",
+        "value": "48px",
+        "usage": "Tabs mediano (small 36px, large 56px)."
+      },
+      {
+        "name": "icon-size",
+        "value": "20px",
+        "usage": "Tamaño por defecto de Material Symbols."
+      },
+      {
+        "name": "tooltip-max-width",
+        "value": "280px",
+        "usage": "Ancho máximo de Tooltip."
+      },
+      {
+        "name": "menu-max-height",
+        "value": "300px",
+        "usage": "Alto máximo de Menu antes de hacer scroll."
+      },
+      {
+        "name": "button-height",
+        "value": "40px",
+        "usage": "Botón primario de página (Registrar …).",
+        "rule": "Tabla básica"
+      },
+      {
+        "name": "button-height-dialog",
+        "value": "43px",
+        "usage": "Botones de modales y alertas (ancho 148px).",
+        "rule": "Modales · Alertas"
+      },
+      {
+        "name": "button-height-sm",
+        "value": "30px",
+        "usage": "Botones de exportar en barra de tabla (ancho 100px).",
+        "rule": "Tabla"
+      },
+      {
+        "name": "button-height-mail",
+        "value": "34px",
+        "usage": "Botones de correo (ancho 120px).",
+        "rule": "Correos"
+      },
+      {
+        "name": "status-height",
+        "value": "29px",
+        "usage": "Chip de estado mediano (ancho 100px).",
+        "rule": "Componentes"
+      },
+      {
+        "name": "status-height-sm",
+        "value": "18px",
+        "usage": "Chip de estado chico (ancho 70px).",
+        "rule": "Tabla básica"
+      },
+      {
+        "name": "dialog-width",
+        "value": "640px",
+        "usage": "Ancho de modales, alertas y correos.",
+        "rule": "Modales · Correos"
+      },
+      {
+        "name": "dialog-icon",
+        "value": "126px",
+        "usage": "Círculo del icono de modal.",
+        "rule": "Modales"
+      },
+      {
+        "name": "toast-width",
+        "value": "333px",
+        "usage": "Sweet alert con barra lateral (variante filled: 395px).",
+        "rule": "Modales y Alertas"
+      },
+      {
+        "name": "toast-height",
+        "value": "72px",
+        "usage": "Alto de sweet alert.",
+        "rule": "Modales y Alertas"
+      },
+      {
+        "name": "navbar-height",
+        "value": "85px",
+        "usage": "Navbar azul.",
+        "rule": "Componentes"
+      },
+      {
+        "name": "module-tile-width",
+        "value": "132px",
+        "usage": "Tile del menú de módulos (alto 120).",
+        "rule": "Modulos"
+      },
+      {
+        "name": "module-icon",
+        "value": "60px",
+        "usage": "Contenedor del icono de módulo (radio 12).",
+        "rule": "Modulos"
+      },
+      {
+        "name": "banner-height",
+        "value": "125px",
+        "usage": "Banner de módulo.",
+        "rule": "Componentes"
+      },
+      {
+        "name": "table-head-height",
+        "value": "52px",
+        "usage": "Encabezado de tabla.",
+        "rule": "Tabla"
+      },
+      {
+        "name": "table-row-height",
+        "value": "48px",
+        "usage": "Fila de tabla compacta (Tabla básica: 60px).",
+        "rule": "Tabla"
+      },
+      {
+        "name": "avatar-table",
+        "value": "30px",
+        "usage": "Avatar en celda de tabla compacta (Tabla básica: 37px).",
+        "rule": "Tabla"
+      },
+      {
+        "name": "icon-sm",
+        "value": "20px",
+        "usage": "Icono Small.",
+        "rule": "Tipografía · Escala iconos"
+      },
+      {
+        "name": "icon-md",
+        "value": "24px",
+        "usage": "Icono Medium.",
+        "rule": "Tipografía · Escala iconos"
+      },
+      {
+        "name": "icon-lg",
+        "value": "35px",
+        "usage": "Icono Large.",
+        "rule": "Tipografía · Escala iconos"
+      },
+      {
+        "name": "icon-xl",
+        "value": "42px",
+        "usage": "Icono XL.",
+        "rule": "Tipografía · Escala iconos"
+      }
+    ]
+  },
+  "opacity": {
+    "note": "Alfas que se aplican a los canales `--color-rgb-*` para estados y fondos suaves.",
+    "tokens": [
+      {
+        "name": "alpha-hover",
+        "value": "0.04",
+        "usage": "Hover de MenuItem y tabs: `rgba(var(--color-rgb-brand-700), .04)`."
+      },
+      {
+        "name": "alpha-ghost-hover",
+        "value": "0.06",
+        "usage": "Hover de chip ghost, fondo de tabs soft, hover del menú lateral."
+      },
+      {
+        "name": "alpha-selected",
+        "value": "0.08",
+        "usage": "Seleccionado de MenuItem y navegación, fondo de alerta standard, hover de botones outlined/text."
+      },
+      {
+        "name": "alpha-soft",
+        "value": "0.12",
+        "usage": "Fondo de chip soft, hover de MenuItem seleccionado, fondos de eventos de calendario."
+      },
+      {
+        "name": "alpha-border-soft",
+        "value": "0.25",
+        "usage": "Borde de alerta standard y chip light."
+      }
+    ]
+  }
+}

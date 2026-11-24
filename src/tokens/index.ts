@@ -178,3 +178,9 @@ export type CnColorStep = keyof typeof colors.brand;
 export type CnRadius = keyof typeof radii;
 export type CnSpacing = keyof typeof spacing;
 export type CnShadow = keyof typeof shadows;
+
+export { ref, refSource, refVar } from "./ref";
+export type { CnRefColor, CnRefTypeStyle } from "./ref";
+
+export { sys, sysVar, typeAlias } from "./sys";
+export type { CnSysColor, CnSysTypeRole, CnThemeMode } from "./sys";
