@@ -1,0 +1,277 @@
+{
+  "name": "Canek UI · capa sys",
+  "note": "Roles del sistema. Un valor entre llaves apunta a un token de la capa ref (tokens/base.tokens.json); el resto son valores derivados para el modo oscuro, que la marca no tiene. Los componentes solo usan esta capa o la comp.",
+  "color": {
+    "primary": {
+      "light": "{color-action}",
+      "dark": "{color-indigo-300}",
+      "usage": "Botones principales, foco, controles seleccionados, enlaces."
+    },
+    "primary-hover": {
+      "light": "{color-action-hover}",
+      "dark": "#a8b5ff",
+      "usage": "Hover de elementos primary rellenos."
+    },
+    "on-primary": {
+      "light": "{color-white}",
+      "dark": "#121212",
+      "usage": "Texto e íconos sobre primary."
+    },
+    "primary-container": {
+      "light": "rgba(61,90,254,0.12)",
+      "dark": "rgba(140,158,255,0.16)",
+      "usage": "Fondo suave de elementos primary (chips seleccionados, filas activas)."
+    },
+    "on-primary-container": {
+      "light": "{color-indigo-600}",
+      "dark": "#c5cdff",
+      "usage": "Texto sobre primary-container."
+    },
+    "brand": {
+      "light": "{color-brand-primary}",
+      "dark": "{color-brand-350}",
+      "usage": "Identidad de marca: navbar, encabezados de marca, estado por defecto."
+    },
+    "brand-dark": {
+      "light": "{color-brand-primary-dark}",
+      "dark": "{color-brand-500}",
+      "usage": "Hover y variantes oscuras de brand."
+    },
+    "brand-light": {
+      "light": "{color-brand-primary-light}",
+      "dark": "{color-brand-100}",
+      "usage": "Acentos claros de marca."
+    },
+    "on-brand": { "light": "{color-white}", "dark": "#121212", "usage": "Texto sobre brand." },
+    "brand-container": {
+      "light": "{tint-brand-700-12}",
+      "dark": "rgba(132,189,237,0.16)",
+      "usage": "Fondos suaves de marca."
+    },
+    "background": {
+      "light": "{color-app-bg}",
+      "dark": "#121212",
+      "usage": "Fondo de la aplicación."
+    },
+    "surface": {
+      "light": "{color-surface}",
+      "dark": "#1e1e1e",
+      "usage": "Paper, tarjetas, diálogos, menús."
+    },
+    "surface-container": {
+      "light": "{color-surface-soft}",
+      "dark": "#2a2a2a",
+      "usage": "Superficies anidadas, encabezados de tabla, inputs rellenos."
+    },
+    "surface-container-high": {
+      "light": "{color-neutral-100}",
+      "dark": "#333333",
+      "usage": "Superficie con más énfasis (hover de filas, tooltips claros)."
+    },
+    "on-surface": {
+      "light": "{color-text-primary}",
+      "dark": "#e8e8e8",
+      "usage": "Texto principal."
+    },
+    "on-surface-variant": {
+      "light": "{color-text-secondary}",
+      "dark": "#b3b3b3",
+      "usage": "Texto secundario, labels, íconos."
+    },
+    "text-title": {
+      "light": "{color-text-title}",
+      "dark": "#f2f2f2",
+      "usage": "Títulos (regla de marca: negro #2E2E2E)."
+    },
+    "text-muted": {
+      "light": "{color-text-muted}",
+      "dark": "#a6a6a6",
+      "usage": "Texto de apoyo y placeholders."
+    },
+    "outline": {
+      "light": "{color-border-default}",
+      "dark": "#3a3a3a",
+      "usage": "Bordes y divisores."
+    },
+    "outline-strong": {
+      "light": "{color-input-border}",
+      "dark": "#5c5c5c",
+      "usage": "Borde de inputs outlined."
+    },
+    "success": {
+      "light": "{color-status-success}",
+      "dark": "{color-green-300}",
+      "usage": "Íconos, bordes e indicadores de éxito."
+    },
+    "success-fill": {
+      "light": "{color-green-800}",
+      "dark": "{color-green-300}",
+      "usage": "Relleno con texto encima (botón Success, chip relleno). Más oscuro que success para cumplir AA."
+    },
+    "on-success": {
+      "light": "{color-white}",
+      "dark": "#121212",
+      "usage": "Texto sobre success-fill."
+    },
+    "success-text": {
+      "light": "{color-green-800}",
+      "dark": "{color-green-200}",
+      "usage": "Texto de éxito sobre surface."
+    },
+    "success-container": {
+      "light": "{tint-status-success-12}",
+      "dark": "rgba(129,199,132,0.16)",
+      "usage": "Fondo de alertas y chips de éxito."
+    },
+    "warning": {
+      "light": "{color-status-warning}",
+      "dark": "{color-amber-300}",
+      "usage": "Íconos, bordes e indicadores de advertencia."
+    },
+    "warning-fill": {
+      "light": "{color-status-warning}",
+      "dark": "{color-amber-300}",
+      "usage": "Relleno con texto encima (botón Warning). Ya cumple AA con on-warning oscuro."
+    },
+    "on-warning": {
+      "light": "{color-neutral-900}",
+      "dark": "#121212",
+      "usage": "Texto sobre warning (regla de marca: texto oscuro)."
+    },
+    "warning-text": {
+      "light": "#9a5b00",
+      "dark": "{color-amber-200}",
+      "usage": "Texto de advertencia sobre surface."
+    },
+    "warning-container": {
+      "light": "{tint-status-warning-12}",
+      "dark": "rgba(255,213,79,0.16)",
+      "usage": "Fondo de alertas de advertencia."
+    },
+    "error": {
+      "light": "{color-status-error}",
+      "dark": "{color-red-300}",
+      "usage": "Bordes, íconos e indicadores de error."
+    },
+    "error-fill": {
+      "light": "{color-red-700}",
+      "dark": "{color-red-300}",
+      "usage": "Relleno con texto encima (botón Danger, chip relleno). Más oscuro que error para cumplir AA."
+    },
+    "on-error": { "light": "{color-white}", "dark": "#121212", "usage": "Texto sobre error-fill." },
+    "error-text": {
+      "light": "{color-red-700}",
+      "dark": "{color-red-200}",
+      "usage": "Mensajes de error y helper text."
+    },
+    "error-container": {
+      "light": "{tint-status-error-12}",
+      "dark": "rgba(229,115,115,0.16)",
+      "usage": "Fondo de alertas de error."
+    },
+    "info": {
+      "light": "{color-status-info}",
+      "dark": "{color-sky-300}",
+      "usage": "Íconos, bordes e indicadores informativos."
+    },
+    "info-fill": {
+      "light": "{color-sky-800}",
+      "dark": "{color-sky-300}",
+      "usage": "Relleno con texto encima (botón Info, chip relleno). Más oscuro que info para cumplir AA."
+    },
+    "on-info": { "light": "{color-white}", "dark": "#121212", "usage": "Texto sobre info-fill." },
+    "info-text": {
+      "light": "{color-sky-800}",
+      "dark": "{color-sky-200}",
+      "usage": "Texto informativo sobre surface."
+    },
+    "info-container": {
+      "light": "rgba(3,155,229,0.12)",
+      "dark": "rgba(79,195,247,0.16)",
+      "usage": "Fondo de alertas informativas."
+    },
+    "link": { "light": "{color-action}", "dark": "{color-indigo-300}", "usage": "Enlaces." },
+    "focus-ring": {
+      "light": "{color-action}",
+      "dark": "{color-indigo-300}",
+      "usage": "Anillo de foco (:focus-visible)."
+    },
+    "disabled": {
+      "light": "rgba(0,0,0,0.38)",
+      "dark": "rgba(255,255,255,0.38)",
+      "usage": "Texto e íconos deshabilitados."
+    },
+    "disabled-container": {
+      "light": "rgba(0,0,0,0.12)",
+      "dark": "rgba(255,255,255,0.12)",
+      "usage": "Fondo de controles deshabilitados."
+    },
+    "scrim": {
+      "light": "{tint-black-50}",
+      "dark": "rgba(0,0,0,0.7)",
+      "usage": "Fondo detrás de modales."
+    },
+    "navbar": {
+      "light": "{color-navbar}",
+      "dark": "#1e1e1e",
+      "usage": "Barra de navegación superior."
+    },
+    "on-navbar": { "light": "{color-white}", "dark": "#e8e8e8", "usage": "Texto sobre navbar." }
+  },
+  "state": {
+    "hover": "{alpha-hover}",
+    "selected": "{alpha-selected}",
+    "pressed": "{alpha-soft}",
+    "focus": "{alpha-soft}"
+  },
+  "shape": {
+    "corner-xs": "{radius-code}",
+    "corner-sm": "{radius-input}",
+    "corner-control": "{radius-button}",
+    "corner-toast": "{radius-toast}",
+    "corner-md": "{tb-radius}",
+    "corner-lg": "{radius-panel}",
+    "corner-full": "{radius-pill}"
+  },
+  "elevation": {
+    "level-0": "{elevation-0}",
+    "level-1": "{elevation-1}",
+    "level-2": "{elevation-2}",
+    "level-3": "{elevation-3}",
+    "level-4": "{elevation-4}",
+    "dialog": "{elevation-dialog}",
+    "navbar": "{elevation-navbar}"
+  },
+  "motion": {
+    "note": "La marca no define movimiento: se usan las curvas y duraciones de M3 (estructura).",
+    "easing-standard": "cubic-bezier(0.2, 0, 0, 1)",
+    "easing-emphasized-decelerate": "cubic-bezier(0.05, 0.7, 0.1, 1)",
+    "easing-emphasized-accelerate": "cubic-bezier(0.3, 0, 0.8, 0.15)",
+    "duration-short": "150ms",
+    "duration-medium": "300ms",
+    "duration-long": "500ms"
+  },
+  "type": {
+    "note": "15 roles M3 con valores de estilos de la marca. alias: nombres de origen que apuntan al rol.",
+    "roles": {
+      "display-large": { "from": "h1", "alias": ["h1", "h2"] },
+      "display-medium": { "from": "h3", "alias": ["h3"] },
+      "display-small": { "from": "h4", "alias": ["h4"] },
+      "headline-large": { "from": "h5", "alias": ["h5"] },
+      "headline-medium": { "from": "page-title", "alias": ["page-title"] },
+      "headline-small": { "from": "card-title", "alias": ["card-title"] },
+      "title-large": { "from": "dialog-title", "alias": ["dialog-title"] },
+      "title-medium": { "from": "card-subtitle", "alias": ["card-subtitle", "h6"] },
+      "title-small": { "from": "card-subtitle2", "alias": ["card-subtitle2", "table-head"] },
+      "body-large": { "from": "body1", "alias": ["body1", "card-description"] },
+      "body-medium": { "from": "body2", "alias": ["body2"] },
+      "body-small": {
+        "from": "small",
+        "alias": ["small", "helper-text", "card-data", "toast-body"]
+      },
+      "label-large": { "from": "button", "alias": ["button"], "textTransform": "uppercase" },
+      "label-medium": { "from": "w12-medium", "alias": ["w12-medium"] },
+      "label-small": { "from": "w10-bold", "alias": ["w10-bold"] }
+    }
+  }
+}
