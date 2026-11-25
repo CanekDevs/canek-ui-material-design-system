@@ -63,6 +63,9 @@ export type CnChipProps = Omit<
 type ColorTokens = {
   main: string;
   dark: string;
+  /** Frente (texto, borde, ícono) en variantes sin relleno: cambia en modo oscuro. */
+  fg: string;
+  fgStrong: string;
   rgb: string;
   contrast: string;
 };
@@ -71,48 +74,64 @@ const COLOR_TOKENS: Record<CnChipColor, ColorTokens> = {
   primary: {
     main: "var(--cn-color-brand-600, #254d87)",
     dark: "var(--cn-color-brand-700, #1c3d6d)",
+    fg: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+    fgStrong: "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
     rgb: "var(--cn-color-rgb-brand-600, 37, 77, 135)",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   secondary: {
     main: "var(--cn-color-neutral-700, #363d45)",
     dark: "var(--cn-color-neutral-800, #222831)",
+    fg: "var(--cn-color-control-secondary-fg, var(--cn-color-neutral-700, #363d45))",
+    fgStrong: "var(--cn-color-control-secondary-fg-strong, var(--cn-color-neutral-800, #222831))",
     rgb: "var(--cn-color-rgb-neutral-700, 54, 61, 69)",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   success: {
     main: "var(--cn-color-success-600, #228740)",
     dark: "var(--cn-color-success-700, #176230)",
+    fg: "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
+    fgStrong: "var(--cn-color-control-success-fg-strong, var(--cn-color-success-700, #176230))",
     rgb: "var(--cn-color-rgb-success-600, 34, 135, 64)",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   warning: {
     main: "var(--cn-color-warning-600, #b8831a)",
     dark: "var(--cn-color-warning-700, #8a6312)",
+    fg: "var(--cn-color-control-warning-fg, var(--cn-color-warning-600, #b8831a))",
+    fgStrong: "var(--cn-color-control-warning-fg-strong, var(--cn-color-warning-700, #8a6312))",
     rgb: "var(--cn-color-rgb-warning-600, 184, 131, 26)",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   error: {
     main: "var(--cn-color-error-600, #b52f2f)",
     dark: "var(--cn-color-error-700, #8e2424)",
+    fg: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
+    fgStrong: "var(--cn-color-control-error-fg-strong, var(--cn-color-error-700, #8e2424))",
     rgb: "var(--cn-color-rgb-error-600, 181, 47, 47)",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   info: {
     main: "var(--cn-color-info-600, #2367a8)",
     dark: "var(--cn-color-info-700, #1a4f82)",
+    fg: "var(--cn-color-control-info-fg, var(--cn-color-info-600, #2367a8))",
+    fgStrong: "var(--cn-color-control-info-fg-strong, var(--cn-color-info-700, #1a4f82))",
     rgb: "var(--cn-color-rgb-info-600, 35, 103, 168)",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   accent: {
     main: "var(--cn-color-accent-500, #3d5afe)",
     dark: "var(--cn-color-accent-600, #304ffe)",
+    fg: "var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
+    fgStrong: "var(--cn-color-control-accent-fg-strong, var(--cn-color-accent-600, #304ffe))",
     rgb: "var(--cn-color-rgb-accent-500, 61, 90, 254)",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   neutral: {
     main: "var(--cn-color-neutral-600, #4e5660)",
     dark: "var(--cn-color-neutral-700, #363d45)",
+    fg: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+    fgStrong: "var(--cn-color-control-neutral-fg-strong, var(--cn-color-neutral-700, #363d45))",
     rgb: "var(--cn-color-rgb-neutral-600, 78, 86, 96)",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
@@ -145,14 +164,15 @@ const buildVariantStyles = (
 ): Record<string, unknown> => {
   const t = COLOR_TOKENS[color];
   const base = {
-    color: t.main,
+    color: t.fg,
     "& .MuiChip-deleteIcon": {
-      color: `rgba(${t.rgb}, 0.6)`,
-      "&:hover": { color: t.main },
+      color: t.fg,
+      opacity: 0.6,
+      "&:hover": { opacity: 1 },
     },
     "& .MuiChip-avatar": {
       backgroundColor: `rgba(${t.rgb}, 0.15)`,
-      color: t.main,
+      color: t.fg,
     },
   };
 
@@ -176,12 +196,12 @@ const buildVariantStyles = (
       return {
         ...base,
         backgroundColor: "transparent",
-        border: `1px solid ${t.main}`,
-        color: t.main,
+        border: `1px solid ${t.fg}`,
+        color: t.fg,
         ...(isInteractive && {
           "&:hover": {
             backgroundColor: `rgba(${t.rgb}, 0.06)`,
-            borderColor: t.dark,
+            borderColor: t.fgStrong,
           },
         }),
       };
@@ -189,7 +209,7 @@ const buildVariantStyles = (
       return {
         ...base,
         backgroundColor: `rgba(${t.rgb}, 0.12)`,
-        color: t.dark,
+        color: t.fgStrong,
         ...(isInteractive && {
           "&:hover": { backgroundColor: `rgba(${t.rgb}, 0.20)` },
         }),
@@ -199,7 +219,7 @@ const buildVariantStyles = (
         ...base,
         backgroundColor: `rgba(${t.rgb}, 0.06)`,
         border: `1px solid rgba(${t.rgb}, 0.20)`,
-        color: t.dark,
+        color: t.fgStrong,
         ...(isInteractive && {
           "&:hover": {
             backgroundColor: `rgba(${t.rgb}, 0.12)`,
@@ -211,7 +231,7 @@ const buildVariantStyles = (
       return {
         ...base,
         backgroundColor: "transparent",
-        color: t.main,
+        color: t.fg,
         ...(isInteractive && {
           "&:hover": { backgroundColor: `rgba(${t.rgb}, 0.08)` },
         }),
@@ -342,7 +362,7 @@ export const CnChip = forwardRef<HTMLDivElement, CnChipProps>(function CnChip(
         sx={{
           fontSize: "0.7em",
           fontWeight: 500,
-          color: subtitleTokens.dark,
+          color: subtitleTokens.fgStrong,
           opacity: 0.85,
         }}
       >
