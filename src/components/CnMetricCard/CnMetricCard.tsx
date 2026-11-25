@@ -82,26 +82,32 @@ export type CnMetricCardProps = {
 
 const PALETTE: Record<CnMetricColor, { main: string; soft: string }> = {
   primary: {
-    main: "var(--cn-color-brand-600, #254d87)",
-    soft: "var(--cn-color-brand-50, #eef3fb)",
+    main: "var(--cn-color-tone-primary-main, var(--cn-color-brand-600, #254d87))",
+    soft: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
   },
   success: {
-    main: "var(--cn-color-success-600, #228740)",
-    soft: "var(--cn-color-success-50, #eaf7ee)",
+    main: "var(--cn-color-tone-success-main, var(--cn-color-success-600, #228740))",
+    soft: "var(--cn-color-tone-success-soft, var(--cn-color-success-50, #eaf7ee))",
   },
   warning: {
-    main: "var(--cn-color-warning-600, #b8831a)",
-    soft: "var(--cn-color-warning-50, #fdf6e6)",
+    main: "var(--cn-color-tone-warning-main, var(--cn-color-warning-600, #b8831a))",
+    soft: "var(--cn-color-tone-warning-soft, var(--cn-color-warning-50, #fdf6e6))",
   },
-  error: { main: "var(--cn-color-error-600, #b52f2f)", soft: "var(--cn-color-error-50, #fcecec)" },
-  info: { main: "var(--cn-color-info-600, #22649f)", soft: "var(--cn-color-info-50, #eaf3fb)" },
+  error: {
+    main: "var(--cn-color-tone-error-main, var(--cn-color-error-600, #b52f2f))",
+    soft: "var(--cn-color-tone-error-soft, var(--cn-color-error-50, #fcecec))",
+  },
+  info: {
+    main: "var(--cn-color-tone-info-main, var(--cn-color-info-600, #22649f))",
+    soft: "var(--cn-color-tone-info-soft, var(--cn-color-info-50, #eaf3fb))",
+  },
   accent: {
-    main: "var(--cn-color-accent-600, #3349d6)",
-    soft: "var(--cn-color-accent-50, #eef0ff)",
+    main: "var(--cn-color-tone-accent-main, var(--cn-color-accent-600, #3349d6))",
+    soft: "var(--cn-color-tone-accent-soft, var(--cn-color-accent-50, #eef0ff))",
   },
   neutral: {
-    main: "var(--cn-color-neutral-600, #4e5660)",
-    soft: "var(--cn-color-neutral-100, #f4f5f7)",
+    main: "var(--cn-color-tone-neutral-main, var(--cn-color-neutral-600, #4e5660))",
+    soft: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
   },
 };
 
@@ -485,7 +491,7 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
               backgroundColor:
                 variant === "filled"
                   ? "rgba(255,255,255,0.18)"
-                  : "var(--cn-color-neutral-100, #f4f5f7)",
+                  : "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
             }}
           >
             <TrendIcon sx={{ fontSize: 13 }} aria-hidden />
@@ -523,7 +529,7 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
               backgroundColor:
                 variant === "filled"
                   ? "rgba(255,255,255,0.25)"
-                  : "var(--cn-color-neutral-150, #e9ecef)",
+                  : "var(--cn-color-tone-neutral-soft-hover, var(--cn-color-neutral-150, #e9ecef))",
             }}
           >
             <Box

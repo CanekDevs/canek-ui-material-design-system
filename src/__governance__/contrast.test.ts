@@ -106,7 +106,8 @@ const fieldBorderToken = (): string => {
   return match[1];
 };
 
-type Pair = { fg: string; bg: string; min: number };
+/** `base`: superficie debajo de un fondo translúcido (p. ej. `tone-*-soft` en oscuro). */
+type Pair = { fg: string; bg: string; min: number; base?: string };
 
 const pairs = (): Pair[] => [
   ...["text", "text-muted"].flatMap((fg) => BACKGROUNDS.map((bg) => ({ fg, bg, min: TEXT_AA }))),
@@ -115,6 +116,7 @@ const pairs = (): Pair[] => [
   ...TONES.flatMap((tone) => [
     ...BACKGROUNDS.map((bg) => ({ fg: `tone-${tone}-text`, bg, min: TEXT_AA })),
     { fg: `tone-${tone}-main`, bg: "surface", min: NON_TEXT_AA },
+    { fg: `tone-${tone}-text`, bg: `tone-${tone}-soft`, base: "surface", min: TEXT_AA },
   ]),
   ...CONTROLS.map((control) => ({ fg: `control-${control}-fg`, bg: "surface", min: TEXT_AA })),
 ];
@@ -129,8 +131,9 @@ const measure = (): Record<string, { ratio: number; min: number }> => {
   const result: Record<string, { ratio: number; min: number }> = {};
   for (const [mode, vars] of Object.entries(modes)) {
     const color = (role: string) => parseColor(resolve(vars, `var(--cn-color-${role})`));
-    for (const { fg, bg, min } of pairs()) {
-      result[`${mode}: ${fg} / ${bg}`] = { ratio: ratio(color(fg), color(bg)), min };
+    for (const { fg, bg, min, base } of pairs()) {
+      const back = base ? over(color(bg), color(base)) : color(bg);
+      result[`${mode}: ${fg} / ${bg}`] = { ratio: ratio(color(fg), back), min };
     }
   }
   return result;

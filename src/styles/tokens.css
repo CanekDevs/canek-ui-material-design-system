@@ -135,6 +135,13 @@
   --cn-color-tone-accent-text: var(--cn-color-accent-600);
   --cn-color-tone-neutral-main: var(--cn-color-neutral-600);
   --cn-color-tone-neutral-text: var(--cn-color-neutral-800);
+  /* Fondo suave de cada tono (filas seleccionadas, insignias, tarjetas de métrica). */
+  --cn-color-tone-primary-soft: var(--cn-color-brand-50);
+  --cn-color-tone-info-soft: var(--cn-color-info-50);
+  --cn-color-tone-success-soft: var(--cn-color-success-50);
+  --cn-color-tone-warning-soft: var(--cn-color-warning-50);
+  --cn-color-tone-error-soft: var(--cn-color-error-50);
+  --cn-color-tone-accent-soft: var(--cn-color-accent-50);
   --cn-color-tone-neutral-soft: var(--cn-color-neutral-100);
   --cn-color-tone-neutral-soft-hover: var(--cn-color-neutral-150);
   /* Texto sobre rellenos sólidos de tono: blanco en los dos modos (el relleno no cambia). */
@@ -327,6 +334,12 @@
   --cn-color-tone-accent-text: #778cfe;
   --cn-color-tone-neutral-main: #9aa1aa;
   --cn-color-tone-neutral-text: #c5cad0;
+  --cn-color-tone-primary-soft: rgba(83, 122, 179, 0.16);
+  --cn-color-tone-info-soft: rgba(50, 127, 202, 0.16);
+  --cn-color-tone-success-soft: rgba(46, 158, 79, 0.16);
+  --cn-color-tone-warning-soft: rgba(224, 160, 32, 0.16);
+  --cn-color-tone-error-soft: rgba(216, 68, 68, 0.16);
+  --cn-color-tone-accent-soft: rgba(80, 107, 254, 0.16);
   --cn-color-tone-neutral-soft: rgba(255, 255, 255, 0.06);
   --cn-color-tone-neutral-soft-hover: rgba(255, 255, 255, 0.1);
 
