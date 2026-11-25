@@ -7,6 +7,13 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 
 ## [Sin publicar]
 
+### Corregido
+
+- Modo oscuro de `CnDataTable` (y sus celdas), `CnList`, `CnFileField` y `CnMetricCard`: textos, bordes, fondos de encabezado, filas alternas y fondos suaves usan los roles de texto, borde, superficie, tono y control, así que ya no quedan textos oscuros ni fondos claros sobre la página oscura. Nuevos roles `--cn-color-tone-<tono>-soft` para fondos suaves de cada tono. En claro se ven igual.
+- Modo oscuro de `CnAlert` y `CnTabs`: el texto, el ícono y la barra lateral de las alertas y el texto de las pestañas (incluida la de error) usan los roles `--cn-color-control-*`; el fondo de las pestañas `pill` ya no es claro en oscuro. `CnAvatar` toma el blanco sobre relleno de `--cn-color-tone-on-solid`. En claro se ven igual.
+- Modo oscuro de `CnButton` y `CnChip`: el texto, borde e ícono de las variantes sin relleno (outlined, text, soft, light, ghost) usan los nuevos roles `--cn-color-control-<color>-fg`, que en oscuro pasan 4.5:1; el botón neutral relleno ya no pinta un fondo claro con texto claro. En claro se ven igual.
+- Modo oscuro de los tonos (`CN_TONES`): nuevos roles `--cn-color-tone-*` en `tokens.css`. En claro dan los mismos colores; en oscuro el texto de cada tono pasa 4.5:1 y los íconos 3:1, el tono neutral ya no pinta fondos blancos y el texto sobre rellenos sólidos es blanco en los dos modos. Afecta a `CnSectionCard`, `CnProfileCard`, `CnTimeline`, `CnNotificationCenter`, `CnContentCarousel` y `CnDialog`.
+
 ### Agregado
 
 - `CnDocCard`: tarjeta de documento con tipo por mime/extensión, miniatura, metadatos, estado,
