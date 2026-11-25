@@ -779,3 +779,24 @@ export type {
   CnNotificationSnoozeOption,
   CnNotificationTab,
 } from "./components/CnNotificationCenter";
+
+// Datos
+export * from "./components/CnDescriptionList";
+
+// Layout
+export * from "./components/CnRecordHeader";
+
+// Formularios
+export * from "./components/CnActivityComposer";
+
+// Datos
+export * from "./components/CnContactTimeline";
+
+// Contenido
+export * from "./components/CnDealCard";
+
+// Datos
+export * from "./components/CnKanbanBoard";
+
+// Datos
+export * from "./components/CnFilterBar";

@@ -77,4 +77,19 @@ export const CATALOG_CONTENT_MEDIA: CnCatalogEntry[] = [
       "`CnLocationField` muestra su vista previa con `CnMap` y la ficha de las celdas `location` de `CnDataTable` también lo incrusta. Suele ir dentro de `CnCard` o `CnSectionCard` junto a `CnAddressField`.",
     related: ["CnMapsProvider", "CnMapSkeleton", "useMaps"],
   },
+  {
+    name: "CnDealCard",
+    category: "contenido",
+    domains: ["crm"],
+    status: "beta",
+    summary:
+      "Tarjeta de oportunidad: monto, probabilidad, responsable, próxima actividad y estado.",
+    purpose:
+      "Resumir una oportunidad de venta en el espacio de una tarjeta para tableros, listas y paneles laterales: nombre y empresa, monto en la moneda indicada (con monto ponderado opcional), barra de probabilidad accesible con color según el avance, responsable con avatar, próxima actividad (marcada como vencida en rojo), etiquetas y fecha estimada de cierre. Muestra el estado Ganada o Perdida, tiene versión compacta para tableros densos y, con `onClick`, toda la tarjeta se vuelve un botón con estado seleccionado.",
+    whenNot:
+      "Para una persona o contacto usa `CnProfileCard`; para un indicador con tendencia usa `CnMetricCard`; para listar muchas oportunidades con columnas, orden y filtros usa `CnDataTable`; para el encabezado de la ficha completa de la oportunidad usa `CnRecordHeader`.",
+    neighbors:
+      "Es la tarjeta natural de `CnKanbanBoard` (embudo de ventas) y se filtra con `CnFilterBar`. Usa `CnAvatar` e `CnIcon`; comparte el formato de moneda con `CnCurrencyField`.",
+    related: ["CnDealCardSkeleton"],
+  },
 ];

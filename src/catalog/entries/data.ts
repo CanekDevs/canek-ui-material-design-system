@@ -357,4 +357,64 @@ export const CATALOG_DATA: CnCatalogEntry[] = [
       "Todas las gráficas (`CnBarChart`, `CnLineChart`, `CnPieChart`, `CnTreemap`…) la usan como marco; exporta con las mismas utilidades que `CnDataTable`. Cada gráfica tiene un skeleton de su misma forma (`CnChartSkeleton` elige por tipo).",
     related: ["CnChartSkeleton", "CnChartSkeletonFrame", "CnChartLegend", "CnChartTooltipCard"],
   },
+  {
+    name: "CnDescriptionList",
+    category: "datos",
+    domains: ["general", "erp", "crm", "rrhh"],
+    status: "beta",
+    summary:
+      "Lista de pares etiqueta–valor de solo lectura, en columnas responsivas, con copiar y enlaces.",
+    purpose:
+      'Mostrar el detalle de un registro (contacto, empresa, empleado, pedido) como pares etiqueta–valor sin armar la cuadrícula a mano. Usa una lista de descripción semántica (`dl`/`dt`/`dd`), baja de columnas sola cuando el contenedor se angosta, permite que un dato ocupe dos columnas o toda la fila, muestra un texto de vacío ("—" o "Sin capturar") para valores faltantes, convierte valores en enlaces (correo, teléfono, sitio) y agrega un botón para copiar con aviso de copiado. Tiene disposición apilada (etiqueta arriba) o en línea (etiqueta a la izquierda, con separadores) y variante en tarjeta con título y acción.',
+    whenNot:
+      "Para editar los datos usa `CnForm` (o el campo correspondiente, como `CnTextField`); para un solo indicador grande con tendencia usa `CnMetricCard`; para muchos registros con columnas, orden y filtros usa `CnDataTable`; para pares que el usuario agrega y quita usa `CnKeyValueField`.",
+    neighbors:
+      "Es la pieza de datos de `CnRecordHeader` y suele vivir dentro de `CnSectionCard` o `CnCard`. Los valores pueden ser `CnChip` o `CnAvatar`. Comparte los tokens de texto atenuado con `CnProfileCard`.",
+    related: ["CnDescriptionListSkeleton"],
+  },
+  {
+    name: "CnContactTimeline",
+    category: "datos",
+    domains: ["crm"],
+    status: "beta",
+    summary:
+      "Historial multicanal de un contacto con filtros por canal, actividades fijadas y compositor en línea.",
+    purpose:
+      "Ver en un solo lugar todo lo que ha pasado con un contacto o empresa: notas, llamadas, correos, reuniones, tareas, mensajes, cambios de oportunidad y eventos del sistema. Cada canal tiene ícono y tono propios y aparece como chip de filtro solo si hay actividades de ese canal. Las actividades fijadas (acuerdos, datos que todo el equipo debe ver) suben a un bloque aparte y no se repiten abajo. Con `onCreate` muestra el compositor para registrar una actividad nueva sin salir de la ficha; con `onPinChange` agrega la acción Fijar o Quitar de fijadas. Hereda del historial la agrupación por día, búsqueda, paginado, estado vacío y error con reintentar.",
+    whenNot:
+      "Para una bitácora de auditoría o el seguimiento de un pedido sin canales de contacto usa `CnTimeline`; para avisos con leído/no leído usa `CnNotificationCenter`; para reuniones sobre un calendario usa `CnEventCalendar`; para listar contactos usa `CnDataTable`.",
+    neighbors:
+      "Compone `CnTimeline` (historial) y `CnActivityComposer` (captura). Suele ir bajo `CnRecordHeader` en la pestaña Actividad de la ficha, junto a `CnDescriptionList` con los datos del contacto.",
+    related: ["CnContactTimelineSkeleton"],
+  },
+  {
+    name: "CnKanbanBoard",
+    category: "datos",
+    domains: ["crm", "erp", "general"],
+    status: "beta",
+    summary:
+      "Tablero por columnas: arrastrar entre etapas con mouse o teclado, límites WIP y totales por columna.",
+    purpose:
+      "Mover elementos entre etapas de un proceso (embudo de ventas, tickets, órdenes de trabajo, candidatos) viendo de un vistazo cuántos hay y cuánto suman. Cada columna es una región con su lista, contador, límite WIP que se marca al superarse y total de `value` con formato de moneda propio. Se arrastra con el mouse (indicador de dónde caerá) o con teclado: Espacio toma la tarjeta, flechas la mueven entre columnas y posiciones, Espacio la suelta y Escape cancela, con anuncios para lector de pantalla. `canDrop` bloquea destinos (etapas cerradas, permisos) y atenúa las columnas que no aceptan la tarjeta. El contenido de cada tarjeta lo pinta `renderCard`; `moveKanbanItem` aplica el movimiento a un arreglo plano.",
+    whenNot:
+      "Para reordenar una sola lista usa `CnList`; para registros con muchas columnas de datos usa `CnDataTable`; para pasos lineales de un proceso que el usuario recorre usa `CnTabs` o el modo por pasos de `CnForm`; para eventos con fecha usa `CnEventCalendar`.",
+    neighbors:
+      "Sus tarjetas suelen ser `CnDealCard` o `CnCard`. Encima lleva `CnFilterBar` para filtrar el tablero. El botón de agregar es `CnButton`; los tonos de columna salen de `CN_TONES`, como en `CnSectionCard`.",
+    related: ["CnKanbanBoardSkeleton"],
+  },
+  {
+    name: "CnFilterBar",
+    category: "datos",
+    domains: ["general", "erp", "crm", "ecommerce", "dashboards"],
+    status: "beta",
+    summary:
+      "Barra de filtros con búsqueda, filtros rápidos, panel de filtros con chips activos y vistas guardadas.",
+    purpose:
+      'Filtrar listas de tarjetas, tableros y reportes con el mismo patrón en toda la aplicación. Reúne búsqueda, chips de filtro rápido de un clic (interruptores con conteo), un panel "Filtros" anclado con campos de selección, selección múltiple o texto que se aplican juntos con "Aplicar", chips de los filtros activos que se quitan con un clic, "Limpiar todo", el total de resultados anunciado y un menú de vistas guardadas con "Guardar vista actual". Todo es controlado: el componente no filtra datos, solo entrega los valores.',
+    whenNot:
+      "Para filtrar dentro de una tabla por columna usa los filtros de `CnDataTable`; para un formulario de búsqueda avanzada con validación usa `CnForm`; para solo buscar con sugerencias usa `CnSearchField`; para cambiar entre secciones de una página usa `CnTabs`.",
+    neighbors:
+      "Va encima de `CnKanbanBoard`, de listas de `CnDealCard` y de `CnList`. Usa `CnSearchField`, `CnSelectField`, `CnTextField`, `CnChip` y `CnButton`; su panel es un popover ligero, a diferencia de `CnDrawer` o `CnDialog`.",
+    related: ["CnFilterBarSkeleton"],
+  },
 ];
