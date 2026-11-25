@@ -9,6 +9,10 @@ import { describe, expect, it } from "vitest";
  * - Texto (`text`, `text-muted`) sobre cada fondo: 4.5:1.
  * - Texto tenue (`text-subtle`, solo íconos y texto grande) sobre cada fondo: 3:1.
  * - Borde en reposo de los campos (el token que usa `src/utils/field-styles.ts`) sobre la superficie: 3:1.
+ * - Roles de tono de `CN_TONES` (`tone-<tono>-text` y `tone-<tono>-main`): texto 4.5:1 sobre cada
+ *   fondo; color principal (íconos, bordes, barras) 3:1 sobre la superficie.
+ * - Frente de controles (`control-<color>-fg`, texto de botones y chips sin relleno): 4.5:1 sobre la
+ *   superficie.
  *
  * Hoy hay pares heredados que no llegan, así que la regla es un trinquete: un par que no está en
  * `contrast.baseline.json` debe pasar, y uno que está no puede bajar de su razón actual.
@@ -24,6 +28,17 @@ const WRITE = process.env.CN_GOVERNANCE_WRITE === "1";
 const TEXT_AA = 4.5;
 const NON_TEXT_AA = 3;
 const BACKGROUNDS = ["bg", "surface", "surface-elevated", "surface-sunken"];
+const CONTROLS = [
+  "primary",
+  "secondary",
+  "success",
+  "warning",
+  "info",
+  "error",
+  "accent",
+  "neutral",
+];
+const TONES = ["primary", "info", "success", "warning", "error", "accent", "neutral"];
 
 type Mode = "claro" | "oscuro";
 type Rgba = [number, number, number, number];
@@ -97,6 +112,11 @@ const pairs = (): Pair[] => [
   ...["text", "text-muted"].flatMap((fg) => BACKGROUNDS.map((bg) => ({ fg, bg, min: TEXT_AA }))),
   ...BACKGROUNDS.map((bg) => ({ fg: "text-subtle", bg, min: NON_TEXT_AA })),
   { fg: fieldBorderToken(), bg: "surface", min: NON_TEXT_AA },
+  ...TONES.flatMap((tone) => [
+    ...BACKGROUNDS.map((bg) => ({ fg: `tone-${tone}-text`, bg, min: TEXT_AA })),
+    { fg: `tone-${tone}-main`, bg: "surface", min: NON_TEXT_AA },
+  ]),
+  ...CONTROLS.map((control) => ({ fg: `control-${control}-fg`, bg: "surface", min: TEXT_AA })),
 ];
 
 const measure = (): Record<string, { ratio: number; min: number }> => {

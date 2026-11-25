@@ -118,6 +118,50 @@
   --cn-color-border-strong: var(--cn-color-neutral-300);
   --cn-color-focus-ring: rgba(var(--cn-color-rgb-brand-400), 0.35);
 
+  /* ============ TONE TOKENS ============ */
+  /* Roles por tono (CN_TONES): en claro son la escala de siempre; el bloque oscuro los aclara
+     para que el texto pase 4.5:1 y los íconos y bordes 3:1 sobre las superficies oscuras. */
+  --cn-color-tone-primary-main: var(--cn-color-brand-600);
+  --cn-color-tone-primary-text: var(--cn-color-brand-700);
+  --cn-color-tone-info-main: var(--cn-color-info-600);
+  --cn-color-tone-info-text: var(--cn-color-info-700);
+  --cn-color-tone-success-main: var(--cn-color-success-600);
+  --cn-color-tone-success-text: var(--cn-color-success-700);
+  --cn-color-tone-warning-main: var(--cn-color-warning-600);
+  --cn-color-tone-warning-text: var(--cn-color-warning-700);
+  --cn-color-tone-error-main: var(--cn-color-error-600);
+  --cn-color-tone-error-text: var(--cn-color-error-700);
+  --cn-color-tone-accent-main: var(--cn-color-accent-600);
+  --cn-color-tone-accent-text: var(--cn-color-accent-600);
+  --cn-color-tone-neutral-main: var(--cn-color-neutral-600);
+  --cn-color-tone-neutral-text: var(--cn-color-neutral-800);
+  --cn-color-tone-neutral-soft: var(--cn-color-neutral-100);
+  --cn-color-tone-neutral-soft-hover: var(--cn-color-neutral-150);
+  /* Texto sobre rellenos sólidos de tono: blanco en los dos modos (el relleno no cambia). */
+  --cn-color-tone-on-solid: var(--cn-color-neutral-0);
+
+  /* Frente de controles con color (CnButton, CnChip): texto, borde e ícono en variantes sin relleno.
+     En claro es la escala de siempre; en oscuro, el texto de tono que pasa 4.5:1. */
+  --cn-color-control-primary-fg: var(--cn-color-brand-600);
+  --cn-color-control-primary-fg-strong: var(--cn-color-brand-700);
+  --cn-color-control-secondary-fg: var(--cn-color-neutral-700);
+  --cn-color-control-secondary-fg-strong: var(--cn-color-neutral-800);
+  --cn-color-control-success-fg: var(--cn-color-success-600);
+  --cn-color-control-success-fg-strong: var(--cn-color-success-700);
+  --cn-color-control-warning-fg: var(--cn-color-warning-600);
+  --cn-color-control-warning-fg-strong: var(--cn-color-warning-700);
+  --cn-color-control-info-fg: var(--cn-color-info-600);
+  --cn-color-control-info-fg-strong: var(--cn-color-info-700);
+  --cn-color-control-error-fg: var(--cn-color-error-600);
+  --cn-color-control-error-fg-strong: var(--cn-color-error-700);
+  --cn-color-control-accent-fg: var(--cn-color-accent-500);
+  --cn-color-control-accent-fg-strong: var(--cn-color-accent-600);
+  --cn-color-control-neutral-fg: var(--cn-color-neutral-600);
+  --cn-color-control-neutral-fg-strong: var(--cn-color-neutral-700);
+  --cn-color-control-neutral-fill: var(--cn-color-neutral-150);
+  --cn-color-control-neutral-fill-hover: var(--cn-color-neutral-200);
+  --cn-color-control-neutral-fill-active: var(--cn-color-neutral-300);
+
   /* ============ STATE TOKENS ============ */
   --cn-color-hover: rgba(0, 0, 0, 0.04);
   --cn-color-active: rgba(0, 0, 0, 0.08);
@@ -268,6 +312,43 @@
   --cn-color-border: #2a2f38;
   --cn-color-border-subtle: #1f232b;
   --cn-color-border-strong: #3a414b;
+
+  --cn-color-tone-primary-main: #537ab3;
+  --cn-color-tone-primary-text: #7896c3;
+  --cn-color-tone-info-main: #327fca;
+  --cn-color-tone-info-text: #619cd6;
+  --cn-color-tone-success-main: #2e9e4f;
+  --cn-color-tone-success-text: #4dad69;
+  --cn-color-tone-warning-main: #e0a020;
+  --cn-color-tone-warning-text: #e0a020;
+  --cn-color-tone-error-main: #d84444;
+  --cn-color-tone-error-text: #e17373;
+  --cn-color-tone-accent-main: #506bfe;
+  --cn-color-tone-accent-text: #778cfe;
+  --cn-color-tone-neutral-main: #9aa1aa;
+  --cn-color-tone-neutral-text: #c5cad0;
+  --cn-color-tone-neutral-soft: rgba(255, 255, 255, 0.06);
+  --cn-color-tone-neutral-soft-hover: rgba(255, 255, 255, 0.1);
+
+  --cn-color-control-primary-fg: var(--cn-color-tone-primary-text);
+  --cn-color-control-primary-fg-strong: var(--cn-color-tone-primary-text);
+  --cn-color-control-secondary-fg: var(--cn-color-tone-neutral-text);
+  --cn-color-control-secondary-fg-strong: var(--cn-color-tone-neutral-text);
+  --cn-color-control-success-fg: var(--cn-color-tone-success-text);
+  --cn-color-control-success-fg-strong: var(--cn-color-tone-success-text);
+  --cn-color-control-warning-fg: var(--cn-color-tone-warning-text);
+  --cn-color-control-warning-fg-strong: var(--cn-color-tone-warning-text);
+  --cn-color-control-info-fg: var(--cn-color-tone-info-text);
+  --cn-color-control-info-fg-strong: var(--cn-color-tone-info-text);
+  --cn-color-control-error-fg: var(--cn-color-tone-error-text);
+  --cn-color-control-error-fg-strong: var(--cn-color-tone-error-text);
+  --cn-color-control-accent-fg: var(--cn-color-tone-accent-text);
+  --cn-color-control-accent-fg-strong: var(--cn-color-tone-accent-text);
+  --cn-color-control-neutral-fg: var(--cn-color-tone-neutral-text);
+  --cn-color-control-neutral-fg-strong: var(--cn-color-tone-neutral-text);
+  --cn-color-control-neutral-fill: rgba(255, 255, 255, 0.08);
+  --cn-color-control-neutral-fill-hover: rgba(255, 255, 255, 0.12);
+  --cn-color-control-neutral-fill-active: rgba(255, 255, 255, 0.16);
 
   --cn-color-hover: rgba(255, 255, 255, 0.04);
   --cn-color-active: rgba(255, 255, 255, 0.08);
