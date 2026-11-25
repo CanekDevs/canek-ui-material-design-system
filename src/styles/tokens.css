@@ -133,6 +133,8 @@
   --cn-color-tone-error-text: var(--cn-color-error-700);
   --cn-color-tone-accent-main: var(--cn-color-accent-600);
   --cn-color-tone-accent-text: var(--cn-color-accent-600);
+  /* Enlaces y referencias en acento (celdas de tabla): un paso más oscuro que el texto. */
+  --cn-color-tone-accent-strong: var(--cn-color-accent-700);
   --cn-color-tone-neutral-main: var(--cn-color-neutral-600);
   --cn-color-tone-neutral-text: var(--cn-color-neutral-800);
   /* Fondo suave de cada tono (filas seleccionadas, insignias, tarjetas de métrica). */
@@ -332,6 +334,7 @@
   --cn-color-tone-error-text: #e17373;
   --cn-color-tone-accent-main: #506bfe;
   --cn-color-tone-accent-text: #778cfe;
+  --cn-color-tone-accent-strong: #778cfe;
   --cn-color-tone-neutral-main: #9aa1aa;
   --cn-color-tone-neutral-text: #c5cad0;
   --cn-color-tone-primary-soft: rgba(83, 122, 179, 0.16);

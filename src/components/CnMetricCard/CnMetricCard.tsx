@@ -80,33 +80,48 @@ export type CnMetricCardProps = {
   className?: string;
 };
 
-const PALETTE: Record<CnMetricColor, { main: string; soft: string }> = {
+const PALETTE: Record<
+  CnMetricColor,
+  {
+    main: string;
+    /** Relleno de la variante `filled`: igual en los dos modos (el texto encima es blanco). */
+    solid: string;
+    soft: string;
+  }
+> = {
   primary: {
     main: "var(--cn-color-tone-primary-main, var(--cn-color-brand-600, #254d87))",
+    solid: "var(--cn-color-brand-600, #254d87)",
     soft: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
   },
   success: {
     main: "var(--cn-color-tone-success-main, var(--cn-color-success-600, #228740))",
+    solid: "var(--cn-color-success-600, #228740)",
     soft: "var(--cn-color-tone-success-soft, var(--cn-color-success-50, #eaf7ee))",
   },
   warning: {
     main: "var(--cn-color-tone-warning-main, var(--cn-color-warning-600, #b8831a))",
+    solid: "var(--cn-color-warning-600, #b8831a)",
     soft: "var(--cn-color-tone-warning-soft, var(--cn-color-warning-50, #fdf6e6))",
   },
   error: {
     main: "var(--cn-color-tone-error-main, var(--cn-color-error-600, #b52f2f))",
+    solid: "var(--cn-color-error-600, #b52f2f)",
     soft: "var(--cn-color-tone-error-soft, var(--cn-color-error-50, #fcecec))",
   },
   info: {
     main: "var(--cn-color-tone-info-main, var(--cn-color-info-600, #22649f))",
+    solid: "var(--cn-color-info-600, #22649f)",
     soft: "var(--cn-color-tone-info-soft, var(--cn-color-info-50, #eaf3fb))",
   },
   accent: {
     main: "var(--cn-color-tone-accent-main, var(--cn-color-accent-600, #3349d6))",
+    solid: "var(--cn-color-accent-600, #3349d6)",
     soft: "var(--cn-color-tone-accent-soft, var(--cn-color-accent-50, #eef0ff))",
   },
   neutral: {
     main: "var(--cn-color-tone-neutral-main, var(--cn-color-neutral-600, #4e5660))",
+    solid: "var(--cn-color-neutral-600, #4e5660)",
     soft: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
   },
 };
@@ -266,10 +281,10 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
   const good = direction === "flat" ? null : (direction === "up") === (trend?.upIsGood ?? true);
   const trendColor =
     good === null
-      ? "var(--cn-color-neutral-600, #4e5660)"
+      ? "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))"
       : good
-        ? "var(--cn-color-success-600, #228740)"
-        : "var(--cn-color-error-600, #b52f2f)";
+        ? "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))"
+        : "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))";
   const TrendIcon =
     direction === "up"
       ? ArrowUpwardRoundedIcon
@@ -611,7 +626,7 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
     ...(variant === "left-accent" && { borderLeftWidth: "4px", borderLeftColor: tone.main }),
     backgroundColor:
       variant === "filled"
-        ? tone.main
+        ? tone.solid
         : variant === "soft"
           ? tone.soft
           : "var(--cn-color-surface, #ffffff)",

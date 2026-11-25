@@ -277,7 +277,10 @@ const TONE: Record<CnCellTone | "secondary", { rgb: string; dark: string }> = {
     rgb: "37, 77, 135",
     dark: "var(--cn-color-tone-primary-text, var(--cn-color-brand-700, #1c3d6d))",
   },
-  accent: { rgb: "61, 90, 254", dark: "var(--cn-color-accent-700, #2a3cb8)" },
+  accent: {
+    rgb: "61, 90, 254",
+    dark: "var(--cn-color-tone-accent-strong, var(--cn-color-accent-700, #2a3cb8))",
+  },
   success: {
     rgb: "34, 135, 64",
     dark: "var(--cn-color-tone-success-text, var(--cn-color-success-700, #1b6b33))",
@@ -1670,7 +1673,7 @@ export const CnCellDetail = ({
                   fontWeight: 700,
                   cursor: "pointer",
                   textDecoration: "none",
-                  color: "var(--cn-color-accent-700, #2a3cb8)",
+                  color: "var(--cn-color-tone-accent-strong, var(--cn-color-accent-700, #2a3cb8))",
                   border: "1px solid rgba(61, 90, 254, 0.35)",
                   "&:hover": { backgroundColor: "rgba(61, 90, 254, 0.08)" },
                   "&:focus-visible": { outline: "2px solid var(--cn-color-brand-400, #5081c4)" },
@@ -2538,7 +2541,7 @@ export const CnSafeRichText = ({
           backgroundColor: "rgba(110, 118, 130, 0.1)",
         },
         "& pre code": { p: 0, backgroundColor: "transparent" },
-        "& a": { color: "var(--cn-color-accent-700, #2a3cb8)" },
+        "& a": { color: "var(--cn-color-tone-accent-strong, var(--cn-color-accent-700, #2a3cb8))" },
       }}
     >
       {content}
@@ -4195,7 +4198,9 @@ export const renderTypedCell = (
                 href={getSafeUrl(file.url)}
                 target="_blank"
                 rel="noopener noreferrer"
-                sx={{ color: "var(--cn-color-accent-700, #2a3cb8)" }}
+                sx={{
+                  color: "var(--cn-color-tone-accent-strong, var(--cn-color-accent-700, #2a3cb8))",
+                }}
               >
                 {file.name}
               </Box>
