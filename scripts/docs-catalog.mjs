@@ -3,6 +3,7 @@
  * - README.md (bloque entre <!-- catalog:start --> y <!-- catalog:end -->)
  * - docs/catalog.json y docs/ROADMAP.md
  * - docs/governance/colores-hardcodeados.md (y baja la línea base de colores si mejoró)
+ * - Las líneas base de tipografía y contraste (solo bajan o mejoran, nunca agregan deuda)
  *
  * Corre las pruebas generadoras de src/__governance__ en modo escritura (CN_GOVERNANCE_WRITE=1),
  * así la lógica vive en un solo lugar y la misma prueba falla en CI si algo quedó desactualizado.
@@ -18,7 +19,14 @@ const vitest = resolve(root, "node_modules", "vitest", "vitest.mjs");
 
 const result = spawnSync(
   process.execPath,
-  [vitest, "run", "src/__governance__/catalog-docs.test.ts", "src/__governance__/colors.test.ts"],
+  [
+    vitest,
+    "run",
+    "src/__governance__/catalog-docs.test.ts",
+    "src/__governance__/colors.test.ts",
+    "src/__governance__/typography.test.ts",
+    "src/__governance__/contrast.test.ts",
+  ],
   {
     cwd: root,
     stdio: "inherit",
