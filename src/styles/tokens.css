@@ -146,6 +146,7 @@
   --cn-color-tone-accent-soft: var(--cn-color-accent-50);
   --cn-color-tone-neutral-soft: var(--cn-color-neutral-100);
   --cn-color-tone-neutral-soft-hover: var(--cn-color-neutral-150);
+  --cn-color-tone-primary-soft-hover: var(--cn-color-brand-100);
   /* Texto sobre rellenos sólidos de tono: blanco en los dos modos (el relleno no cambia). */
   --cn-color-tone-on-solid: var(--cn-color-neutral-0);
 
@@ -170,6 +171,13 @@
   --cn-color-control-neutral-fill: var(--cn-color-neutral-150);
   --cn-color-control-neutral-fill-hover: var(--cn-color-neutral-200);
   --cn-color-control-neutral-fill-active: var(--cn-color-neutral-300);
+
+  /* Campos de formulario (field-styles y campos propios): borde activo, error, contorno de foco
+     y texto deshabilitado. En claro es la escala de siempre; en oscuro, tonos que pasan 3:1. */
+  --cn-color-field-accent: var(--cn-color-brand-500);
+  --cn-color-field-error: var(--cn-color-error-500);
+  --cn-color-field-focus-outline: var(--cn-color-brand-300);
+  --cn-color-field-disabled-fg: var(--cn-color-neutral-300);
 
   /* ============ STATE TOKENS ============ */
   --cn-color-hover: rgba(0, 0, 0, 0.04);
@@ -345,6 +353,7 @@
   --cn-color-tone-accent-soft: rgba(80, 107, 254, 0.16);
   --cn-color-tone-neutral-soft: rgba(255, 255, 255, 0.06);
   --cn-color-tone-neutral-soft-hover: rgba(255, 255, 255, 0.1);
+  --cn-color-tone-primary-soft-hover: rgba(83, 122, 179, 0.24);
 
   --cn-color-control-primary-fg: var(--cn-color-tone-primary-text);
   --cn-color-control-primary-fg-strong: var(--cn-color-tone-primary-text);
@@ -365,6 +374,11 @@
   --cn-color-control-neutral-fill: rgba(255, 255, 255, 0.08);
   --cn-color-control-neutral-fill-hover: rgba(255, 255, 255, 0.12);
   --cn-color-control-neutral-fill-active: rgba(255, 255, 255, 0.16);
+
+  --cn-color-field-accent: var(--cn-color-tone-primary-text);
+  --cn-color-field-error: var(--cn-color-tone-error-text);
+  --cn-color-field-focus-outline: var(--cn-color-tone-primary-text);
+  --cn-color-field-disabled-fg: #4e5660;
 
   --cn-color-hover: rgba(255, 255, 255, 0.04);
   --cn-color-active: rgba(255, 255, 255, 0.08);

@@ -82,12 +82,14 @@ const stackedButtonSx = {
   height: "50%",
   minHeight: 14,
   borderRadius: 0,
-  color: "var(--cn-color-neutral-500, #6e7682)",
+  color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
   "&:hover": {
-    backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
-    color: "var(--cn-color-brand-600, #254d87)",
+    backgroundColor: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
+    color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
   },
-  "&.Mui-disabled": { color: "var(--cn-color-neutral-300, #c5cad0)" },
+  "&.Mui-disabled": {
+    color: "var(--cn-color-field-disabled-fg, var(--cn-color-neutral-300, #c5cad0))",
+  },
   "& svg": { fontSize: 16 },
 } as const;
 
@@ -95,12 +97,14 @@ const splitButtonSx = {
   width: 30,
   height: 30,
   borderRadius: "var(--cn-radius-sm, 6px)",
-  color: "var(--cn-color-brand-600, #254d87)",
-  backgroundColor: "var(--cn-color-brand-50, #eef3fb)",
-  "&:hover": { backgroundColor: "var(--cn-color-brand-100, #d4e0f4)" },
+  color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+  backgroundColor: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
+  "&:hover": {
+    backgroundColor: "var(--cn-color-tone-primary-soft-hover, var(--cn-color-brand-100, #d4e0f4))",
+  },
   "&.Mui-disabled": {
-    color: "var(--cn-color-neutral-300, #c5cad0)",
-    backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
+    color: "var(--cn-color-field-disabled-fg, var(--cn-color-neutral-300, #c5cad0))",
+    backgroundColor: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
   },
 } as const;
 
@@ -323,7 +327,7 @@ export const CnNumberField = forwardRef<HTMLDivElement, CnNumberFieldProps>(func
         setDraft("");
         emit(null);
       }}
-      sx={{ color: "var(--cn-color-neutral-500, #6e7682)" }}
+      sx={{ color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))" }}
     >
       <ClearIcon fontSize="small" />
     </IconButton>

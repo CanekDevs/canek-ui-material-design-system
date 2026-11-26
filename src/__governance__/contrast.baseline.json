@@ -7,5 +7,6 @@
   "claro: text-subtle / surface-sunken": 2.39,
   "claro: border / surface": 1.32,
   "oscuro: border / surface": 1.28,
-  "claro: control-warning-fg / surface": 3.33
+  "claro: control-warning-fg / surface": 3.33,
+  "claro: field-focus-outline / surface": 2.67
 }

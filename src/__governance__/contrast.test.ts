@@ -113,6 +113,11 @@ const pairs = (): Pair[] => [
   ...["text", "text-muted"].flatMap((fg) => BACKGROUNDS.map((bg) => ({ fg, bg, min: TEXT_AA }))),
   ...BACKGROUNDS.map((bg) => ({ fg: "text-subtle", bg, min: NON_TEXT_AA })),
   { fg: fieldBorderToken(), bg: "surface", min: NON_TEXT_AA },
+  ...["field-accent", "field-error", "field-focus-outline"].map((fg) => ({
+    fg,
+    bg: "surface",
+    min: NON_TEXT_AA,
+  })),
   ...TONES.flatMap((tone) => [
     ...BACKGROUNDS.map((bg) => ({ fg: `tone-${tone}-text`, bg, min: TEXT_AA })),
     { fg: `tone-${tone}-main`, bg: "surface", min: NON_TEXT_AA },
