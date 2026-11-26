@@ -334,13 +334,13 @@ export const CnRadialLineChart = (props: CnRadialLineChartProps) => {
                   cy={cy}
                   r={r(t)}
                   fill="none"
-                  stroke="var(--cn-color-neutral-150, #e9ecef)"
+                  stroke="var(--cn-color-border-subtle, var(--cn-color-neutral-150, #e9ecef))"
                 />
                 <text
                   x={cx + 4}
                   y={cy - r(t) - 3}
                   fontSize={10}
-                  fill="var(--cn-color-neutral-400, #9aa1aa)"
+                  fill="var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))"
                 >
                   {format(t)}
                 </text>
@@ -357,7 +357,7 @@ export const CnRadialLineChart = (props: CnRadialLineChartProps) => {
                     y1={a.y}
                     x2={b.x}
                     y2={b.y}
-                    stroke="var(--cn-color-neutral-150, #e9ecef)"
+                    stroke="var(--cn-color-border-subtle, var(--cn-color-neutral-150, #e9ecef))"
                   />
                   <text
                     x={l.x}
@@ -366,7 +366,7 @@ export const CnRadialLineChart = (props: CnRadialLineChartProps) => {
                     dominantBaseline="central"
                     fontSize={11}
                     fontWeight={hoverIndex === i ? 800 : 600}
-                    fill="var(--cn-color-neutral-600, #4e5660)"
+                    fill="var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))"
                   >
                     {c}
                   </text>

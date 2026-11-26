@@ -118,13 +118,15 @@ const ToolButton = ({
           height: 30,
           borderRadius: "var(--cn-radius-sm, 6px)",
           color: active
-            ? "var(--cn-color-brand-700, #1c3d6d)"
-            : "var(--cn-color-neutral-600, #4e5660)",
-          backgroundColor: active ? "var(--cn-color-brand-50, #eef3fb)" : "transparent",
+            ? "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))"
+            : "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+          backgroundColor: active
+            ? "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))"
+            : "transparent",
           "&:hover": {
             backgroundColor: active
-              ? "var(--cn-color-brand-100, #d4e0f4)"
-              : "var(--cn-color-neutral-100, #f4f5f7)",
+              ? "var(--cn-color-tone-primary-soft-hover, var(--cn-color-brand-100, #d4e0f4))"
+              : "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
           },
           "& svg": { fontSize: 18 },
         }}
@@ -164,7 +166,8 @@ const contentSx = (minHeight: number | string, maxHeight?: number | string): SxP
     "& blockquote": {
       margin: "8px 0",
       paddingLeft: "12px",
-      borderLeft: "3px solid var(--cn-color-brand-300, #7c9fdc)",
+      borderLeft:
+        "3px solid var(--cn-color-field-focus-outline, var(--cn-color-brand-300, #7c9fdc))",
       color: "var(--cn-color-text-muted, #6e7682)",
     },
     "& code": {
@@ -172,7 +175,7 @@ const contentSx = (minHeight: number | string, maxHeight?: number | string): SxP
       fontSize: "0.9em",
       padding: "1px 4px",
       borderRadius: "var(--cn-radius-xs, 4px)",
-      backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
+      backgroundColor: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
     },
     "& pre": {
       padding: "10px 12px",
@@ -182,10 +185,15 @@ const contentSx = (minHeight: number | string, maxHeight?: number | string): SxP
       "& code": { backgroundColor: "transparent", color: "inherit", padding: 0 },
     },
     "& mark": { backgroundColor: "#fff3a3", borderRadius: 2, padding: "0 2px" },
-    "& a": { color: "var(--cn-color-brand-600, #254d87)", textDecoration: "underline" },
+    "& a": {
+      color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+      textDecoration: "underline",
+    },
     "& hr": { border: 0, borderTop: "1px solid var(--cn-color-border, #dde0e4)", margin: "12px 0" },
     "& img": { maxWidth: "100%", height: "auto", borderRadius: "var(--cn-radius-md, 8px)" },
-    "& img.ProseMirror-selectednode": { outline: "2px solid var(--cn-color-brand-500, #3562a6)" },
+    "& img.ProseMirror-selectednode": {
+      outline: "2px solid var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
+    },
     "& table": {
       borderCollapse: "collapse" as const,
       width: "100%",
@@ -199,11 +207,13 @@ const contentSx = (minHeight: number | string, maxHeight?: number | string): SxP
       position: "relative" as const,
     },
     "& th": {
-      backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+      backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
       fontWeight: 600,
       textAlign: "left" as const,
     },
-    "& .selectedCell": { backgroundColor: "var(--cn-color-brand-50, #eef3fb)" },
+    "& .selectedCell": {
+      backgroundColor: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
+    },
     "& p.is-editor-empty:first-of-type::before": {
       content: "attr(data-placeholder)",
       color: "var(--cn-color-text-subtle, #9aa1aa)",
@@ -487,15 +497,17 @@ export const CnRichTextField = forwardRef<HTMLDivElement, CnRichTextFieldProps>(
           sx={{
             border: "1px solid",
             borderColor: control.error
-              ? "var(--cn-color-error-500, #d63c3c)"
+              ? "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))"
               : focused
-                ? "var(--cn-color-brand-500, #3562a6)"
+                ? "var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))"
                 : "var(--cn-color-border, #dde0e4)",
             boxShadow:
-              focused && !control.error ? "0 0 0 1px var(--cn-color-brand-500, #3562a6)" : "none",
+              focused && !control.error
+                ? "0 0 0 1px var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))"
+                : "none",
             borderRadius: "var(--cn-radius-md, 8px)",
             backgroundColor: disabled
-              ? "var(--cn-color-neutral-100, #f4f5f7)"
+              ? "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))"
               : "var(--cn-color-surface, #ffffff)",
             overflow: "hidden",
             transition: "border-color 140ms ease, box-shadow 140ms ease",
@@ -513,7 +525,7 @@ export const CnRichTextField = forwardRef<HTMLDivElement, CnRichTextFieldProps>(
                 gap: "2px",
                 padding: "4px 6px",
                 borderBottom: "1px solid var(--cn-color-border-subtle, #e9ecef)",
-                backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+                backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
               }}
             >
               {tools.has("undo") && (

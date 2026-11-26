@@ -509,7 +509,7 @@ export const CnCartesianChart = <T,>(props: CnCartesianChartProps<T>) => {
               "& .MuiBarLabel-root, & .MuiBarChart-barLabel": {
                 fill:
                   barLabels === "outside"
-                    ? "var(--cn-color-neutral-700, #363d45) !important"
+                    ? "var(--cn-color-control-secondary-fg, var(--cn-color-neutral-700, #363d45)) !important"
                     : "#ffffff !important",
                 ...(barLabels !== "outside" && {
                   paintOrder: "stroke",
@@ -662,7 +662,7 @@ export const CnCartesianChart = <T,>(props: CnCartesianChartProps<T>) => {
             valueLabelFormat={(value) => xFormat(allCategories[value])}
             getAriaLabel={(index) => (index === 0 ? "Inicio del rango" : "Fin del rango")}
             sx={{
-              color: "var(--cn-color-accent-500, #3d5afe)",
+              color: "var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
               "& .MuiSlider-rail": { opacity: 0.25 },
             }}
           />

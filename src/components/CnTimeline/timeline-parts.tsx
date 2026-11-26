@@ -63,7 +63,10 @@ export const hiddenSx = {
   whiteSpace: "nowrap",
 } as const;
 
-const focusRing = { outline: "2px solid var(--cn-color-brand-500, #3562a6)", outlineOffset: 1 };
+const focusRing = {
+  outline: "2px solid var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
+  outlineOffset: 1,
+};
 
 /** Señal de "Expandir todo / Contraer todo": cada clic sube `version`. */
 export type ExpandSignal = { expanded: boolean; version: number };
@@ -162,7 +165,7 @@ export const Description = ({
               px: "12px",
               py: "8px",
               borderRadius: "4px 12px 12px 12px",
-              backgroundColor: "var(--cn-color-neutral-50, #f8f9fa)",
+              backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #f8f9fa))",
               border: "1px solid var(--cn-color-border-subtle, #e9ecef)",
               minWidth: 0,
             }
@@ -202,7 +205,7 @@ export const Description = ({
             mt: "2px",
             fontSize: size - 1,
             fontWeight: 600,
-            color: "var(--cn-color-brand-600, #254d87)",
+            color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
             borderRadius: "4px",
             "&:hover": { textDecoration: "underline" },
             "&.Mui-focusVisible": focusRing,
@@ -265,7 +268,9 @@ export const Marker = ({ item, size }: { item: CnTimelineItem; size: CnTimelineS
             height: s.dot,
             borderRadius: "50%",
             backgroundColor:
-              toneName === "neutral" ? "var(--cn-color-neutral-400, #9aa1aa)" : tone.main,
+              toneName === "neutral"
+                ? "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))"
+                : tone.main,
             boxShadow: `0 0 0 3px ${tone.soft}`,
           }}
         />
@@ -331,8 +336,8 @@ const Changes = ({ changes, size }: { changes: readonly CnTimelineChange[]; size
           color: empty
             ? "var(--cn-color-text-subtle, #9aa1aa)"
             : kind === "before"
-              ? "var(--cn-color-error-700, #8f2424)"
-              : "var(--cn-color-success-700, #1b6b33)",
+              ? "var(--cn-color-control-error-fg-strong, var(--cn-color-error-700, #8f2424))"
+              : "var(--cn-color-control-success-fg-strong, var(--cn-color-success-700, #1b6b33))",
           backgroundColor: empty
             ? "transparent"
             : kind === "before"
@@ -532,7 +537,9 @@ const Attachments = ({
                 title={file.name}
                 sx={{
                   ...chipSx,
-                  "&:hover": { backgroundColor: "var(--cn-color-neutral-50, #f8f9fa)" },
+                  "&:hover": {
+                    backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #f8f9fa))",
+                  },
                   "&.Mui-focusVisible": focusRing,
                 }}
               >

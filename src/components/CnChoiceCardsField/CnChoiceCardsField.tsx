@@ -224,12 +224,12 @@ export const CnChoiceCardsField = forwardRef<HTMLFieldSetElement, CnChoiceCardsF
                   borderRadius: "var(--cn-radius-md, 8px)",
                   border: "1.5px solid",
                   borderColor: isSelected
-                    ? "var(--cn-color-brand-600, #254d87)"
+                    ? "var(--cn-color-tone-primary-main, var(--cn-color-brand-600, #254d87))"
                     : control.error
-                      ? "var(--cn-color-error-500, #d63c3c)"
+                      ? "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))"
                       : "var(--cn-color-border, #dde0e4)",
                   backgroundColor: isSelected
-                    ? "var(--cn-color-brand-50, #eef3fb)"
+                    ? "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))"
                     : "var(--cn-color-surface, #ffffff)",
                   cursor: isDisabled ? "not-allowed" : readOnly ? "default" : "pointer",
                   opacity: isDisabled ? 0.55 : 1,
@@ -241,7 +241,7 @@ export const CnChoiceCardsField = forwardRef<HTMLFieldSetElement, CnChoiceCardsF
                       : {
                           borderColor: isSelected
                             ? undefined
-                            : "var(--cn-color-brand-300, #7c9fdc)",
+                            : "var(--cn-color-field-focus-outline, var(--cn-color-brand-300, #7c9fdc))",
                         },
                   "&:focus-visible": {
                     boxShadow: "0 0 0 3px rgba(var(--cn-color-rgb-brand-400, 80, 129, 196), 0.35)",
@@ -282,7 +282,8 @@ export const CnChoiceCardsField = forwardRef<HTMLFieldSetElement, CnChoiceCardsF
                             sx={{
                               fontSize: "var(--cn-font-size-sm, 12px)",
                               fontWeight: 600,
-                              color: "var(--cn-color-brand-700, #1c3d6d)",
+                              color:
+                                "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
                               whiteSpace: "nowrap",
                             }}
                           >
@@ -317,8 +318,10 @@ export const CnChoiceCardsField = forwardRef<HTMLFieldSetElement, CnChoiceCardsF
                     alignItems: "center",
                     justifyContent: "center",
                     borderRadius: multiple ? "4px" : "50%",
-                    border: isSelected ? 0 : "1.5px solid var(--cn-color-neutral-300, #c4c9cf)",
-                    color: "var(--cn-color-brand-600, #254d87)",
+                    border: isSelected
+                      ? 0
+                      : "1.5px solid var(--cn-color-border-strong, var(--cn-color-neutral-300, #c4c9cf))",
+                    color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
                   }}
                 >
                   {isSelected && <CheckCircleIcon sx={{ fontSize: 20 }} />}

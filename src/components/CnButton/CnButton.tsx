@@ -65,6 +65,9 @@ type ColorTokens = {
   main: string;
   mainRgb: string;
   dark: string;
+  /** Frente (texto, borde, ícono) en variantes sin relleno: cambia en modo oscuro. */
+  fg: string;
+  fgStrong: string;
   contrast: string;
 };
 
@@ -73,48 +76,64 @@ const COLOR_TOKENS: Record<CnButtonColor, ColorTokens> = {
     main: "var(--cn-color-brand-600, #254d87)",
     mainRgb: "var(--cn-color-rgb-brand-600, 37, 77, 135)",
     dark: "var(--cn-color-brand-700, #1c3d6d)",
+    fg: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+    fgStrong: "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   secondary: {
     main: "var(--cn-color-neutral-700, #363d45)",
     mainRgb: "var(--cn-color-rgb-neutral-700, 54, 61, 69)",
     dark: "var(--cn-color-neutral-800, #222831)",
+    fg: "var(--cn-color-control-secondary-fg, var(--cn-color-neutral-700, #363d45))",
+    fgStrong: "var(--cn-color-control-secondary-fg-strong, var(--cn-color-neutral-800, #222831))",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   success: {
     main: "var(--cn-color-success-600, #228740)",
     mainRgb: "var(--cn-color-rgb-success-600, 34, 135, 64)",
     dark: "var(--cn-color-success-700, #176230)",
+    fg: "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
+    fgStrong: "var(--cn-color-control-success-fg-strong, var(--cn-color-success-700, #176230))",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   warning: {
     main: "var(--cn-color-warning-600, #b8831a)",
     mainRgb: "var(--cn-color-rgb-warning-600, 184, 131, 26)",
     dark: "var(--cn-color-warning-700, #8a6312)",
+    fg: "var(--cn-color-control-warning-fg, var(--cn-color-warning-600, #b8831a))",
+    fgStrong: "var(--cn-color-control-warning-fg-strong, var(--cn-color-warning-700, #8a6312))",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   info: {
     main: "var(--cn-color-info-600, #2367a8)",
     mainRgb: "var(--cn-color-rgb-info-600, 35, 103, 168)",
     dark: "var(--cn-color-info-700, #1a4f82)",
+    fg: "var(--cn-color-control-info-fg, var(--cn-color-info-600, #2367a8))",
+    fgStrong: "var(--cn-color-control-info-fg-strong, var(--cn-color-info-700, #1a4f82))",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   error: {
     main: "var(--cn-color-error-600, #b52f2f)",
     mainRgb: "var(--cn-color-rgb-error-600, 181, 47, 47)",
     dark: "var(--cn-color-error-700, #8e2424)",
+    fg: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
+    fgStrong: "var(--cn-color-control-error-fg-strong, var(--cn-color-error-700, #8e2424))",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   accent: {
     main: "var(--cn-color-accent-500, #3d5afe)",
     mainRgb: "var(--cn-color-rgb-accent-500, 61, 90, 254)",
     dark: "var(--cn-color-accent-600, #304ffe)",
+    fg: "var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
+    fgStrong: "var(--cn-color-control-accent-fg-strong, var(--cn-color-accent-600, #304ffe))",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
   neutral: {
     main: "var(--cn-color-neutral-700, #363d45)",
     mainRgb: "var(--cn-color-rgb-neutral-700, 54, 61, 69)",
     dark: "var(--cn-color-neutral-800, #222831)",
+    fg: "var(--cn-color-control-secondary-fg, var(--cn-color-neutral-700, #363d45))",
+    fgStrong: "var(--cn-color-control-secondary-fg-strong, var(--cn-color-neutral-800, #222831))",
     contrast: "var(--cn-color-neutral-0, #ffffff)",
   },
 };
@@ -202,12 +221,15 @@ function buildButtonSx(
     if (color === "neutral") {
       Object.assign(base, {
         color: "var(--cn-color-text, #222831)",
-        backgroundColor: "var(--cn-color-neutral-150, #e9ecef)",
+        backgroundColor:
+          "var(--cn-color-control-neutral-fill, var(--cn-color-neutral-150, #e9ecef))",
         "&:hover": {
-          backgroundColor: "var(--cn-color-neutral-200, #dde0e4)",
+          backgroundColor:
+            "var(--cn-color-control-neutral-fill-hover, var(--cn-color-neutral-200, #dde0e4))",
         },
         "&:active": {
-          backgroundColor: "var(--cn-color-neutral-300, #c5cad0)",
+          backgroundColor:
+            "var(--cn-color-control-neutral-fill-active, var(--cn-color-neutral-300, #c5cad0))",
         },
       });
     } else {
@@ -227,21 +249,21 @@ function buildButtonSx(
     }
   } else if (variant === "outlined") {
     Object.assign(base, {
-      color: tokens.main,
+      color: tokens.fg,
       backgroundColor: "transparent",
-      border: `1px solid ${tokens.main}`,
+      border: `1px solid ${tokens.fg}`,
       "&:hover": {
         backgroundColor: `rgba(${tokens.mainRgb}, 0.06)`,
-        borderColor: tokens.dark,
+        borderColor: tokens.fgStrong,
       },
       "&:active": {
         backgroundColor: `rgba(${tokens.mainRgb}, 0.10)`,
-        borderColor: tokens.dark,
+        borderColor: tokens.fgStrong,
       },
     });
   } else {
     Object.assign(base, {
-      color: tokens.main,
+      color: tokens.fg,
       backgroundColor: "transparent",
       "&:hover": {
         backgroundColor: `rgba(${tokens.mainRgb}, 0.06)`,
@@ -329,7 +351,7 @@ export const CnButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, CnButt
     const spinnerColor =
       variant === "contained" && color !== "neutral"
         ? COLOR_TOKENS[color].contrast
-        : COLOR_TOKENS[color].main;
+        : COLOR_TOKENS[color].fg;
 
     const loadingSpinner = (
       <CircularProgress

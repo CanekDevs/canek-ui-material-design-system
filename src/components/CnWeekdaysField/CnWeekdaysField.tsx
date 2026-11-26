@@ -244,9 +244,9 @@ export const CnWeekdaysField = forwardRef<HTMLFieldSetElement, CnWeekdaysFieldPr
                   fontWeight: 600,
                   border: "1px solid",
                   borderColor: selected
-                    ? "var(--cn-color-brand-600, #254d87)"
+                    ? "var(--cn-color-tone-primary-main, var(--cn-color-brand-600, #254d87))"
                     : control.error
-                      ? "var(--cn-color-error-500, #d63c3c)"
+                      ? "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))"
                       : "var(--cn-color-border, #dde0e4)",
                   backgroundColor: selected
                     ? "var(--cn-color-brand-600, #254d87)"
@@ -256,9 +256,13 @@ export const CnWeekdaysField = forwardRef<HTMLFieldSetElement, CnWeekdaysFieldPr
                   transition: "background-color 120ms ease, border-color 120ms ease",
                   "&:hover": readOnly
                     ? undefined
-                    : { borderColor: "var(--cn-color-brand-500, #3562a6)" },
+                    : {
+                        borderColor:
+                          "var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
+                      },
                   "&.Mui-focusVisible": {
-                    outline: "2px solid var(--cn-color-brand-300, #7c9fdc)",
+                    outline:
+                      "2px solid var(--cn-color-field-focus-outline, var(--cn-color-brand-300, #7c9fdc))",
                     outlineOffset: 2,
                   },
                   "&.Mui-disabled": { opacity: 0.45 },
@@ -291,13 +295,14 @@ export const CnWeekdaysField = forwardRef<HTMLFieldSetElement, CnWeekdaysFieldPr
                     fontWeight: 500,
                     border: "1px solid var(--cn-color-border, #dde0e4)",
                     backgroundColor: active
-                      ? "var(--cn-color-brand-50, #eef3fb)"
+                      ? "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))"
                       : "var(--cn-color-surface, #ffffff)",
                     color: active
-                      ? "var(--cn-color-brand-700, #1d3d6b)"
+                      ? "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1d3d6b))"
                       : "var(--cn-color-text-muted, #6e7682)",
                     "&.Mui-focusVisible": {
-                      outline: "2px solid var(--cn-color-brand-300, #7c9fdc)",
+                      outline:
+                        "2px solid var(--cn-color-field-focus-outline, var(--cn-color-brand-300, #7c9fdc))",
                       outlineOffset: 2,
                     },
                   }}

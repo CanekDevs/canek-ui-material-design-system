@@ -127,7 +127,7 @@ export const CnCandlestickChart = (props: CnCandlestickChartProps) => {
                   x2={left + plotW}
                   y1={y(t)}
                   y2={y(t)}
-                  stroke="var(--cn-color-neutral-150, #e9ecef)"
+                  stroke="var(--cn-color-border-subtle, var(--cn-color-neutral-150, #e9ecef))"
                   strokeDasharray="4 4"
                 />
                 <text
@@ -135,7 +135,7 @@ export const CnCandlestickChart = (props: CnCandlestickChartProps) => {
                   y={y(t)}
                   dominantBaseline="central"
                   fontSize={11}
-                  fill="var(--cn-color-neutral-500, #6e7682)"
+                  fill="var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))"
                 >
                   {format(t)}
                 </text>
@@ -149,7 +149,7 @@ export const CnCandlestickChart = (props: CnCandlestickChartProps) => {
                   y={height - 6}
                   textAnchor="middle"
                   fontSize={11}
-                  fill="var(--cn-color-neutral-500, #6e7682)"
+                  fill="var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))"
                 >
                   {dateFormat(toDate(d.date))}
                 </text>
@@ -221,7 +221,7 @@ export const CnCandlestickChart = (props: CnCandlestickChartProps) => {
                   x2={left + band * hover + band / 2}
                   y1={top}
                   y2={top + priceH + (volume ? volumeH + 10 : 0)}
-                  stroke="var(--cn-color-neutral-400, #9aa1aa)"
+                  stroke="var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))"
                   strokeDasharray="3 3"
                 />
                 <rect

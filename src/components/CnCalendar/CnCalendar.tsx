@@ -125,25 +125,29 @@ const dayButtonSx = {
   color: "var(--cn-color-text, #222831)",
   position: "relative",
   transition: "background-color 120ms ease, color 120ms ease",
-  "&:hover": { backgroundColor: "var(--cn-color-brand-50, #eef3fb)" },
+  "&:hover": {
+    backgroundColor: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
+  },
   "&.Mui-focusVisible, &:focus-visible": {
-    outline: "2px solid var(--cn-color-brand-400, #5081c4)",
+    outline: "2px solid var(--cn-color-focus-outline, var(--cn-color-brand-400, #5081c4))",
     outlineOffset: 1,
   },
   "&[data-outside]": { color: "var(--cn-color-text-subtle, #9aa1aa)" },
-  "&[data-today]": { boxShadow: "inset 0 0 0 1px var(--cn-color-brand-500, #3562a6)" },
+  "&[data-today]": {
+    boxShadow: "inset 0 0 0 1px var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
+  },
   "&[data-in-range]": {
     borderRadius: 0,
-    backgroundColor: "var(--cn-color-brand-50, #eef3fb)",
+    backgroundColor: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
   },
   "&[data-selected]": {
     backgroundColor: "var(--cn-color-brand-600, #254d87)",
-    color: "var(--cn-color-text-inverse, #ffffff)",
+    color: "var(--cn-color-tone-on-solid, #ffffff)",
     borderRadius: "50%",
     "&:hover": { backgroundColor: "var(--cn-color-brand-700, #1c3d6d)" },
   },
   "&.Mui-disabled": {
-    color: "var(--cn-color-neutral-300, #c5cad0)",
+    color: "var(--cn-color-field-disabled-fg, var(--cn-color-neutral-300, #c5cad0))",
     textDecoration: "line-through",
   },
 } as const;
@@ -154,17 +158,23 @@ const gridButtonSx = {
   fontSize: "var(--cn-font-size-sm, 12px)",
   fontWeight: 500,
   color: "var(--cn-color-text, #222831)",
-  "&:hover": { backgroundColor: "var(--cn-color-brand-50, #eef3fb)" },
+  "&:hover": {
+    backgroundColor: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
+  },
   "&.Mui-focusVisible, &:focus-visible": {
-    outline: "2px solid var(--cn-color-brand-400, #5081c4)",
+    outline: "2px solid var(--cn-color-focus-outline, var(--cn-color-brand-400, #5081c4))",
     outlineOffset: 1,
   },
-  "&[data-current]": { boxShadow: "inset 0 0 0 1px var(--cn-color-brand-500, #3562a6)" },
+  "&[data-current]": {
+    boxShadow: "inset 0 0 0 1px var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
+  },
   "&[data-selected]": {
     backgroundColor: "var(--cn-color-brand-600, #254d87)",
-    color: "var(--cn-color-text-inverse, #ffffff)",
+    color: "var(--cn-color-tone-on-solid, #ffffff)",
   },
-  "&.Mui-disabled": { color: "var(--cn-color-neutral-300, #c5cad0)" },
+  "&.Mui-disabled": {
+    color: "var(--cn-color-field-disabled-fg, var(--cn-color-neutral-300, #c5cad0))",
+  },
 } as const;
 
 /**
@@ -395,8 +405,14 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
                 fontSize: "var(--cn-font-size-md, 14px)",
                 fontWeight: 600,
                 color: "var(--cn-color-text, #222831)",
-                "&:hover": { backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)" },
-                "&.Mui-focusVisible": { outline: "2px solid var(--cn-color-brand-400, #5081c4)" },
+                "&:hover": {
+                  backgroundColor:
+                    "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
+                },
+                "&.Mui-focusVisible": {
+                  outline:
+                    "2px solid var(--cn-color-focus-outline, var(--cn-color-brand-400, #5081c4))",
+                },
               }}
             >
               {view === "day"
@@ -539,7 +555,7 @@ export const CnCalendar = forwardRef<HTMLDivElement, CnCalendarProps>(
                               borderRadius: "50%",
                               backgroundColor: selected
                                 ? "currentColor"
-                                : "var(--cn-color-accent-500, #3d5afe)",
+                                : "var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                             }}
                           />
                         )}

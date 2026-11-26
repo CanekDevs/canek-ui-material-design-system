@@ -273,14 +273,38 @@ export type CnEmptyContext =
 // ─── Paleta ─────────────────────────────────────────────────────────────
 
 const TONE: Record<CnCellTone | "secondary", { rgb: string; dark: string }> = {
-  primary: { rgb: "37, 77, 135", dark: "var(--cn-color-brand-700, #1c3d6d)" },
-  accent: { rgb: "61, 90, 254", dark: "var(--cn-color-accent-700, #2a3cb8)" },
-  success: { rgb: "34, 135, 64", dark: "var(--cn-color-success-700, #1b6b33)" },
-  warning: { rgb: "196, 132, 16", dark: "var(--cn-color-warning-700, #8f6614)" },
-  error: { rgb: "214, 60, 60", dark: "var(--cn-color-error-700, #922626)" },
-  info: { rgb: "34, 100, 159", dark: "var(--cn-color-info-700, #1b4f7e)" },
-  neutral: { rgb: "78, 86, 96", dark: "var(--cn-color-neutral-800, #2d333a)" },
-  secondary: { rgb: "78, 86, 96", dark: "var(--cn-color-neutral-800, #2d333a)" },
+  primary: {
+    rgb: "37, 77, 135",
+    dark: "var(--cn-color-tone-primary-text, var(--cn-color-brand-700, #1c3d6d))",
+  },
+  accent: {
+    rgb: "61, 90, 254",
+    dark: "var(--cn-color-tone-accent-strong, var(--cn-color-accent-700, #2a3cb8))",
+  },
+  success: {
+    rgb: "34, 135, 64",
+    dark: "var(--cn-color-tone-success-text, var(--cn-color-success-700, #1b6b33))",
+  },
+  warning: {
+    rgb: "196, 132, 16",
+    dark: "var(--cn-color-tone-warning-text, var(--cn-color-warning-700, #8f6614))",
+  },
+  error: {
+    rgb: "214, 60, 60",
+    dark: "var(--cn-color-tone-error-text, var(--cn-color-error-700, #922626))",
+  },
+  info: {
+    rgb: "34, 100, 159",
+    dark: "var(--cn-color-tone-info-text, var(--cn-color-info-700, #1b4f7e))",
+  },
+  neutral: {
+    rgb: "78, 86, 96",
+    dark: "var(--cn-color-tone-neutral-text, var(--cn-color-neutral-800, #2d333a))",
+  },
+  secondary: {
+    rgb: "78, 86, 96",
+    dark: "var(--cn-color-tone-neutral-text, var(--cn-color-neutral-800, #2d333a))",
+  },
 };
 
 const MONO = "var(--cn-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace)";
@@ -958,8 +982,8 @@ export const CnCopyButton = ({ text, label = "Copiar" }: { text: string; label?:
           cursor: "pointer",
           opacity: copied ? 1 : 0.4,
           color: copied
-            ? "var(--cn-color-success-600, #228740)"
-            : "var(--cn-color-neutral-600, #4e5660)",
+            ? "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))"
+            : "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
           transition: "opacity 160ms ease, background-color 160ms ease, transform 160ms ease",
           "&:hover, &:focus-visible": {
             opacity: 1,
@@ -1357,7 +1381,9 @@ const ContactPopover = ({
                 gap: "10px",
                 p: "8px",
                 borderRadius: "8px",
-                "&:hover": { backgroundColor: "var(--cn-color-neutral-50, #fafbfc)" },
+                "&:hover": {
+                  backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
+                },
               }}
             >
               <ContactAvatar contact={contact} shape={shape} />
@@ -1647,7 +1673,7 @@ export const CnCellDetail = ({
                   fontWeight: 700,
                   cursor: "pointer",
                   textDecoration: "none",
-                  color: "var(--cn-color-accent-700, #2a3cb8)",
+                  color: "var(--cn-color-tone-accent-strong, var(--cn-color-accent-700, #2a3cb8))",
                   border: "1px solid rgba(61, 90, 254, 0.35)",
                   "&:hover": { backgroundColor: "rgba(61, 90, 254, 0.08)" },
                   "&:focus-visible": { outline: "2px solid var(--cn-color-brand-400, #5081c4)" },
@@ -1857,7 +1883,10 @@ const MaskedValue = ({
             event.stopPropagation();
             setShown((prev) => !prev);
           }}
-          sx={{ p: "3px", color: "var(--cn-color-neutral-500, #6e7682)" }}
+          sx={{
+            p: "3px",
+            color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
+          }}
         >
           <CnIcon name={shown ? "visibility_off" : "visibility"} size={15} />
         </IconButton>
@@ -2512,7 +2541,7 @@ export const CnSafeRichText = ({
           backgroundColor: "rgba(110, 118, 130, 0.1)",
         },
         "& pre code": { p: 0, backgroundColor: "transparent" },
-        "& a": { color: "var(--cn-color-accent-700, #2a3cb8)" },
+        "& a": { color: "var(--cn-color-tone-accent-strong, var(--cn-color-accent-700, #2a3cb8))" },
       }}
     >
       {content}
@@ -3244,7 +3273,9 @@ const renderExtraCell = (
           <CnIcon
             name={options.icon}
             size={22}
-            sx={{ color: "var(--cn-color-neutral-600, #4e5660)" }}
+            sx={{
+              color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+            }}
           />
           <Box component="span" sx={{ position: "absolute", top: -2, left: 12 }}>
             {badge}
@@ -3885,8 +3916,10 @@ export const renderTypedCell = (
                   justifyContent: "center",
                   fontSize: 11,
                   fontWeight: 700,
-                  color: "var(--cn-color-neutral-700, #3a4048)",
-                  backgroundColor: "var(--cn-color-neutral-150, #e9ecef)",
+                  color:
+                    "var(--cn-color-control-secondary-fg, var(--cn-color-neutral-700, #3a4048))",
+                  backgroundColor:
+                    "var(--cn-color-tone-neutral-soft-hover, var(--cn-color-neutral-150, #e9ecef))",
                   boxShadow: "0 0 0 2px var(--cn-color-surface, #fff)",
                 }}
               >
@@ -4165,7 +4198,9 @@ export const renderTypedCell = (
                 href={getSafeUrl(file.url)}
                 target="_blank"
                 rel="noopener noreferrer"
-                sx={{ color: "var(--cn-color-accent-700, #2a3cb8)" }}
+                sx={{
+                  color: "var(--cn-color-tone-accent-strong, var(--cn-color-accent-700, #2a3cb8))",
+                }}
               >
                 {file.name}
               </Box>
@@ -4500,7 +4535,8 @@ export const renderTypedCell = (
                 ...(handleClick && {
                   all: "unset",
                   cursor: "pointer",
-                  color: "var(--cn-color-brand-700, #1c3d6d)",
+                  color:
+                    "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
                   "&:hover": { textDecoration: "underline" },
                 }),
                 display: "-webkit-box",
