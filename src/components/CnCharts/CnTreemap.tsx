@@ -120,7 +120,7 @@ export const CnTreemap = (props: CnTreemapProps) => {
                   py: "2px",
                   borderRadius: "6px",
                   fontWeight: 700,
-                  color: "var(--cn-color-accent-600, #304ffe)",
+                  color: "var(--cn-color-tone-accent-text, var(--cn-color-accent-600, #304ffe))",
                   "&:hover": { backgroundColor: "rgba(61, 90, 254, 0.08)" },
                 }}
               >
@@ -143,7 +143,7 @@ export const CnTreemap = (props: CnTreemapProps) => {
                       color:
                         i === path.length - 1
                           ? "var(--cn-color-text-primary, #111418)"
-                          : "var(--cn-color-accent-600, #304ffe)",
+                          : "var(--cn-color-tone-accent-text, var(--cn-color-accent-600, #304ffe))",
                     }}
                   >
                     {item.label}

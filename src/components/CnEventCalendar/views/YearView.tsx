@@ -100,7 +100,7 @@ export const YearView = ({ range, occurrences, onMonthClick }: YearViewProps) =>
               sx={{
                 p: "10px",
                 borderRadius: "12px",
-                border: `1px solid ${isCurrent ? "var(--cn-color-brand-300, #7c9fdc)" : "var(--cn-color-border, #dde0e4)"}`,
+                border: `1px solid ${isCurrent ? "var(--cn-color-field-focus-outline, var(--cn-color-brand-300, #7c9fdc))" : "var(--cn-color-border, #dde0e4)"}`,
               }}
             >
               <Box
@@ -117,11 +117,12 @@ export const YearView = ({ range, occurrences, onMonthClick }: YearViewProps) =>
                   fontWeight: 700,
                   textTransform: "capitalize",
                   color: isCurrent
-                    ? "var(--cn-color-brand-600, #254d87)"
+                    ? "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))"
                     : "var(--cn-color-text, #222831)",
                   "&:hover": { textDecoration: "underline" },
                   "&:focus-visible": {
-                    outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                    outline:
+                      "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                     borderRadius: "4px",
                   },
                 }}
@@ -206,10 +207,12 @@ export const YearView = ({ range, occurrences, onMonthClick }: YearViewProps) =>
                                   : undefined,
                               "&:disabled": { opacity: 0.35, cursor: "not-allowed" },
                               "&:hover": {
-                                outline: "1px solid var(--cn-color-brand-400, #5081c4)",
+                                outline:
+                                  "1px solid var(--cn-color-focus-outline, var(--cn-color-brand-400, #5081c4))",
                               },
                               "&:focus-visible": {
-                                outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                                outline:
+                                  "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                               },
                             }}
                           >

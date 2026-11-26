@@ -110,7 +110,9 @@ const fieldBorderToken = (): string => {
 type Pair = { fg: string; bg: string; min: number; base?: string };
 
 const pairs = (): Pair[] => [
-  ...["text", "text-muted"].flatMap((fg) => BACKGROUNDS.map((bg) => ({ fg, bg, min: TEXT_AA }))),
+  ...["text", "text-muted", "text-primary", "text-secondary"].flatMap((fg) =>
+    BACKGROUNDS.map((bg) => ({ fg, bg, min: TEXT_AA })),
+  ),
   ...BACKGROUNDS.map((bg) => ({ fg: "text-subtle", bg, min: NON_TEXT_AA })),
   { fg: fieldBorderToken(), bg: "surface", min: NON_TEXT_AA },
   ...[

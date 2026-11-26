@@ -332,7 +332,7 @@ export const MonthView = ({
           fontVariantNumeric: "tabular-nums",
           cursor: clickable ? "pointer" : "inherit",
           color: today
-            ? "var(--cn-color-neutral-0, #fff)"
+            ? "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #fff))"
             : inMonth
               ? "var(--cn-color-text, #222831)"
               : "var(--cn-color-text-subtle, #9aa1aa)",
@@ -361,7 +361,8 @@ export const MonthView = ({
       const level = heatLevel(counts.get(toIsoDate(day)) ?? 0, maxCount);
       if (level > 0) return { backgroundColor: MONTH_HEAT_BG[level] };
     }
-    if (!inMonth) return { backgroundColor: "var(--cn-color-neutral-50, #fafbfc)" };
+    if (!inMonth)
+      return { backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))" };
     return {};
   };
 
@@ -512,10 +513,12 @@ export const MonthView = ({
                         opacity: isOutOfBounds(day, minDate, maxDate) ? 0.4 : 1,
                         ...cellBackground(day, inMonth),
                         ...(selected && {
-                          boxShadow: "inset 0 0 0 2px var(--cn-color-brand-500, #3562a6)",
+                          boxShadow:
+                            "inset 0 0 0 2px var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
                         }),
                         "&:focus-visible": {
-                          boxShadow: "inset 0 0 0 2px var(--cn-color-accent-500, #3d5afe)",
+                          boxShadow:
+                            "inset 0 0 0 2px var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                         },
                       }}
                     >
@@ -626,7 +629,8 @@ export const MonthView = ({
                     ...cellBackground(day, inMonth),
                     ...(isDropTarget && { backgroundColor: "rgba(61, 90, 254, 0.08)" }),
                     "&:focus-visible": {
-                      boxShadow: "inset 0 0 0 2px var(--cn-color-accent-500, #3d5afe)",
+                      boxShadow:
+                        "inset 0 0 0 2px var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                     },
                   }}
                 >
@@ -784,7 +788,8 @@ export const MonthView = ({
                     ...conflictRing(occConflicts),
                     textDecoration: occ.event.status === "cancelled" ? "line-through" : undefined,
                     "&:focus-visible": {
-                      outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                      outline:
+                        "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                       outlineOffset: 1,
                     },
                   }}

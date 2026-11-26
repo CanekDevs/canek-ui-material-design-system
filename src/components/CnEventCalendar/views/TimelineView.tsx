@@ -348,7 +348,7 @@ export const TimelineView = ({
                   bottom: 0,
                   left: left + (a - gridStart) * pxPerMin,
                   width: (b - a) * pxPerMin,
-                  backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+                  backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
                 }}
               />,
             ),
@@ -469,7 +469,7 @@ export const TimelineView = ({
                       fontSize: "0.74rem",
                       fontWeight: 700,
                       color: today
-                        ? "var(--cn-color-brand-600, #254d87)"
+                        ? "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))"
                         : "var(--cn-color-text, #222831)",
                       whiteSpace: "nowrap",
                     }}
@@ -484,7 +484,8 @@ export const TimelineView = ({
                           cursor: "pointer",
                           "&:hover": { textDecoration: "underline" },
                           "&:focus-visible": {
-                            outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                            outline:
+                              "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                           },
                         }}
                       >
@@ -565,8 +566,8 @@ export const TimelineView = ({
                   fontWeight: 800,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
-                  color: "var(--cn-color-brand-600, #254d87)",
-                  backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+                  color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+                  backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
                   borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
                 }}
               >
@@ -616,7 +617,7 @@ export const TimelineView = ({
                       placeItems: "center",
                       color: row.unassigned ? "var(--cn-color-text-muted, #6e7682)" : color,
                       backgroundColor: row.unassigned
-                        ? "var(--cn-color-neutral-100, #f1f3f5)"
+                        ? "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f1f3f5))"
                         : alpha(color, 0.14),
                     }}
                   >
@@ -664,7 +665,11 @@ export const TimelineView = ({
                     component="span"
                     data-cn-resource-conflicts={conflictCount}
                     title={`${conflictCount} ${conflictCount === 1 ? "evento en conflicto" : "eventos en conflicto"}`}
-                    sx={{ display: "inline-flex", color: "var(--cn-color-warning-600, #b8831a)" }}
+                    sx={{
+                      display: "inline-flex",
+                      color:
+                        "var(--cn-color-control-warning-fg, var(--cn-color-warning-600, #b8831a))",
+                    }}
                   >
                     <CnIcon name="warning" size={16} />
                   </Box>
@@ -770,7 +775,8 @@ export const TimelineView = ({
                         ...conflictRing(occConflicts),
                         "&:hover": { backgroundColor: alpha(occ.color, 0.26) },
                         "&:focus-visible": {
-                          outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                          outline:
+                            "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                           outlineOffset: 1,
                         },
                       }}

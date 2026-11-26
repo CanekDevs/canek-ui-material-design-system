@@ -346,7 +346,11 @@ export const EventContextMenu = ({
           onClose();
           onAction(item.action);
         }}
-        sx={item.action === "delete" ? { color: "var(--cn-color-error-600, #b42727)" } : undefined}
+        sx={
+          item.action === "delete"
+            ? { color: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b42727))" }
+            : undefined
+        }
       >
         <ListItemIcon sx={item.action === "delete" ? { color: "inherit" } : undefined}>
           <CnIcon name={item.icon} size="sm" />
@@ -439,7 +443,10 @@ export const QuickAddInput = ({
           <CnIcon
             name="add"
             size={18}
-            sx={{ color: "var(--cn-color-accent-600, #304ffe)", mr: "6px" }}
+            sx={{
+              color: "var(--cn-color-tone-accent-text, var(--cn-color-accent-600, #304ffe))",
+              mr: "6px",
+            }}
           />
         }
         sx={{
@@ -448,11 +455,11 @@ export const QuickAddInput = ({
           px: "10px",
           fontSize: "0.82rem",
           borderRadius: "999px",
-          backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+          backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
           border: "1px solid var(--cn-color-border, #dde0e4)",
           "&.Mui-focused": {
             backgroundColor: "var(--cn-color-surface, #fff)",
-            borderColor: "var(--cn-color-accent-500, #3d5afe)",
+            borderColor: "var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
             boxShadow: "0 0 0 3px rgba(61, 90, 254, 0.15)",
           },
         }}

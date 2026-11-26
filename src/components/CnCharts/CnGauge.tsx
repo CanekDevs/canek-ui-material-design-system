@@ -144,7 +144,7 @@ const TargetMark = ({
         y1={a.y}
         x2={b.x}
         y2={b.y}
-        stroke="var(--cn-color-neutral-800, #222831)"
+        stroke="var(--cn-color-text, var(--cn-color-neutral-800, #222831))"
         strokeWidth={3}
         strokeLinecap="round"
       />
@@ -155,7 +155,7 @@ const TargetMark = ({
           fontSize={10}
           fontWeight={700}
           textAnchor="middle"
-          fill="var(--cn-color-neutral-600, #4e5660)"
+          fill="var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))"
         >
           {label}
         </text>
@@ -177,7 +177,11 @@ const MinMax = ({
   const r = (outerRadius + innerRadius) / 2;
   const a = polar(cx, cy, r, toDegrees(startAngle));
   const b = polar(cx, cy, r, toDegrees(endAngle));
-  const style = { fontSize: 10, fontWeight: 600, fill: "var(--cn-color-neutral-500, #6e7682)" };
+  const style = {
+    fontSize: 10,
+    fontWeight: 600,
+    fill: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
+  };
   return (
     <g>
       <text x={a.x} y={a.y + 16} textAnchor="middle" {...style}>
@@ -290,7 +294,9 @@ export const CnGauge = (props: CnGaugeProps) => {
     const w = (width ?? measuredWidth) / 2 - 34;
     return Math.max(
       36,
-      semi ? Math.min(w, bodyHeight - topSpace - bottomSpace) : Math.min(w, bodyHeight / 2 - topSpace),
+      semi
+        ? Math.min(w, bodyHeight - topSpace - bottomSpace)
+        : Math.min(w, bodyHeight / 2 - topSpace),
     );
   };
 
@@ -336,7 +342,9 @@ export const CnGauge = (props: CnGaugeProps) => {
             aria-label={typeof props.title === "string" ? props.title : "Indicador"}
             margin={{ top: 4, bottom: 4, left: 16, right: 16 }}
             sx={{
-              "& .MuiGauge-referenceArc": { fill: "var(--cn-color-neutral-150, #e9ecef)" },
+              "& .MuiGauge-referenceArc": {
+                fill: "var(--cn-color-tone-neutral-soft-hover, var(--cn-color-neutral-150, #e9ecef))",
+              },
               "& .MuiGauge-valueArc": { fill: valueColor },
             }}
           >
@@ -347,7 +355,9 @@ export const CnGauge = (props: CnGaugeProps) => {
             )}
             {!needle && !segments && <GaugeValueArc />}
             {segments && !needle && <ValueMarker color={valueColor} />}
-            {needle && <Needle color="var(--cn-color-neutral-800, #222831)" />}
+            {needle && (
+              <Needle color="var(--cn-color-text, var(--cn-color-neutral-800, #222831))" />
+            )}
             {target != null && (
               <TargetMark target={target} min={min} max={max} label={targetLabel} />
             )}

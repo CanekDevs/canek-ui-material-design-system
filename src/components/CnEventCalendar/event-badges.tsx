@@ -68,7 +68,9 @@ export const EventBadges = ({
           title={conflicts.map(describeConflict).join("\n")}
           sx={{
             display: "inline-flex",
-            color: inverse ? "#fff" : "var(--cn-color-warning-600, #b8831a)",
+            color: inverse
+              ? "#fff"
+              : "var(--cn-color-control-warning-fg, var(--cn-color-warning-600, #b8831a))",
           }}
         >
           <CnIcon name="warning" size={size} />

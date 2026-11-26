@@ -126,20 +126,20 @@ export const legendPosition = (legend: CnChartCommonProps["legend"]) => {
 /** Estilos de Canek sobre los elementos de MUI X Charts. */
 export const chartBaseSx = {
   "& .MuiChartsAxis-tickLabel": {
-    fill: "var(--cn-color-neutral-500, #6e7682) !important",
+    fill: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682)) !important",
     fontSize: "11px !important",
     fontFamily: "inherit",
   },
   "& .MuiChartsAxis-label": {
-    fill: "var(--cn-color-neutral-600, #4e5660) !important",
+    fill: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660)) !important",
     fontSize: "12px !important",
     fontWeight: 600,
   },
   "& .MuiChartsAxis-line, & .MuiChartsAxis-tick": {
-    stroke: "var(--cn-color-neutral-200, #dde0e4) !important",
+    stroke: "var(--cn-color-border, var(--cn-color-neutral-200, #dde0e4)) !important",
   },
   "& .MuiChartsGrid-line": {
-    stroke: "var(--cn-color-neutral-150, #e9ecef)",
+    stroke: "var(--cn-color-border-subtle, var(--cn-color-neutral-150, #e9ecef))",
     strokeDasharray: "4 4",
   },
   "& .MuiChartsLegend-root": { gap: "6px 16px" },
@@ -148,12 +148,14 @@ export const chartBaseSx = {
     px: "6px",
     py: "2px",
     transition: "background-color 120ms ease, opacity 120ms ease",
-    "&:hover": { backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)" },
+    "&:hover": {
+      backgroundColor: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
+    },
   },
   "& .MuiChartsLegend-label": {
     fontSize: "12px",
     fontWeight: 600,
-    color: "var(--cn-color-neutral-600, #4e5660)",
+    color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
   },
   "& .MuiChartsReferenceLine-label": {
     fontSize: "11px !important",

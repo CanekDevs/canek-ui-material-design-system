@@ -142,6 +142,7 @@ qué haría. Después, la lista completa (la misma que la plantilla de PR):
 | `typography.test.ts`      | Trinquete de tipografía: tamaños fuera de la escala, pesos que no son 300/400/500/700 y familias literales no pueden subir de `typography.baseline.json`.                                                                   |
 | `contrast.test.ts`        | Contraste de tokens en claro y oscuro: texto 4.5:1, texto tenue y borde de campo 3:1; un par fuera de `contrast.baseline.json` debe pasar y ninguno puede bajar.                                                            |
 | `dark-mode.test.ts`       | Trinquete de modo oscuro: los usos directos de escalas (`--cn-color-error-700`), que no cambian en oscuro, no pueden subir de `dark-mode.baseline.json`; para colores con significado usa `CN_TONES` o `--cn-color-tone-*`. |
+| `tokens-defined.test.ts`  | Todo `var(--cn-…)` usado existe en `tokens.css`: un token inexistente nunca cambia con el tema. Excepciones con su motivo en el mismo archivo.                                                                              |
 
 Si una regla de gobierno estorba, no la apagues: agrega una excepción con su motivo en el mismo
 archivo y explícala en el PR.

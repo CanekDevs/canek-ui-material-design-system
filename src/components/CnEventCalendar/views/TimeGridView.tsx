@@ -257,7 +257,7 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
             textTransform: "uppercase",
             letterSpacing: "0.04em",
             color: today
-              ? "var(--cn-color-brand-600, #254d87)"
+              ? "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))"
               : "var(--cn-color-text-muted, #6e7682)",
           }}
         >
@@ -286,7 +286,10 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
               view === "week" && !today
                 ? { backgroundColor: "var(--cn-color-hover, rgba(0,0,0,0.04))" }
                 : undefined,
-            "&:focus-visible": { outline: "2px solid var(--cn-color-accent-500, #3d5afe)" },
+            "&:focus-visible": {
+              outline:
+                "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
+            },
           }}
         >
           {day.getDate()}
@@ -358,7 +361,7 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
         );
       });
     if (!workingHours) return avail;
-    const off = "var(--cn-color-neutral-50, #fafbfc)";
+    const off = "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))";
     const intervals = businessIntervals(workingHours, day.getDay());
     if (!intervals.length) {
       return [
@@ -438,7 +441,8 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
                 px: "5px",
                 py: "1px",
                 borderRadius: "999px",
-                backgroundColor: "var(--cn-color-neutral-100, #f1f3f5)",
+                backgroundColor:
+                  "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f1f3f5))",
               }}
             >
               S{isoWeek(days[0])}
@@ -552,7 +556,8 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
                   textOverflow: "ellipsis",
                   ...conflictRing(conflicts.get(occ.key)),
                   "&:focus-visible": {
-                    outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                    outline:
+                      "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                     outlineOffset: 1,
                   },
                 }}
@@ -770,7 +775,8 @@ export const TimeGridView = ({ view, days, occurrences, height = 640 }: TimeGrid
                           ...conflictRing(conflicts.get(occ.key)),
                           "&:hover": { backgroundColor: alpha(occ.color, 0.24) },
                           "&:focus-visible": {
-                            outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                            outline:
+                              "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                             outlineOffset: 1,
                           },
                         }}
