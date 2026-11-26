@@ -24,12 +24,15 @@ const chartsIndex = import.meta.glob<Record<string, unknown>>(
 );
 
 /** Carpeta → entrada pública donde deben estar sus exports (por defecto, la principal). */
-const ENTRY_OF_FOLDER: Record<string, { label: string; keys: Set<string> }[]> = {
-  CnRichTextField: [
-    { label: "rich-text", keys: new Set(Object.keys(richText)) },
-    { label: "index", keys: new Set(Object.keys(main)) },
-  ],
-};
+// Carpetas que viven en la entrada `/rich-text` porque usan el editor (tiptap, peer opcional).
+const RICH_TEXT_FOLDERS = ["CnRichTextField", "CnEmailComposer"];
+const RICH_TEXT_ENTRIES = [
+  { label: "rich-text", keys: new Set(Object.keys(richText)) },
+  { label: "index", keys: new Set(Object.keys(main)) },
+];
+const ENTRY_OF_FOLDER: Record<string, { label: string; keys: Set<string> }[]> = Object.fromEntries(
+  RICH_TEXT_FOLDERS.map((folder) => [folder, RICH_TEXT_ENTRIES]),
+);
 const MAIN = [{ label: "index", keys: new Set(Object.keys(main)) }];
 
 /**
@@ -110,8 +113,9 @@ describe("exports públicos", () => {
     for (const folder of readdirSync(COMPONENTS_DIR)) {
       const indexFile = join(COMPONENTS_DIR, folder, "index.ts");
       if (!existsSync(indexFile)) continue;
-      const labels: (keyof typeof ENTRY_FILES)[] =
-        folder === "CnRichTextField" ? ["rich-text", "index"] : ["index"];
+      const labels: (keyof typeof ENTRY_FILES)[] = RICH_TEXT_FOLDERS.includes(folder)
+        ? ["rich-text", "index"]
+        : ["index"];
       const wildcard = labels.some((label) =>
         entryText[label].includes(`export * from "./components/${folder}"`),
       );

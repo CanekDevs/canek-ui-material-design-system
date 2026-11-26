@@ -264,4 +264,19 @@ export const CATALOG_FORMS_A: CnCatalogEntry[] = [
       "getGoogleMapsEmbedUrl",
     ],
   },
+  {
+    name: "CnEmailComposer",
+    category: "formularios",
+    domains: ["general", "crm", "erp"],
+    status: "beta",
+    summary:
+      "Redactor de correo: destinatarios como chips, CC/CCO, plantillas, variables, vista previa, adjuntos y envío.",
+    purpose:
+      "Escribir y enviar un correo desde la aplicación (seguimiento de una oportunidad, envío de una cotización): cuenta remitente, destinatarios como chips que validan el correo y sugieren contactos, CC y CCO a pedido, asunto, cuerpo con formato, plantillas, variables `{{clave}}` que se reemplazan en la vista previa y al enviar (si falta un valor no deja enviar), adjuntos, «Guardar borrador», descartar, Ctrl + Intro para enviar y el error del servidor visible si el envío falla. Vive en la entrada `/rich-text` porque usa el editor.",
+    whenNot:
+      "Para un comentario corto o un mensaje de chat usa `CnChatThread`; para un campo de texto con formato dentro de un formulario usa `CnRichTextField`; para pedir varios correos sin redactar uno usa `CnTagsField`.",
+    neighbors:
+      "Compone `CnTagsField` (destinatarios), `CnTextField` (asunto), `CnRichTextField` (cuerpo), `CnFileField` (adjuntos), `CnSelectField` (remitente), `CnAlert` y `CnButton`. Exporta `fillVariables`, `missingVariables` e `isEmail`.",
+    related: ["CnEmailComposerSkeleton", "fillVariables", "missingVariables", "isEmail"],
+  },
 ];

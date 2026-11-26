@@ -5,12 +5,14 @@ import { CATALOG_ACTIVITY } from "./entries/activity";
 import { CATALOG_FORMS_A } from "./entries/forms-a";
 import { CATALOG_FORMS_B } from "./entries/forms-b";
 import { CATALOG_LAYOUT_OVERLAYS } from "./entries/layout-overlays";
+import { CATALOG_AI } from "./entries/ai";
 import type { CnCatalogEntry } from "./types";
 
 export type * from "./types";
 
 /** Todas las entradas del catálogo, una por componente principal. */
 export const CN_CATALOG: CnCatalogEntry[] = [
+  ...CATALOG_AI,
   ...CATALOG_ACTIONS_FEEDBACK,
   ...CATALOG_FORMS_A,
   ...CATALOG_FORMS_B,

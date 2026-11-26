@@ -9,6 +9,10 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 
 ### Agregado
 
+- `CnEmailComposer` (entrada `/rich-text`): redactor de correo con destinatarios validados, CC/CCO, plantillas, variables con vista previa, adjuntos, borrador y envío con Ctrl + Intro. Con su skeleton y prop `skeleton`.
+- `CnConversationList`: lista de conversaciones agrupada por fecha con búsqueda, no leídos, fijar, renombrar en línea (F2) y borrar. Con su skeleton y prop `skeleton`.
+- `CnChatThread`: hilo de conversación con separadores por día, agrupación por autor, anclado al final con aviso de mensajes nuevos, carga de mensajes anteriores, «está escribiendo» y redactor (Intro envía). Con su skeleton y prop `skeleton`.
+- `CnChatMessage`: mensaje de chat con autor, hora, estado de envío (con «Reintentar»), adjuntos, menú de acciones, modo agrupado y aviso del sistema. Con su skeleton y prop `skeleton`.
 - `CnDocCard`: tarjeta de documento con tipo por mime/extensión, miniatura, metadatos, estado,
   etiquetas, versión, acciones (ver, descargar, compartir, menú), selección, progreso de carga y error;
   vista previa de imágenes, video, audio y PDF.
