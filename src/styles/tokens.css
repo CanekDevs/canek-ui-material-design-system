@@ -178,6 +178,13 @@
   --cn-color-field-error: var(--cn-color-error-500);
   --cn-color-field-focus-outline: var(--cn-color-brand-300);
   --cn-color-field-disabled-fg: var(--cn-color-neutral-300);
+  /* Contorno de foco de controles propios (días del calendario, botones de rejilla). */
+  --cn-color-focus-outline: var(--cn-color-brand-400);
+  /* Indicadores (puntos y barras de progreso del carrusel). */
+  --cn-color-indicator: var(--cn-color-neutral-300);
+  --cn-color-indicator-hover: var(--cn-color-neutral-400);
+  --cn-color-indicator-active: var(--cn-color-brand-500);
+  --cn-color-indicator-track: var(--cn-color-brand-200);
 
   /* ============ STATE TOKENS ============ */
   --cn-color-hover: rgba(0, 0, 0, 0.04);
@@ -379,6 +386,11 @@
   --cn-color-field-error: var(--cn-color-tone-error-text);
   --cn-color-field-focus-outline: var(--cn-color-tone-primary-text);
   --cn-color-field-disabled-fg: #4e5660;
+  --cn-color-focus-outline: var(--cn-color-tone-primary-text);
+  --cn-color-indicator: #3a414b;
+  --cn-color-indicator-hover: #6e7682;
+  --cn-color-indicator-active: var(--cn-color-tone-primary-text);
+  --cn-color-indicator-track: rgba(120, 150, 195, 0.35);
 
   --cn-color-hover: rgba(255, 255, 255, 0.04);
   --cn-color-active: rgba(255, 255, 255, 0.08);

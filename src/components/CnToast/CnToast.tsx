@@ -68,28 +68,28 @@ export type CnToastApi = {
 const TONES: Record<CnToastSeverity, { icon: string; color: string; bg: string }> = {
   success: {
     icon: "check_circle",
-    color: "var(--cn-color-success-600, #228740)",
-    bg: "var(--cn-color-success-50, #eaf7ee)",
+    color: "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
+    bg: "var(--cn-color-tone-success-soft, var(--cn-color-success-50, #eaf7ee))",
   },
   error: {
     icon: "error",
-    color: "var(--cn-color-error-600, #b52f2f)",
-    bg: "var(--cn-color-error-50, #fcecec)",
+    color: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
+    bg: "var(--cn-color-tone-error-soft, var(--cn-color-error-50, #fcecec))",
   },
   warning: {
     icon: "warning",
-    color: "var(--cn-color-warning-600, #b8831a)",
-    bg: "var(--cn-color-warning-50, #fdf6e6)",
+    color: "var(--cn-color-control-warning-fg, var(--cn-color-warning-600, #b8831a))",
+    bg: "var(--cn-color-tone-warning-soft, var(--cn-color-warning-50, #fdf6e6))",
   },
   info: {
     icon: "info",
-    color: "var(--cn-color-info-600, #22649f)",
-    bg: "var(--cn-color-info-50, #eaf3fb)",
+    color: "var(--cn-color-control-info-fg, var(--cn-color-info-600, #22649f))",
+    bg: "var(--cn-color-tone-info-soft, var(--cn-color-info-50, #eaf3fb))",
   },
   loading: {
     icon: "info",
-    color: "var(--cn-color-brand-600, #254d87)",
-    bg: "var(--cn-color-brand-50, #eef3fb)",
+    color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+    bg: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
   },
 };
 
@@ -284,7 +284,11 @@ const ToastCard = ({ item, onDismiss }: { item: CnToastItem; onDismiss: (id: str
           size="small"
           aria-label="Cerrar aviso"
           onClick={() => onDismiss(item.id)}
-          sx={{ mt: "-4px", mr: "-4px", color: "var(--cn-color-neutral-500, #6e7682)" }}
+          sx={{
+            mt: "-4px",
+            mr: "-4px",
+            color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
+          }}
         >
           <CloseIcon sx={{ fontSize: 16 }} />
         </IconButton>

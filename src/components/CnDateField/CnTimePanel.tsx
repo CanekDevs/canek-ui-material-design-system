@@ -35,13 +35,19 @@ const optionSx = {
   fontSize: "var(--cn-font-size-sm, 12px)",
   fontVariantNumeric: "tabular-nums",
   color: "var(--cn-color-text, #222831)",
-  "&:hover": { backgroundColor: "var(--cn-color-brand-50, #eef3fb)" },
-  "&.Mui-focusVisible": { outline: "2px solid var(--cn-color-brand-400, #5081c4)" },
+  "&:hover": {
+    backgroundColor: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
+  },
+  "&.Mui-focusVisible": {
+    outline: "2px solid var(--cn-color-focus-outline, var(--cn-color-brand-400, #5081c4))",
+  },
   "&[aria-selected='true']": {
     backgroundColor: "var(--cn-color-brand-600, #254d87)",
-    color: "var(--cn-color-text-inverse, #ffffff)",
+    color: "var(--cn-color-tone-on-solid, #ffffff)",
   },
-  "&.Mui-disabled": { color: "var(--cn-color-neutral-300, #c5cad0)" },
+  "&.Mui-disabled": {
+    color: "var(--cn-color-field-disabled-fg, var(--cn-color-neutral-300, #c5cad0))",
+  },
 } as const;
 
 const handleListKeys = (event: KeyboardEvent<HTMLDivElement>) => {

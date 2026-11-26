@@ -55,6 +55,10 @@ export const getOutlinedFieldSx = (size: CnFieldSize = "md"): Record<string, unk
       marginRight: 0,
       marginTop: "4px",
     },
+    // MUI pinta el error con palette.error.main (el mismo rojo en los dos modos); el rol lo aclara en oscuro
+    "& .MuiInputLabel-root.Mui-error, & .MuiFormHelperText-root.Mui-error": {
+      color: "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))",
+    },
   };
 };
 
@@ -117,6 +121,7 @@ export const helperTextSx = {
   marginLeft: 0,
   marginRight: 0,
   marginTop: "4px",
+  "&.Mui-error": { color: "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))" },
 };
 
 export const mergeSx = (

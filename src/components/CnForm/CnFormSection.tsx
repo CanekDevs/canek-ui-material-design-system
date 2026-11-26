@@ -44,7 +44,7 @@ const ErrorBadge = ({ count }: { count: number }) => (
       borderRadius: "999px",
       fontSize: "var(--cn-font-size-xs, 11px)",
       fontWeight: 700,
-      color: "var(--cn-color-text-inverse, #ffffff)",
+      color: "var(--cn-color-tone-on-solid, #ffffff)",
       backgroundColor: "var(--cn-color-error-500, #d63c3c)",
     }}
   >
