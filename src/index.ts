@@ -779,3 +779,8 @@ export type {
   CnNotificationSnoozeOption,
   CnNotificationTab,
 } from "./components/CnNotificationCenter";
+
+// Conversaciones
+export * from "./components/CnChatMessage";
+export * from "./components/CnChatThread";
+export * from "./components/CnConversationList";

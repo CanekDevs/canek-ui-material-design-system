@@ -21,6 +21,7 @@ Design system de [Canek](https://canek.mx). Componentes React construidos sobre 
 - [Listas](#listas)
 - [Tarjetas de contenido y carruseles](#tarjetas-de-contenido-y-carruseles)
 - [Diálogos, paneles, historial y notificaciones](#diálogos-paneles-historial-y-notificaciones)
+- [Conversaciones y correo](#conversaciones-y-correo)
 - [Mapas](#mapas)
 - [Calendario de eventos](#calendario-de-eventos)
 - [Gráficas](#gráficas)
@@ -106,7 +107,7 @@ regenerarlo: `npm run docs:catalog`. Una prueba de gobierno falla si queda desac
 
 <!-- Generado por `npm run docs:catalog` desde `src/catalog`. No editar a mano. -->
 
-**86 componentes documentados.** Cada uno tiene en Storybook las secciones _Para qué sirve_, _Cuándo NO usarlo_ y _Relación con vecinos_. El catálogo completo en JSON está en [`docs/catalog.json`](./docs/catalog.json) y los 116 componentes planeados en [`docs/ROADMAP.md`](./docs/ROADMAP.md).
+**90 componentes documentados.** Cada uno tiene en Storybook las secciones _Para qué sirve_, _Cuándo NO usarlo_ y _Relación con vecinos_. El catálogo completo en JSON está en [`docs/catalog.json`](./docs/catalog.json) y los 112 componentes planeados en [`docs/ROADMAP.md`](./docs/ROADMAP.md).
 
 ### Fundamentos (2)
 
@@ -121,7 +122,7 @@ regenerarlo: `npm run docs:catalog`. Una prueba de gobierno falla si queda desac
 | ---------- | ---------------------------------------------------------------------------------- | -------- | ------- |
 | `CnButton` | Botón de acción con variantes, tamaños, íconos, estado de carga y modo solo ícono. | General  | estable |
 
-### Formularios (39)
+### Formularios (40)
 
 | Componente            | Qué es                                                                                                                     | Dominios                                                     | Estado  |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------- |
@@ -137,6 +138,7 @@ regenerarlo: `npm run docs:catalog`. Una prueba de gobierno falla si queda desac
 | `CnDateField`         | Fecha, hora, fecha y hora, mes o año con máscara de captura y calendario o reloj desplegable.                              | General, ERP, CRM, RR. HH., Reservas, Pagos                  | estable |
 | `CnDateRangeField`    | Rango de fechas de inicio a fin con calendario de selección y atajos (últimos 7 días, este mes…).                          | Tableros, ERP, CRM, Reservas, Pagos, RR. HH.                 | estable |
 | `CnDurationField`     | Cantidad de tiempo en días, horas, minutos o segundos, guardada como un número de minutos o segundos.                      | ERP, Reservas, RR. HH., General                              | beta    |
+| `CnEmailComposer`     | Redactor de correo: destinatarios como chips, CC/CCO, plantillas, variables, vista previa, adjuntos y envío.               | General, CRM, ERP                                            | beta    |
 | `CnFileField`         | Campo para elegir archivos: arrastrar, seleccionar, pegar o usar la cámara, con validación, vista previa y reordenamiento. | General, ERP, CRM, CMS, E-commerce, RR. HH.                  | estable |
 | `CnForm`              | Motor de formularios declarativo: describe los campos en un arreglo y obtén estado, validación, diseño y envío.            | General, ERP, CRM, CMS, E-commerce, RR. HH., Reservas, Pagos | estable |
 | `CnKeyValueField`     | Lista editable de pares clave/valor de texto, como arreglo ordenado u objeto.                                              | E-commerce, CMS, ERP, General                                | estable |
@@ -249,6 +251,14 @@ regenerarlo: `npm run docs:catalog`. Una prueba de gobierno falla si queda desac
 | `CnContentCarousel` | Carrusel de contenido destacado: banners hero con imagen o video y CTA, o fila de tarjetas con encabezado.             | Landing, E-commerce, CMS, RR. HH., General       | beta    |
 | `CnMap`             | Mapa con marcadores, selector de ubicación, estilos y modo oscuro, que funciona con o sin API key.                     | Reservas, E-commerce, CRM, ERP, Landing, General | estable |
 
+### IA (3)
+
+| Componente           | Qué es                                                                                                                            | Dominios         | Estado |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ------ |
+| `CnChatMessage`      | Mensaje de chat: burbuja con autor, hora, estado de envío, adjuntos y acciones, o aviso centrado del sistema.                     | General, CRM, IA | beta   |
+| `CnChatThread`       | Hilo de conversación: mensajes por día, agrupados por autor, anclado al final, con mensajes anteriores, «escribiendo» y redactor. | General, CRM, IA | beta   |
+| `CnConversationList` | Lista de conversaciones agrupada por fecha, con búsqueda, no leídos, fijar, renombrar y borrar.                                   | General, CRM, IA | beta   |
+
 <!-- catalog:end -->
 
 ## Componentes
@@ -260,15 +270,15 @@ Ejemplos de uso de los componentes básicos. La lista completa y vigente está e
 
 ```tsx
 <CnButton
-  variant="contained"        // "contained" | "outlined" | "text"
-  color="primary"            // primary | secondary | success | warning | info | error | accent | neutral
-  size="medium"              // "small" | "medium" | "large"
-  shape="rounded"            // "rounded" | "pill" | "square"
-  startIcon="add"            // string (usa CnIcon) o ReactNode
+  variant="contained" // "contained" | "outlined" | "text"
+  color="primary" // primary | secondary | success | warning | info | error | accent | neutral
+  size="medium" // "small" | "medium" | "large"
+  shape="rounded" // "rounded" | "pill" | "square"
+  startIcon="add" // string (usa CnIcon) o ReactNode
   endIcon="arrow_forward"
   loading={false}
   fullWidth={false}
-  href="https://canek.mx"    // renderiza <a> en lugar de <button>
+  href="https://canek.mx" // renderiza <a> en lugar de <button>
   target="_blank"
   onClick={() => {}}
 >
@@ -280,13 +290,13 @@ Ejemplos de uso de los componentes básicos. La lista completa y vigente está e
 
 ```tsx
 <CnIcon
-  name="check"               // string del registry
-  size="md"                  // "xs" | "sm" | "md" | "lg" | "xl" | "2xl" o número
-  color="success"            // primary | secondary | success | warning | error | info | accent | muted | subtle | inherit
+  name="check" // string del registry
+  size="md" // "xs" | "sm" | "md" | "lg" | "xl" | "2xl" o número
+  color="success" // primary | secondary | success | warning | error | info | accent | muted | subtle | inherit
   spin={false}
   pulse={false}
   rotate={0}
-  label="Éxito"              // opcional, agrega role="img" y aria-label
+  label="Éxito" // opcional, agrega role="img" y aria-label
 />
 ```
 
@@ -320,27 +330,45 @@ const fields: CnFormField[] = [
   { name: "email", type: "email", label: "Correo", required: true },
   { name: "phone", type: "phone", label: "Teléfono", defaultCountry: "MX" },
   { name: "address.zip", type: "text", label: "CP", rules: [{ type: "postalCode", format: "mx" }] },
-  { name: "plan", type: "select", label: "Plan", options: [{ value: 1, label: "Básico" }, { value: 2, label: "Pro" }] },
+  {
+    name: "plan",
+    type: "select",
+    label: "Plan",
+    options: [
+      { value: 1, label: "Básico" },
+      { value: 2, label: "Pro" },
+    ],
+  },
 ];
 
 // No controlado: el formulario guarda su propio estado.
-<CnForm fields={fields} columns={2} defaultValues={{ plan: 1 }} onSubmit={(values) => api.save(values)} />;
+<CnForm
+  fields={fields}
+  columns={2}
+  defaultValues={{ plan: 1 }}
+  onSubmit={(values) => api.save(values)}
+/>;
 
 // Controlado: `patch` trae claves de primer nivel completas (sirve con rutas anidadas).
 const [value, setValue] = useState({});
-<CnForm fields={fields} value={value} onChange={(patch) => setValue((v) => ({ ...v, ...patch }))} onSubmit={save} />;
+<CnForm
+  fields={fields}
+  value={value}
+  onChange={(patch) => setValue((v) => ({ ...v, ...patch }))}
+  onSubmit={save}
+/>;
 ```
 
 ### Variantes y layout
 
-| Prop                         | Uso                                                                                     |
-| ---------------------------- | --------------------------------------------------------------------------------------- |
-| `fields`                     | Formulario simple.                                                                      |
+| Prop                         | Uso                                                                                                                                                                                                            |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fields`                     | Formulario simple.                                                                                                                                                                                             |
 | `sections`                   | Secciones con título/ícono, colapsables, columnas propias y **repetibles** (`repeatable`, `minItems`, `maxItems`, `canReorder`, `itemTitle`). El valor de una sección repetible es un arreglo en `values[id]`. |
-| `tabs`                       | Pestañas con indicador de error; al enviar salta a la pestaña del primer error.        |
-| `steps`                      | Wizard: valida el paso antes de avanzar (incluye validación asíncrona), Enter avanza, stepper navegable y barra de progreso en móvil. |
-| `mode="modal"`               | Mismo formulario dentro de un diálogo (pantalla completa en móvil).                     |
-| `columns`, `xs…xl` por campo | Grid responsivo; textarea, archivos, radios y grupos ocupan el ancho completo.          |
+| `tabs`                       | Pestañas con indicador de error; al enviar salta a la pestaña del primer error.                                                                                                                                |
+| `steps`                      | Wizard: valida el paso antes de avanzar (incluye validación asíncrona), Enter avanza, stepper navegable y barra de progreso en móvil.                                                                          |
+| `mode="modal"`               | Mismo formulario dentro de un diálogo (pantalla completa en móvil).                                                                                                                                            |
+| `columns`, `xs…xl` por campo | Grid responsivo; textarea, archivos, radios y grupos ocupan el ancho completo.                                                                                                                                 |
 
 Las pestañas y los pasos aceptan `fields` **y** `sections`.
 
@@ -427,14 +455,14 @@ Las pestañas y los pasos aceptan `fields` **y** `sections`.
 
 `CnFileField` cubre desde un adjunto simple hasta una galería de producto:
 
-| Variante   | Uso                                                        |
-| ---------- | ---------------------------------------------------------- |
-| `dropzone` | Zona de arrastre + lista (por defecto).                    |
-| `button`   | Botón + lista.                                             |
-| `compact`  | Chips en línea para formularios densos.                    |
+| Variante   | Uso                                                         |
+| ---------- | ----------------------------------------------------------- |
+| `dropzone` | Zona de arrastre + lista (por defecto).                     |
+| `button`   | Botón + lista.                                              |
+| `compact`  | Chips en línea para formularios densos.                     |
 | `grid`     | Galería cuadrada, con "Principal" y arrastre en cuadrícula. |
-| `card`     | Tarjetas con vista previa grande y metadatos.              |
-| `avatar`   | Foto de perfil circular.                                   |
+| `card`     | Tarjetas con vista previa grande y metadatos.               |
+| `avatar`   | Foto de perfil circular.                                    |
 | `masonry`  | Galería en columnas que respeta la proporción de cada foto. |
 
 - **Validación:** `accept`, `maxSize`, `maxFiles`, `maxTotalSize` (en `sizeUnit`: `KB`, `MB` o `GB`), `imageConstraints` (mín./máx. de px y proporción) y duplicados.
@@ -447,32 +475,32 @@ Las pestañas y los pasos aceptan `fields` **y** `sections`.
 
 ### Más campos
 
-| Tipo en `CnForm` | Componente           | Notas                                                                  |
-| ---------------- | -------------------- | ---------------------------------------------------------------------- |
-| `password`       | `CnPasswordField`    | `passwordRequirements`, `allowGenerate`, `showPasswordStrength`.       |
-| `otp`            | `CnOtpField`         | `otpLength`; valida longitud completa.                                 |
-| `masked`         | `CnMaskedField`      | `mask` (`#` dígito, `A` letra, `*` alfanumérico) o `maskPreset`.       |
-| `tags`           | `CnTagsField`        | `tagRules` por etiqueta, `maxTags`, `suggestions`; pegar listas.       |
-| `segmented`      | `CnSegmentedField`   | `options` con `icon`, `multiple`, `iconOnly`.                          |
-| `color`          | `CnColorField`       | `colorPresets`; valida `#RRGGBB`.                                      |
-| `signature`      | `CnSignatureField`   | Valor PNG en data URL; alternativa escrita accesible.                  |
-| `numberrange`    | `CnNumberRangeField` | `[mín, máx]`, valida el orden.                                         |
-| `country`        | `CnCountryField`     | Código ISO; `priorityCountries`, `multiple`.                           |
-| `choicecards`    | `CnChoiceCardsField` | Tarjetas con ícono, descripción y `meta`; `multiple`, `optionColumns`. |
-| `transferlist`   | `CnTransferListField`| Lista doble con búsqueda (permisos, integrantes); `max`.               |
-| `treeselect`     | `CnTreeSelectField`  | Árbol con búsqueda; `multiple` + `cascade`, `treeValueMode`, `leavesOnly`. |
-| `keyvalue`       | `CnKeyValueField`    | Pares clave–valor; `valueFormat` `array`/`object`; detecta repetidas.  |
-| `address`        | `CnAddressField`     | Dirección MX; `onPostalCodeLookup` autocompleta colonia, municipio y estado. |
-| `repeater`       | `CnRepeaterField`    | Lista repetible; `minItems`/`maxItems`, `renderItem`, reordenar.       |
-| `duration`       | `CnDurationField`    | Días/horas/minutos; valor en minutos o segundos; presets.              |
-| `search`         | `CnSearchField`      | Sugerencias estáticas o `onSearch` asíncrono, recientes, teclado.      |
-| `code`           | `CnCodeField`        | Editor con números de línea; valida y formatea JSON.                   |
-| `schedule`       | `CnScheduleField`    | Horario semanal con rangos por día; detecta traslapes.                 |
-| `location`       | `CnLocationField`    | Latitud/longitud, "usar mi ubicación" y mapa.                          |
-| `weekdays`       | `CnWeekdaysField`    | Días de la semana con presets (laborables, fin de semana).             |
-| `timerange`      | `CnTimeRangeField`   | Hora inicial y final; duración y turnos nocturnos.                     |
-| `hidden`         | —                    | Valor que viaja en el payload sin pintarse.                            |
-| `display`        | —                    | Valor de solo lectura con `format`; ideal con `compute`.               |
+| Tipo en `CnForm` | Componente            | Notas                                                                        |
+| ---------------- | --------------------- | ---------------------------------------------------------------------------- |
+| `password`       | `CnPasswordField`     | `passwordRequirements`, `allowGenerate`, `showPasswordStrength`.             |
+| `otp`            | `CnOtpField`          | `otpLength`; valida longitud completa.                                       |
+| `masked`         | `CnMaskedField`       | `mask` (`#` dígito, `A` letra, `*` alfanumérico) o `maskPreset`.             |
+| `tags`           | `CnTagsField`         | `tagRules` por etiqueta, `maxTags`, `suggestions`; pegar listas.             |
+| `segmented`      | `CnSegmentedField`    | `options` con `icon`, `multiple`, `iconOnly`.                                |
+| `color`          | `CnColorField`        | `colorPresets`; valida `#RRGGBB`.                                            |
+| `signature`      | `CnSignatureField`    | Valor PNG en data URL; alternativa escrita accesible.                        |
+| `numberrange`    | `CnNumberRangeField`  | `[mín, máx]`, valida el orden.                                               |
+| `country`        | `CnCountryField`      | Código ISO; `priorityCountries`, `multiple`.                                 |
+| `choicecards`    | `CnChoiceCardsField`  | Tarjetas con ícono, descripción y `meta`; `multiple`, `optionColumns`.       |
+| `transferlist`   | `CnTransferListField` | Lista doble con búsqueda (permisos, integrantes); `max`.                     |
+| `treeselect`     | `CnTreeSelectField`   | Árbol con búsqueda; `multiple` + `cascade`, `treeValueMode`, `leavesOnly`.   |
+| `keyvalue`       | `CnKeyValueField`     | Pares clave–valor; `valueFormat` `array`/`object`; detecta repetidas.        |
+| `address`        | `CnAddressField`      | Dirección MX; `onPostalCodeLookup` autocompleta colonia, municipio y estado. |
+| `repeater`       | `CnRepeaterField`     | Lista repetible; `minItems`/`maxItems`, `renderItem`, reordenar.             |
+| `duration`       | `CnDurationField`     | Días/horas/minutos; valor en minutos o segundos; presets.                    |
+| `search`         | `CnSearchField`       | Sugerencias estáticas o `onSearch` asíncrono, recientes, teclado.            |
+| `code`           | `CnCodeField`         | Editor con números de línea; valida y formatea JSON.                         |
+| `schedule`       | `CnScheduleField`     | Horario semanal con rangos por día; detecta traslapes.                       |
+| `location`       | `CnLocationField`     | Latitud/longitud, "usar mi ubicación" y mapa.                                |
+| `weekdays`       | `CnWeekdaysField`     | Días de la semana con presets (laborables, fin de semana).                   |
+| `timerange`      | `CnTimeRangeField`    | Hora inicial y final; duración y turnos nocturnos.                           |
+| `hidden`         | —                     | Valor que viaja en el payload sin pintarse.                                  |
+| `display`        | —                     | Valor de solo lectura con `format`; ideal con `compute`.                     |
 
 Las opciones de `select`, `autocomplete` y `segmented` aceptan `icon`, `avatar`, `initials` (o
 `true` para calcularlas) y `flag`, útiles para selectores de personas o países.
@@ -486,7 +514,10 @@ npm i @tiptap/react @tiptap/pm @tiptap/starter-kit @tiptap/extensions @tiptap/ex
 ```
 
 ```tsx
-import { CnRichTextField, registerRichTextFieldType } from "@canek-ui/material-design-system/rich-text";
+import {
+  CnRichTextField,
+  registerRichTextFieldType,
+} from "@canek-ui/material-design-system/rich-text";
 
 registerRichTextFieldType(); // una vez al iniciar: habilita type: "richtext" en CnForm
 
@@ -516,7 +547,13 @@ El HTML que guardes debe sanitizarse al **mostrarlo** en otras vistas.
 
 ```tsx
 registerFormFieldType("color", ({ value, onChange, label, error, helperText }) => (
-  <MiSelectorDeColor label={label} value={value} onChange={onChange} error={error} helperText={helperText} />
+  <MiSelectorDeColor
+    label={label}
+    value={value}
+    onChange={onChange}
+    error={error}
+    helperText={helperText}
+  />
 ));
 ```
 
@@ -525,11 +562,11 @@ registerFormFieldType("color", ({ value, onChange, label, error, helperText }) =
 ```tsx
 <CnForm
   fields={fields}
-  submitMode="auto"            // "json" | "formdata" | "auto" (FormData si hay archivos)
+  submitMode="auto" // "json" | "formdata" | "auto" (FormData si hay archivos)
   buildPayload={(v) => ({ ...v, total: Number(v.total) })}
   excludeFields={["confirmPassword"]}
   onSubmit={async (payload, { helpers }) => {
-    await api.save(payload);   // si lanza, sus errores por campo se muestran solos
+    await api.save(payload); // si lanza, sus errores por campo se muestran solos
   }}
   resetAfterSubmit
 />
@@ -637,10 +674,10 @@ como archivos existentes. `componentProps` llega a todos los tipos.
 
 const confirm = useConfirm();
 const ok = await confirm({
-  variant: "delete",                 // delete | danger | warning | info | success | update | neutral
+  variant: "delete", // delete | danger | warning | info | success | update | neutral
   title: "¿Eliminar a ACME Corp?",
   message: "Se eliminarán sus contratos.",
-  requireText: "ACME",               // obliga a escribir el texto (acciones irreversibles)
+  requireText: "ACME", // obliga a escribir el texto (acciones irreversibles)
   onConfirm: () => api.clients.delete(id), // async: muestra carga y, si falla, el error del servidor
 });
 ```
@@ -653,9 +690,10 @@ accesible con foco en la acción y presets de texto, ícono y color.
 ```tsx
 const toast = useToast();
 toast.success("Cliente guardado", { action: { label: "Deshacer", onClick: undo } });
-toast.error(error);  // errores de axios/fetch/Laravel: mensaje + detalles por campo
+toast.error(error); // errores de axios/fetch/Laravel: mensaje + detalles por campo
 await toast.promise(api.export(), { loading: "Generando…", success: "Reporte listo" });
-const id = toast.loading("Subiendo…"); toast.update(id, { severity: "success", message: "Listo" });
+const id = toast.loading("Subiendo…");
+toast.update(id, { severity: "success", message: "Listo" });
 ```
 
 Pila con `max` avisos, `position`, pausa al pasar el mouse o enfocar, `aria-live` y duración
@@ -686,8 +724,19 @@ import { CN_STATUS_PRESETS, CnDataTable, type CnColumn } from "@canek-ui/materia
 
 const columns: CnColumn<Contract>[] = [
   { id: "folio", header: "Folio", type: "code", sticky: true },
-  { id: "client.name", header: "Cliente", type: "avatar", cellOptions: { subtitle: (r) => r.client.email } },
-  { id: "status", header: "Estado", type: "status", filter: "select", cellOptions: { statusMap: CN_STATUS_PRESETS.approval } },
+  {
+    id: "client.name",
+    header: "Cliente",
+    type: "avatar",
+    cellOptions: { subtitle: (r) => r.client.email },
+  },
+  {
+    id: "status",
+    header: "Estado",
+    type: "status",
+    filter: "select",
+    cellOptions: { statusMap: CN_STATUS_PRESETS.approval },
+  },
   { id: "amount", header: "Monto", type: "currency", aggregate: "sum", description: "Incluye IVA" },
   { id: "team", header: "Equipo", type: "contact" },
   { id: "rfc", header: "RFC", type: "rfc", hidden: true },
@@ -699,10 +748,25 @@ const columns: CnColumn<Contract>[] = [
   columns={columns}
   selectable
   rowNumbers
-  bulkActions={[{ id: "cancel", label: "Cancelar", color: "error", onClick: cancel, confirm: { variant: "danger" } }]}
+  bulkActions={[
+    {
+      id: "cancel",
+      label: "Cancelar",
+      color: "error",
+      onClick: cancel,
+      confirm: { variant: "danger" },
+    },
+  ]}
   rowActions={[
     { id: "edit", label: "Editar", icon: "edit", onClick: edit },
-    { id: "delete", label: "Eliminar", icon: "delete", color: "error", confirm: { variant: "delete" }, onClick: remove },
+    {
+      id: "delete",
+      label: "Eliminar",
+      icon: "delete",
+      color: "error",
+      confirm: { variant: "delete" },
+      onClick: remove,
+    },
   ]}
   renderDetail={(row) => <ContractSummary contract={row} />}
   exportDetail={{ accessor: (row) => row.items, columns: itemColumns }}
@@ -712,33 +776,33 @@ const columns: CnColumn<Contract>[] = [
 
 **Celdas** (`type` + `cellOptions`, o `<CnCell>` dentro de `cell`):
 
-| Tipo | Qué muestra | Opciones destacadas |
-| --- | --- | --- |
-| `text` | Texto (2 líneas, tooltip) o píldora | `pill`, `icon`, `transform`, `bold`, `maxLength`, `subtitle`, `expandAfter`, `onClick` |
-| `id`, `code` | Píldora monoespaciada con copiar | `prefix`, `suffix`, `tone`, `maxLength`, `transform` |
-| `rfc`, `curp` | Píldora con validación de formato | — |
-| `number`, `currency`, `percent` | Números, moneda y % con tendencia | `decimals`, `currency`, `suffix`, `previous`, `plain`, `bar`, `percentScale` |
-| `progress`, `rating`, `duration` | Barra, estrellas, "1 h 20 min" | `max`, `durationUnit` |
-| `date`, `datetime`, `time` | "15/Ene/2023" + "hace 3 años" | `relative`, `dateFormat` (`"D [de] MMMM YYYY"`) |
-| `status`, `boolean` | Píldora con ícono y color | `statusMap` (37 presets en `CN_STATUS_PRESETS`), `trueLabel` |
-| `avatar`, `contact` | Avatar con color estable; contactos apilados con ficha | `subtitle`, `image`, `badge`, `avatarShape`, `maxItems` |
-| `email`, `phone`, `link`, `location` | Enlaces `mailto:`, `tel:`, WhatsApp, Google Maps | `whatsapp`, `linkLabel`, `mapLink` |
-| `tags`, `image` | Etiquetas y galería; clic abre el visor de imágenes | `maxTags`, `maxItems` |
-| `file` | Archivo con ícono por tipo, tamaño y descarga | `maxItems` |
-| `color`, `country` | Muestra de color (hex/rgb) y bandera + nombre | — |
-| `json`, `list` | Resumen de objeto/lista; el detalle muestra todo | `maxItems` |
-| `daterange` | "01/Ene – 15/Oct" con duración y estado | `relative` |
-| `bytes`, `sparkline` | "2.4 MB" y mini gráfica de tendencia | `decimals`, `tone` |
-| `coordinates` | Lat/long con mapa en el detalle | `mapPreview` (también `location`) |
-| `masked` | Valor oculto (tarjeta, CLABE) con mostrar/ocultar | `visibleChars` |
-| `delta`, `range` | Variación con flecha y color; rango mín–máx con barra | `previous`, `deltaFormat`, `invertTrend`, `rangeFormat` |
-| `priority`, `stage`, `steps` | Prioridad con barras, etapa de un flujo, avance por pasos | `priorityMap`, `stages`, `stepLabels` |
-| `deadline` | "Vence en 3 h" / "Vencido hace 2 d" por urgencia | `thresholds`, `done` |
-| `ip`, `uuid`, `version` | IP con tipo y alcance; hash recortado; versión semver | `visibleChars`, `latestVersion` |
-| `richtext` | Vista previa de HTML/Markdown; completo y saneado en el detalle | `richFormat`, `lines` |
-| `icon`, `toggle`, `counter` | Ícono con texto; interruptor editable; contador | `onChange`, `hideZero`, `max` |
-| `weekdays`, `timerange`, `age` | L M M J V S D; "09:00 – 18:00"; edad desde la fecha | `showDuration` |
-| `sentiment`, `score`, `reference` | Cara por sentimiento; anillo de puntuación; registro enlazado | `sentimentScale`, `thresholds`, `href` |
+| Tipo                                 | Qué muestra                                                     | Opciones destacadas                                                                    |
+| ------------------------------------ | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `text`                               | Texto (2 líneas, tooltip) o píldora                             | `pill`, `icon`, `transform`, `bold`, `maxLength`, `subtitle`, `expandAfter`, `onClick` |
+| `id`, `code`                         | Píldora monoespaciada con copiar                                | `prefix`, `suffix`, `tone`, `maxLength`, `transform`                                   |
+| `rfc`, `curp`                        | Píldora con validación de formato                               | —                                                                                      |
+| `number`, `currency`, `percent`      | Números, moneda y % con tendencia                               | `decimals`, `currency`, `suffix`, `previous`, `plain`, `bar`, `percentScale`           |
+| `progress`, `rating`, `duration`     | Barra, estrellas, "1 h 20 min"                                  | `max`, `durationUnit`                                                                  |
+| `date`, `datetime`, `time`           | "15/Ene/2023" + "hace 3 años"                                   | `relative`, `dateFormat` (`"D [de] MMMM YYYY"`)                                        |
+| `status`, `boolean`                  | Píldora con ícono y color                                       | `statusMap` (37 presets en `CN_STATUS_PRESETS`), `trueLabel`                           |
+| `avatar`, `contact`                  | Avatar con color estable; contactos apilados con ficha          | `subtitle`, `image`, `badge`, `avatarShape`, `maxItems`                                |
+| `email`, `phone`, `link`, `location` | Enlaces `mailto:`, `tel:`, WhatsApp, Google Maps                | `whatsapp`, `linkLabel`, `mapLink`                                                     |
+| `tags`, `image`                      | Etiquetas y galería; clic abre el visor de imágenes             | `maxTags`, `maxItems`                                                                  |
+| `file`                               | Archivo con ícono por tipo, tamaño y descarga                   | `maxItems`                                                                             |
+| `color`, `country`                   | Muestra de color (hex/rgb) y bandera + nombre                   | —                                                                                      |
+| `json`, `list`                       | Resumen de objeto/lista; el detalle muestra todo                | `maxItems`                                                                             |
+| `daterange`                          | "01/Ene – 15/Oct" con duración y estado                         | `relative`                                                                             |
+| `bytes`, `sparkline`                 | "2.4 MB" y mini gráfica de tendencia                            | `decimals`, `tone`                                                                     |
+| `coordinates`                        | Lat/long con mapa en el detalle                                 | `mapPreview` (también `location`)                                                      |
+| `masked`                             | Valor oculto (tarjeta, CLABE) con mostrar/ocultar               | `visibleChars`                                                                         |
+| `delta`, `range`                     | Variación con flecha y color; rango mín–máx con barra           | `previous`, `deltaFormat`, `invertTrend`, `rangeFormat`                                |
+| `priority`, `stage`, `steps`         | Prioridad con barras, etapa de un flujo, avance por pasos       | `priorityMap`, `stages`, `stepLabels`                                                  |
+| `deadline`                           | "Vence en 3 h" / "Vencido hace 2 d" por urgencia                | `thresholds`, `done`                                                                   |
+| `ip`, `uuid`, `version`              | IP con tipo y alcance; hash recortado; versión semver           | `visibleChars`, `latestVersion`                                                        |
+| `richtext`                           | Vista previa de HTML/Markdown; completo y saneado en el detalle | `richFormat`, `lines`                                                                  |
+| `icon`, `toggle`, `counter`          | Ícono con texto; interruptor editable; contador                 | `onChange`, `hideZero`, `max`                                                          |
+| `weekdays`, `timerange`, `age`       | L M M J V S D; "09:00 – 18:00"; edad desde la fecha             | `showDuration`                                                                         |
+| `sentiment`, `score`, `reference`    | Cara por sentimiento; anillo de puntuación; registro enlazado   | `sentimentScale`, `thresholds`, `href`                                                 |
 
 Cada tipo de celda tiene su historia con sus variantes en Storybook ("Data Display/Cells"), y se
 puede usar suelto con `<CnCell type="…" value={…} />`. La pantalla completa de la tabla se monta en
@@ -909,7 +973,7 @@ siempre (carga al montar).
   bulkActions={[{ id: "archive", label: "Archivar", onClick: archive }]}
   hasMore={hasMore}
   onLoadMore={loadMore}
-/>;
+/>
 ```
 
 - **Aspecto:** variantes `plain`, `divided`, `card` (también en cuadrícula) e `inset`; tres densidades.
@@ -925,13 +989,13 @@ siempre (carga al montar).
 
 ## Tarjetas de contenido y carruseles
 
-| Componente | Para qué | Destacado |
-| --- | --- | --- |
-| `CnDocCard` | Documentos y archivos | Tipo por mime/extensión, miniatura, versión, estado, progreso de carga, vista previa (imagen, video, PDF), acciones y selección; vistas lista/cuadrícula/compacta |
-| `CnProfileCard` / `CnProfileCardGroup` | Personas y sus eventos | Contacto (correo, teléfono, WhatsApp), cumpleaños/aniversarios/ingresos con cuenta regresiva; grupo por mes y "Hoy / Próximos" |
-| `CnSectionCard` | Secciones de una página | Encabezado con acciones, cuerpo plegable animado, pie, estados, secciones anidadas y repetibles |
-| `CnCarousel` | Cualquier contenido en carrusel | Slides por vista según el ancho del contenedor, autoplay accesible, flechas, puntos/progreso/miniaturas, arrastre y teclado |
-| `CnContentCarousel` | Banners y filas de tarjetas | Hero con imagen o video, CTA, overlay y relación de aspecto; preset de fila de tarjetas |
+| Componente                             | Para qué                        | Destacado                                                                                                                                                         |
+| -------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CnDocCard`                            | Documentos y archivos           | Tipo por mime/extensión, miniatura, versión, estado, progreso de carga, vista previa (imagen, video, PDF), acciones y selección; vistas lista/cuadrícula/compacta |
+| `CnProfileCard` / `CnProfileCardGroup` | Personas y sus eventos          | Contacto (correo, teléfono, WhatsApp), cumpleaños/aniversarios/ingresos con cuenta regresiva; grupo por mes y "Hoy / Próximos"                                    |
+| `CnSectionCard`                        | Secciones de una página         | Encabezado con acciones, cuerpo plegable animado, pie, estados, secciones anidadas y repetibles                                                                   |
+| `CnCarousel`                           | Cualquier contenido en carrusel | Slides por vista según el ancho del contenedor, autoplay accesible, flechas, puntos/progreso/miniaturas, arrastre y teclado                                       |
+| `CnContentCarousel`                    | Banners y filas de tarjetas     | Hero con imagen o video, CTA, overlay y relación de aspecto; preset de fila de tarjetas                                                                           |
 
 ```tsx
 <CnContentCarousel
@@ -942,12 +1006,12 @@ siempre (carga al montar).
 
 ## Diálogos, paneles, historial y notificaciones
 
-| Componente | Para qué | Cuándo NO usarlo |
-| --- | --- | --- |
-| `CnDialog` / `useDialog` | Modal general: formularios, detalle de un registro, asistentes, vistas previas. Acciones asíncronas con carga, "¿Descartar cambios?" con `dirty`, tamaños hasta pantalla completa | Para un "sí/no" usa `CnConfirmDialog`; para un aviso pasajero, `CnToast` |
-| `CnDrawer` | Panel lateral (izquierda, derecha, abajo) para detalle de una fila, filtros o edición rápida sin perder la página; temporal, persistente o mini, redimensionable | Para tareas que deben bloquear la página usa `CnDialog` |
-| `CnTimeline` | Historial, bitácora y seguimiento: agrupado por día, estados completado/actual/pendiente, adjuntos, "Ver más" | Para listas seleccionables usa `CnList`; para una bandeja con leídos/no leídos, `CnNotificationCenter` |
-| `CnNotificationCenter` | Bandeja de notificaciones con campana y contador, pestañas, marcar como leído, tiempo real, vista previa flotante y notificaciones del navegador | Para un aviso pasajero usa `CnToast`; para un mensaje fijo, `CnAlert` |
+| Componente               | Para qué                                                                                                                                                                          | Cuándo NO usarlo                                                                                       |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `CnDialog` / `useDialog` | Modal general: formularios, detalle de un registro, asistentes, vistas previas. Acciones asíncronas con carga, "¿Descartar cambios?" con `dirty`, tamaños hasta pantalla completa | Para un "sí/no" usa `CnConfirmDialog`; para un aviso pasajero, `CnToast`                               |
+| `CnDrawer`               | Panel lateral (izquierda, derecha, abajo) para detalle de una fila, filtros o edición rápida sin perder la página; temporal, persistente o mini, redimensionable                  | Para tareas que deben bloquear la página usa `CnDialog`                                                |
+| `CnTimeline`             | Historial, bitácora y seguimiento: agrupado por día, estados completado/actual/pendiente, adjuntos, "Ver más"                                                                     | Para listas seleccionables usa `CnList`; para una bandeja con leídos/no leídos, `CnNotificationCenter` |
+| `CnNotificationCenter`   | Bandeja de notificaciones con campana y contador, pestañas, marcar como leído, tiempo real, vista previa flotante y notificaciones del navegador                                  | Para un aviso pasajero usa `CnToast`; para un mensaje fijo, `CnAlert`                                  |
 
 ```tsx
 const dialog = useDialog();
@@ -955,6 +1019,23 @@ const ok = await dialog.open({ title: "Editar cliente", content: <ClienteForm />
 
 <CnDrawer open={Boolean(row)} title={row?.nombre} onClose={() => setRow(null)} resizable>…</CnDrawer>
 <CnNotificationCenter notifications={items} onMarkRead={markRead} onMarkAllRead={markAll} />
+```
+
+## Conversaciones y correo
+
+| Componente                       | Para qué                                                                                                                              | Cuándo NO usarlo                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `CnChatThread`                   | Hilo de chat: días, mensajes agrupados por autor, anclado al final con aviso de nuevos, mensajes anteriores, «escribiendo» y redactor | Para el historial de un registro usa `CnTimeline` |
+| `CnChatMessage`                  | Un mensaje: autor, hora, estado de envío con «Reintentar», adjuntos y acciones; o aviso del sistema                                   | Para un aviso fijo en la página usa `CnAlert`     |
+| `CnConversationList`             | Bandeja de conversaciones por fecha con búsqueda, no leídos, fijar, renombrar y borrar                                                | Para una lista genérica usa `CnList`              |
+| `CnEmailComposer` (`/rich-text`) | Redactar correo: destinatarios validados, CC/CCO, plantillas con variables, vista previa, adjuntos y envío                            | Para un mensaje corto usa `CnChatThread`          |
+
+```tsx
+<CnConversationList conversations={chats} selectedId={id} onSelect={setId} onPinChange={fijar} />
+<CnChatThread messages={mensajes} participants={personas} currentUserId="yo" onSend={enviar} />
+
+import { CnEmailComposer } from "@canek-ui/material-design-system/rich-text";
+<CnEmailComposer defaultValue={{ to: ["cliente@empresa.mx"] }} templates={plantillas} variables={variables} onSend={enviarCorreo} />
 ```
 
 ## Mapas
@@ -967,9 +1048,9 @@ const ok = await dialog.open({ title: "Editar cliente", content: <ClienteForm />
 ```tsx
 <CnMapsProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_KEY}>
   <CnMap center={{ lat: 19.4326, lng: -99.1332 }} markers={sucursales} stylePreset="canek" />
-  <CnMap center={centro} styles={jsonDelStylingWizard} />  {/* JSON tal cual del Styling Wizard */}
-  <CnMap center={centro} mapId="TU_MAP_ID" />              {/* estilo administrado en la nube */}
-</CnMapsProvider>;
+  <CnMap center={centro} styles={jsonDelStylingWizard} /> {/* JSON tal cual del Styling Wizard */}
+  <CnMap center={centro} mapId="TU_MAP_ID" /> {/* estilo administrado en la nube */}
+</CnMapsProvider>
 ```
 
 - **Estilos:**
@@ -1002,7 +1083,7 @@ const ok = await dialog.open({ title: "Editar cliente", content: <ClienteForm />
   onRangeChange={(range) => fetchEvents(range)}
   searchable
   exportable
-/>;
+/>
 ```
 
 - Eventos de todo el día y de varios días en barras; "+N más" cuando un día tiene muchos eventos.
@@ -1068,23 +1149,23 @@ import { CnBarChart, CnDonutChart } from "@canek-ui/material-design-system/chart
 />;
 ```
 
-| Gráfica | Base | Destacado |
-| --- | --- | --- |
-| `CnBarChart` | MUI X | Vertical u horizontal, agrupada, apilada o 100 %, etiquetas, gradiente, esquinas redondeadas |
-| `CnLineChart`, `CnAreaChart` | MUI X | Curvas, marcadores, punteadas, media móvil, área con gradiente, apilada |
-| `CnComposedChart` | MUI X | Barras + líneas + áreas con doble eje (`axis: "right"`) |
-| `CnHistogram` | MUI X | Distribución de valores crudos en intervalos |
-| `CnPieChart`, `CnDonutChart` | MUI X | Pastel, dona, media dona, anillos anidados, total central que se recalcula, "Otros" automático |
-| `CnScatterChart`, `CnBubbleChart` | MUI X | Formas por serie, burbujas por tamaño, línea de tendencia con R², cuadrantes |
-| `CnGauge` | MUI X | Semicírculo, arco o círculo; segmentos de color, aguja, meta, mínimo y máximo |
-| `CnRadarChart` | MUI X | Rejilla poligonal o circular, varias series |
-| `CnSparkline` | MUI X | Línea, área o barras; color por tendencia, extremos, promedio, valor y variación |
-| `CnHeatmap`, `CnCalendarHeatmap` | Propia | Rejilla o calendario de actividad, escala secuencial o divergente |
-| `CnFunnelChart`, `CnPyramidChart` | Propia | Embudo, pirámide o barras; conversión vs. paso anterior y total |
-| `CnSankeyChart` | Propia | Flujos por niveles, resaltado al pasar el cursor |
-| `CnCandlestickChart` | Propia | Velas OHLC, volumen, medias móviles, retícula |
-| `CnRadialBarChart`, `CnRadialLineChart` | Propia | Anillos de avance; líneas polares para ciclos |
-| `CnTreemap` | Propia | Jerárquico con navegación por niveles |
+| Gráfica                                 | Base   | Destacado                                                                                      |
+| --------------------------------------- | ------ | ---------------------------------------------------------------------------------------------- |
+| `CnBarChart`                            | MUI X  | Vertical u horizontal, agrupada, apilada o 100 %, etiquetas, gradiente, esquinas redondeadas   |
+| `CnLineChart`, `CnAreaChart`            | MUI X  | Curvas, marcadores, punteadas, media móvil, área con gradiente, apilada                        |
+| `CnComposedChart`                       | MUI X  | Barras + líneas + áreas con doble eje (`axis: "right"`)                                        |
+| `CnHistogram`                           | MUI X  | Distribución de valores crudos en intervalos                                                   |
+| `CnPieChart`, `CnDonutChart`            | MUI X  | Pastel, dona, media dona, anillos anidados, total central que se recalcula, "Otros" automático |
+| `CnScatterChart`, `CnBubbleChart`       | MUI X  | Formas por serie, burbujas por tamaño, línea de tendencia con R², cuadrantes                   |
+| `CnGauge`                               | MUI X  | Semicírculo, arco o círculo; segmentos de color, aguja, meta, mínimo y máximo                  |
+| `CnRadarChart`                          | MUI X  | Rejilla poligonal o circular, varias series                                                    |
+| `CnSparkline`                           | MUI X  | Línea, área o barras; color por tendencia, extremos, promedio, valor y variación               |
+| `CnHeatmap`, `CnCalendarHeatmap`        | Propia | Rejilla o calendario de actividad, escala secuencial o divergente                              |
+| `CnFunnelChart`, `CnPyramidChart`       | Propia | Embudo, pirámide o barras; conversión vs. paso anterior y total                                |
+| `CnSankeyChart`                         | Propia | Flujos por niveles, resaltado al pasar el cursor                                               |
+| `CnCandlestickChart`                    | Propia | Velas OHLC, volumen, medias móviles, retícula                                                  |
+| `CnRadialBarChart`, `CnRadialLineChart` | Propia | Anillos de avance; líneas polares para ciclos                                                  |
+| `CnTreemap`                             | Propia | Jerárquico con navegación por niveles                                                          |
 
 Las imágenes PNG y SVG incluyen título, subtítulo y leyenda.
 
@@ -1175,16 +1256,16 @@ Los tokens se dividen en dos formatos complementarios:
 
 ### Tokens disponibles
 
-| Grupo        | Prefijo                | Ejemplo                          |
-| ------------ | ---------------------- | -------------------------------- |
-| Colores      | `--cn-color-*`         | `--cn-color-brand-600`           |
-| RGB (rgba)   | `--cn-color-rgb-*`     | `--cn-color-rgb-brand-600`       |
-| Spacing      | `--cn-space-*`         | `--cn-space-4` (16px)            |
-| Radii        | `--cn-radius-*`        | `--cn-radius-md` (8px)           |
-| Shadows      | `--cn-shadow-*`        | `--cn-shadow-md`                 |
-| Tipografía   | `--cn-font-*`          | `--cn-font-sans`, `--cn-font-size-md` |
-| Motion       | `--cn-duration-*`, `--cn-ease-*` | `--cn-duration-base` (200ms) |
-| Z-index      | `--cn-z-*`             | `--cn-z-modal`                   |
+| Grupo      | Prefijo                          | Ejemplo                               |
+| ---------- | -------------------------------- | ------------------------------------- |
+| Colores    | `--cn-color-*`                   | `--cn-color-brand-600`                |
+| RGB (rgba) | `--cn-color-rgb-*`               | `--cn-color-rgb-brand-600`            |
+| Spacing    | `--cn-space-*`                   | `--cn-space-4` (16px)                 |
+| Radii      | `--cn-radius-*`                  | `--cn-radius-md` (8px)                |
+| Shadows    | `--cn-shadow-*`                  | `--cn-shadow-md`                      |
+| Tipografía | `--cn-font-*`                    | `--cn-font-sans`, `--cn-font-size-md` |
+| Motion     | `--cn-duration-*`, `--cn-ease-*` | `--cn-duration-base` (200ms)          |
+| Z-index    | `--cn-z-*`                       | `--cn-z-modal`                        |
 
 ---
 
@@ -1271,22 +1352,22 @@ npm rebuild esbuild
 
 ### Scripts disponibles
 
-| Comando                  | Qué hace                                                         |
-| ------------------------ | ---------------------------------------------------------------- |
-| `npm run storybook`      | Levanta Storybook en `http://localhost:6006` (desarrollo visual). |
-| `npm run dev`            | Alias de `storybook`.                                            |
-| `npm run build`          | Genera `dist/` (JS, CJS, tipos, tokens.css).                     |
-| `npm run build-storybook`| Genera el Storybook estático en `storybook-static/`.             |
-| `npm run test`           | Ejecuta la suite con Vitest (una vez).                           |
-| `npm run test:watch`     | Ejecuta Vitest en modo watch (recomendado al iterar).            |
-| `npm run lint`           | Ejecuta ESLint sobre todo el proyecto.                           |
-| `npm run format`         | Formatea con Prettier.                                           |
-| `npm run format:check`   | Verifica formato sin modificar archivos.                         |
-| `npm run typecheck`      | Ejecuta `tsc --noEmit`.                                          |
-| `npm run verify`         | typecheck + lint + test + build.                                 |
-| `npm run verify:all`     | `verify` + build de Storybook (lo mismo que corre CI).           |
-| `npm run new:component`  | Andamiaje de un componente: `-- CnNombre --category <cat>`.      |
-| `npm run docs:catalog`   | Regenera el catálogo del README, `docs/catalog.json` y `docs/ROADMAP.md`. |
+| Comando                   | Qué hace                                                                  |
+| ------------------------- | ------------------------------------------------------------------------- |
+| `npm run storybook`       | Levanta Storybook en `http://localhost:6006` (desarrollo visual).         |
+| `npm run dev`             | Alias de `storybook`.                                                     |
+| `npm run build`           | Genera `dist/` (JS, CJS, tipos, tokens.css).                              |
+| `npm run build-storybook` | Genera el Storybook estático en `storybook-static/`.                      |
+| `npm run test`            | Ejecuta la suite con Vitest (una vez).                                    |
+| `npm run test:watch`      | Ejecuta Vitest en modo watch (recomendado al iterar).                     |
+| `npm run lint`            | Ejecuta ESLint sobre todo el proyecto.                                    |
+| `npm run format`          | Formatea con Prettier.                                                    |
+| `npm run format:check`    | Verifica formato sin modificar archivos.                                  |
+| `npm run typecheck`       | Ejecuta `tsc --noEmit`.                                                   |
+| `npm run verify`          | typecheck + lint + test + build.                                          |
+| `npm run verify:all`      | `verify` + build de Storybook (lo mismo que corre CI).                    |
+| `npm run new:component`   | Andamiaje de un componente: `-- CnNombre --category <cat>`.               |
+| `npm run docs:catalog`    | Regenera el catálogo del README, `docs/catalog.json` y `docs/ROADMAP.md`. |
 
 ### Storybook
 
@@ -1376,11 +1457,11 @@ La definición de terminado completa está en [`AGENTS.md`](./AGENTS.md#definici
 
 ## Flujo de trabajo
 
-| Rama | Para qué | Quién sube |
-| --- | --- | --- |
-| `develop` | **Rama por defecto.** Integra el trabajo del día a día. | PR desde `feat/*`, `fix/*`, `chore/*` |
-| `main` | Solo código probado y validado; cada merge es una versión publicada. | PR de release desde `develop` |
-| `feat/*`, `fix/*`, `docs/*`, `chore/*` | Un cambio por rama, siempre desde `develop` actualizado. | Quien desarrolla |
+| Rama                                   | Para qué                                                             | Quién sube                            |
+| -------------------------------------- | -------------------------------------------------------------------- | ------------------------------------- |
+| `develop`                              | **Rama por defecto.** Integra el trabajo del día a día.              | PR desde `feat/*`, `fix/*`, `chore/*` |
+| `main`                                 | Solo código probado y validado; cada merge es una versión publicada. | PR de release desde `develop`         |
+| `feat/*`, `fix/*`, `docs/*`, `chore/*` | Un cambio por rama, siempre desde `develop` actualizado.             | Quien desarrolla                      |
 
 ### 1. Crear rama desde `develop`
 
@@ -1411,13 +1492,13 @@ git add src/components/CnChip src/index.ts
 git commit -m "feat(chip): add CnChip with color variants - por: Angel Rodriguez"
 ```
 
-| Prefijo | Uso | Efecto en la versión |
-| --- | --- | --- |
-| `feat` | Componente, prop o capacidad nueva | `minor` |
-| `fix` | Corrección de un error | `patch` |
-| `perf`, `refactor` | Mejora interna sin cambiar la API | `patch` |
-| `docs`, `test`, `chore`, `ci`, `style` | Sin cambios en el paquete publicado | ninguno |
-| `feat!` / `BREAKING CHANGE:` | API incompatible | `minor` mientras sea `0.x`; `major` desde `1.0` |
+| Prefijo                                | Uso                                 | Efecto en la versión                            |
+| -------------------------------------- | ----------------------------------- | ----------------------------------------------- |
+| `feat`                                 | Componente, prop o capacidad nueva  | `minor`                                         |
+| `fix`                                  | Corrección de un error              | `patch`                                         |
+| `perf`, `refactor`                     | Mejora interna sin cambiar la API   | `patch`                                         |
+| `docs`, `test`, `chore`, `ci`, `style` | Sin cambios en el paquete publicado | ninguno                                         |
+| `feat!` / `BREAKING CHANGE:`           | API incompatible                    | `minor` mientras sea `0.x`; `major` desde `1.0` |
 
 Nunca `git add .` si hay archivos que no quieres commitear. Siempre archivos específicos por ruta.
 
@@ -1466,15 +1547,15 @@ notas del `CHANGELOG.md`.
 
 **npm:** hoy se publica a mano desde `main` (`npm publish --access public`, con el OTP de 2FA). Si
 algún día se guarda un token de publicación como secret `NPM_TOKEN` en GitHub, el mismo workflow
-publica solo (con *provenance*) y omite las versiones que ya estén en npm.
+publica solo (con _provenance_) y omite las versiones que ya estén en npm.
 
 ### Semantic versioning
 
-| Cambio | Versión |
-| --- | --- |
+| Cambio                             | Versión                               |
+| ---------------------------------- | ------------------------------------- |
 | Breaking change (API incompatible) | `minor` en `0.x`; `major` desde `1.0` |
-| Nuevo componente, prop o capacidad | `minor` |
-| Bug fix, corrección interna | `patch` |
+| Nuevo componente, prop o capacidad | `minor`                               |
+| Bug fix, corrección interna        | `patch`                               |
 
 Cuando la API de los componentes más usados esté estable y lista para producción, se salta a `v1.0.0`.
 

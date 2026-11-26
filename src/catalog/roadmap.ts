@@ -775,15 +775,6 @@ export const CN_ROADMAP: CnRoadmapItem[] = [
     priority: "alta",
     dependsOn: ["CnPageContainer", "CnAvatar", "CnDescriptionList", "CnActionBar"],
   },
-  {
-    name: "CnEmailComposer",
-    category: "formularios",
-    domains: ["crm", "general"],
-    summary: "Redactar correo: destinatarios como chips, CC/CCO, plantillas, variables y adjuntos.",
-    gap: "`CnTagsField` + `CnRichTextField` se combinan a mano; faltan plantillas con variables y vista previa.",
-    priority: "media",
-    dependsOn: ["CnTagsField", "CnRichTextField", "CnFileField"],
-  },
 
   // ─── ERP y RR. HH. ────────────────────────────────────────────────
   {
@@ -960,26 +951,6 @@ export const CN_ROADMAP: CnRoadmapItem[] = [
 
   // ─── Interfaces de IA y chat ──────────────────────────────────────
   {
-    name: "CnChatThread",
-    category: "ia",
-    domains: ["ia", "crm", "general"],
-    summary:
-      "Conversación con autoscroll, agrupación por autor y día, cargar anteriores y virtualización.",
-    gap: "`CnList` y `CnTimeline` no anclan al final, no agrupan turnos ni manejan mensajes en streaming.",
-    priority: "alta",
-    dependsOn: ["CnChatMessage", "CnList"],
-  },
-  {
-    name: "CnChatMessage",
-    category: "ia",
-    domains: ["ia", "crm"],
-    summary:
-      "Burbuja de mensaje con markdown, código, adjuntos, estado de envío, editar y reintentar.",
-    gap: "No hay burbuja de mensaje; `CnAlert` y `CnCard` no tienen roles de autor ni acciones por mensaje.",
-    priority: "alta",
-    dependsOn: ["CnMarkdown", "CnAvatar", "CnFeedbackButtons"],
-  },
-  {
     name: "CnMarkdown",
     category: "contenido",
     domains: ["ia", "cms", "general"],
@@ -1101,15 +1072,6 @@ export const CN_ROADMAP: CnRoadmapItem[] = [
     gap: "`CnRatingField` es una calificación de formulario; la retroalimentación por respuesta es inmediata y contextual.",
     priority: "media",
     dependsOn: ["CnButton", "CnPopover"],
-  },
-  {
-    name: "CnConversationList",
-    category: "ia",
-    domains: ["ia", "crm"],
-    summary: "Lista de conversaciones por fecha con búsqueda, fijar, renombrar y borrar.",
-    gap: "`CnList` es genérico; las conversaciones necesitan agrupación por fecha y acciones de hilo.",
-    priority: "alta",
-    dependsOn: ["CnList", "CnSearchField", "CnMenu"],
   },
   {
     name: "CnVoiceInput",
