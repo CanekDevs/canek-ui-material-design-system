@@ -472,7 +472,7 @@ export const CnConversationList = forwardRef<HTMLDivElement, CnConversationListP
                                       flex: "none",
                                       minWidth: 18,
                                       height: 18,
-                                      px: "5px",
+                                      px: "9px",
                                       borderRadius: "999px",
                                       display: "inline-flex",
                                       alignItems: "center",
