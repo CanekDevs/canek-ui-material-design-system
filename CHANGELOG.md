@@ -9,6 +9,11 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 
 ### Agregado
 
+- `CnAppShell`: estructura de aplicación que une `CnSidebarNav`, `CnTopBar` y `CnCommandPalette`, con modo mini, cajón en móvil (medido en el contenedor), contenido con scroll propio y enlace «Saltar al contenido». Con su skeleton y prop `skeleton`.
+- `src/utils/hotkeys.ts` (comparador y formato de atajos, antes dentro de `CnNotificationCenter`) y `src/utils/use-element-width.ts` (ancho del contenedor) compartidos.
+- `CnCommandPalette`: paleta de comandos con atajo global (Ctrl/⌘ + K), búsqueda sin acentos, grupos, recientes, atajos por comando, búsqueda remota con `loading` y combobox accesible; `filterCommands` y `groupCommands` exportados. Con su skeleton y prop `skeleton`.
+- `CnTopBar`: barra superior con botón de menú, marca, título, búsqueda con atajo (o búsqueda propia), acciones y menú de usuario; se compacta según el ancho del contenedor. Con su skeleton y prop `skeleton`.
+- `CnSidebarNav`: navegación lateral con grupos plegables, subpáginas, modo mini con tooltips y menú, insignias, página actual (`aria-current`), favoritos, enlaces de router y teclado (flechas, Inicio, Fin, abrir y cerrar padres). Con su skeleton y prop `skeleton`.
 - `CnDocCard`: tarjeta de documento con tipo por mime/extensión, miniatura, metadatos, estado,
   etiquetas, versión, acciones (ver, descargar, compartir, menú), selección, progreso de carga y error;
   vista previa de imágenes, video, audio y PDF.

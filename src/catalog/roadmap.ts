@@ -160,15 +160,6 @@ export const CN_ROADMAP: CnRoadmapItem[] = [
     dependsOn: ["CnDataTable", "CnCard"],
   },
   {
-    name: "CnCommandPalette",
-    category: "navegacion",
-    domains: ["general", "erp", "crm", "cms", "ia"],
-    summary: "Paleta de comandos (Ctrl + K): buscar páginas, registros y acciones con teclado.",
-    gap: "`CnSearchField` es un campo de formulario; no abre un diálogo global con comandos agrupados, recientes y atajos.",
-    priority: "media",
-    dependsOn: ["CnDialog", "CnList", "CnKbd"],
-  },
-  {
     name: "CnFilterBar",
     category: "datos",
     domains: ["general", "erp", "crm", "ecommerce", "dashboards"],
@@ -236,35 +227,6 @@ export const CN_ROADMAP: CnRoadmapItem[] = [
   },
 
   // ─── Layout y navegación de aplicación ────────────────────────────
-  {
-    name: "CnAppShell",
-    category: "layout",
-    domains: ["general", "erp", "crm", "cms", "dashboards", "rrhh", "pos"],
-    summary:
-      "Estructura de aplicación: navegación lateral, barra superior, contenido y cajón móvil.",
-    gap: "`CnPageContainer` es el marco de una página; cada app arma su propio shell con navegación, colapso y móvil.",
-    priority: "alta",
-    dependsOn: ["CnSidebarNav", "CnTopBar", "CnDrawer", "CnPageContainer"],
-  },
-  {
-    name: "CnSidebarNav",
-    category: "navegacion",
-    domains: ["general", "erp", "crm", "cms", "dashboards", "rrhh"],
-    summary:
-      "Navegación lateral con grupos plegables, modo mini, insignias, ruta activa y favoritos.",
-    gap: "`CnDrawer` es el contenedor, no la navegación; falta el árbol de rutas con estado activo y modo mini con tooltips.",
-    priority: "alta",
-    dependsOn: ["CnDrawer", "CnBadge", "CnIcon", "CnTooltip"],
-  },
-  {
-    name: "CnTopBar",
-    category: "navegacion",
-    domains: ["general", "erp", "crm", "cms", "dashboards"],
-    summary: "Barra superior de app: marca, búsqueda, notificaciones, ayuda y menú de usuario.",
-    gap: "Las piezas existen (`CnSearchField`, `CnNotificationCenter`, `CnAvatar`) pero no su composición responsiva.",
-    priority: "alta",
-    dependsOn: ["CnSearchField", "CnNotificationCenter", "CnUserMenu"],
-  },
   {
     name: "CnUserMenu",
     category: "navegacion",

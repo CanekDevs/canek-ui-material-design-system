@@ -779,3 +779,9 @@ export type {
   CnNotificationSnoozeOption,
   CnNotificationTab,
 } from "./components/CnNotificationCenter";
+
+// Estructura de aplicación
+export * from "./components/CnAppShell";
+export * from "./components/CnSidebarNav";
+export * from "./components/CnTopBar";
+export * from "./components/CnCommandPalette";

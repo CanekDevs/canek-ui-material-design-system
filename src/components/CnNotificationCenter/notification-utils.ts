@@ -34,35 +34,7 @@ export const CN_NOTIFICATION_SNOOZE_OPTIONS: readonly CnNotificationSnoozeOption
 export const notificationSearchText = (n: CnNotification): string =>
   [toPlainText(n.title), toPlainText(n.message), toPlainText(n.source), n.category ?? ""].join(" ");
 
-/**
- * `"alt+n"`, `"ctrl+shift+k"`, `"mod+."` (mod = Ctrl o ⌘). Compara con la
- * tecla física cuando es letra o número para no depender de la distribución.
- */
-export const matchesHotkey = (event: KeyboardEvent, hotkey: string): boolean => {
-  const parts = hotkey
-    .toLowerCase()
-    .split("+")
-    .map((p) => p.trim());
-  const key = parts[parts.length - 1];
-  const mods = new Set(parts.slice(0, -1));
-  const isMac = typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform);
-  const wantCtrl = mods.has("ctrl") || (mods.has("mod") && !isMac);
-  const wantMeta = mods.has("meta") || mods.has("cmd") || (mods.has("mod") && isMac);
-  if (event.ctrlKey !== wantCtrl || event.metaKey !== wantMeta) return false;
-  if (event.altKey !== mods.has("alt") || event.shiftKey !== mods.has("shift")) return false;
-  const physical = event.code?.toLowerCase().replace(/^key|^digit/, "");
-  return event.key.toLowerCase() === key || physical === key;
-};
-
-/** Texto legible del atajo ("Alt+N"). */
-export const formatHotkey = (hotkey: string): string =>
-  hotkey
-    .split("+")
-    .map((p) => {
-      const t = p.trim();
-      return t.length === 1 ? t.toUpperCase() : t.charAt(0).toUpperCase() + t.slice(1);
-    })
-    .join("+");
+export { formatHotkey, matchesHotkey } from "../../utils/hotkeys";
 
 let audioContext: AudioContext | null = null;
 
