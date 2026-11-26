@@ -1086,7 +1086,7 @@ export const CnDataTable = <T extends CnRow>({
           <Box
             component="span"
             sx={{
-              px: "10px",
+              px: "14px",
               py: "4px",
               borderRadius: "999px",
               fontSize: "0.75rem",
@@ -1911,7 +1911,7 @@ export const CnDataTable = <T extends CnRow>({
                       <Box
                         component="span"
                         sx={{
-                          px: "8px",
+                          px: "12px",
                           py: "2px",
                           borderRadius: "999px",
                           fontSize: "0.7rem",

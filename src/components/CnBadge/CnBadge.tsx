@@ -86,12 +86,14 @@ type SizeTokens = {
   minWidth: number;
   fontSize: number;
   paddingX: number;
+  /** Padding horizontal con un solo carácter: la insignia sigue siendo un círculo. */
+  circleX: number;
 };
 
 const SIZE_TOKENS: Record<CnBadgeSize, SizeTokens> = {
-  sm: { dot: 6, height: 14, minWidth: 14, fontSize: 9, paddingX: 4 },
-  md: { dot: 8, height: 18, minWidth: 18, fontSize: 10, paddingX: 5 },
-  lg: { dot: 10, height: 22, minWidth: 22, fontSize: 11, paddingX: 6 },
+  sm: { dot: 6, height: 14, minWidth: 14, fontSize: 9, paddingX: 8, circleX: 4 },
+  md: { dot: 8, height: 18, minWidth: 18, fontSize: 10, paddingX: 9, circleX: 5 },
+  lg: { dot: 10, height: 22, minWidth: 22, fontSize: 11, paddingX: 10, circleX: 6 },
 };
 
 const pulseKeyframes = (rgb: string): Record<string, unknown> => ({
@@ -166,6 +168,9 @@ export const CnBadge = forwardRef<HTMLDivElement, CnBadgeProps>(function CnBadge
 
   const tokens = COLOR_TOKENS[color];
   const sizes = SIZE_TOKENS[size];
+  // un carácter («3», «!») cabe en el círculo; con dos o más («12», «99+», «NUEVO») hay más aire a los lados
+  const shownText = String(resolveStandaloneContent(variant, content, max) ?? "");
+  const padX = `${variant !== "label" && shownText.length <= 1 ? sizes.circleX : sizes.paddingX}px`;
   const isInvisible = invisible || isEmpty(variant, content, showZero);
 
   if (!children) {
@@ -227,7 +232,7 @@ export const CnBadge = forwardRef<HTMLDivElement, CnBadgeProps>(function CnBadge
             justifyContent: "center",
             height: sizes.height,
             minWidth: isLabel ? undefined : sizes.minWidth,
-            paddingInline: `${sizes.paddingX}px`,
+            paddingInline: padX,
             borderRadius: isLabel ? "var(--cn-radius-sm, 6px)" : "9999px",
             backgroundColor: tokens.bg,
             color: tokens.fg,
@@ -284,12 +289,12 @@ export const CnBadge = forwardRef<HTMLDivElement, CnBadgeProps>(function CnBadge
               fontSize: sizes.fontSize,
               height: sizes.height,
               minWidth: sizes.minWidth,
-              paddingInline: `${sizes.paddingX}px`,
+              paddingInline: padX,
             }),
             ...(isLabel && {
               fontSize: sizes.fontSize,
               height: sizes.height,
-              paddingInline: `${sizes.paddingX}px`,
+              paddingInline: padX,
               borderRadius: "var(--cn-radius-sm, 6px)",
             }),
             ...(pulse && pulseKeyframes(tokens.rgb)),

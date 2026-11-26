@@ -327,7 +327,7 @@ const Changes = ({ changes, size }: { changes: readonly CnTimelineChange[]; size
         data-cn-timeline-change-value={kind}
         sx={{
           minWidth: 0,
-          px: "6px",
+          px: "10px",
           py: "1px",
           borderRadius: "4px",
           overflowWrap: "anywhere",

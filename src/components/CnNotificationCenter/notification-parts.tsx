@@ -197,7 +197,7 @@ export const NotificationContent = ({
             alignItems: "center",
             gap: "3px",
             mb: "2px",
-            px: "6px",
+            px: "10px",
             borderRadius: "999px",
             fontSize: 11,
             fontWeight: 700,

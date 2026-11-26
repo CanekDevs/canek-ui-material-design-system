@@ -787,7 +787,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
         display: "inline-flex",
         alignItems: "center",
         gap: "2px",
-        px: "6px",
+        px: "10px",
         height: 20,
         borderRadius: "999px",
         fontSize: 10,

@@ -1109,7 +1109,7 @@ export const CnEventCalendar = <TMeta,>(props: CnEventCalendarProps<TMeta>) => {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "4px",
-                px: "8px",
+                px: "12px",
                 height: 26,
                 borderRadius: "999px",
                 fontSize: "0.72rem",

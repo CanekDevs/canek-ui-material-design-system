@@ -379,7 +379,7 @@ export const MonthView = ({
         sx={{
           ml: "auto",
           flexShrink: 0,
-          px: "6px",
+          px: "10px",
           height: 18,
           lineHeight: "18px",
           borderRadius: "999px",

@@ -40,7 +40,7 @@ const ErrorBadge = ({ count }: { count: number }) => (
       justifyContent: "center",
       minWidth: 18,
       height: 18,
-      paddingInline: "5px",
+      paddingInline: "9px",
       borderRadius: "999px",
       fontSize: "var(--cn-font-size-xs, 11px)",
       fontWeight: 700,

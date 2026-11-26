@@ -584,7 +584,7 @@ export const CnChartCard = ({
             display: "inline-flex",
             alignItems: "center",
             gap: "2px",
-            px: "8px",
+            px: "12px",
             py: "2px",
             borderRadius: "999px",
             fontSize: "0.75rem",

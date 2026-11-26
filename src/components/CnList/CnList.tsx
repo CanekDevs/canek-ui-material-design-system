@@ -1393,7 +1393,7 @@ export function CnList<T = CnListItemData>(props: CnListProps<T>) {
         component="span"
         data-cn-list-selection-count=""
         sx={{
-          px: "10px",
+          px: "14px",
           py: "4px",
           borderRadius: "999px",
           fontSize: "0.75rem",

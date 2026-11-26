@@ -497,7 +497,7 @@ export const CnMetricCard = forwardRef<HTMLDivElement, CnMetricCardProps>(functi
               display: "inline-flex",
               alignItems: "center",
               gap: "2px",
-              px: "6px",
+              px: "10px",
               py: "1px",
               borderRadius: "999px",
               fontSize: "var(--cn-font-size-xs, 11px)",

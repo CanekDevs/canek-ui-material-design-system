@@ -1955,7 +1955,7 @@ const MiniTag = ({ label, tone = "neutral" }: { label: ReactNode; tone?: CnCellT
     component="span"
     sx={{
       flexShrink: 0,
-      px: "6px",
+      px: "10px",
       py: "1px",
       borderRadius: "999px",
       fontSize: "0.6rem",
@@ -3812,7 +3812,7 @@ export const renderTypedCell = (
                   component="span"
                   sx={{
                     flexShrink: 0,
-                    px: "6px",
+                    px: "10px",
                     borderRadius: "999px",
                     fontSize: "0.6rem",
                     fontWeight: 700,

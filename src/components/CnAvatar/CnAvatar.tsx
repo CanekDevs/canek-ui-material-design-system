@@ -344,7 +344,7 @@ export const CnAvatar = forwardRef<HTMLDivElement, CnAvatarProps>(function CnAva
             fontWeight: "var(--cn-font-weight-bold, 700)",
             height: statusSize + 4,
             minWidth: statusSize + 4,
-            padding: "0 4px",
+            padding: "0 8px",
             boxShadow: "0 0 0 2px var(--cn-color-surface, #ffffff)",
           },
         }}

@@ -214,7 +214,7 @@ const BadgePill = ({ badge }: { badge: CnListBadge }) => {
       sx={{
         minWidth: 18,
         height: 18,
-        px: "6px",
+        px: "10px",
         boxSizing: "border-box",
         borderRadius: "999px",
         display: "inline-flex",
@@ -1109,7 +1109,7 @@ export const CnListSubheader = forwardRef<HTMLDivElement, CnListSubheaderProps>(
             component="span"
             data-cn-list-count=""
             sx={{
-              px: "7px",
+              px: "11px",
               py: "1px",
               borderRadius: "999px",
               fontSize: "0.68rem",

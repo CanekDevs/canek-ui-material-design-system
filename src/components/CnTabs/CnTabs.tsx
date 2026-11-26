@@ -293,7 +293,7 @@ export const CnTabs = forwardRef<HTMLDivElement, CnTabsProps>(function CnTabs(
           justifyContent: "center",
           minWidth: tokens.badgeSize,
           height: tokens.badgeSize,
-          paddingInline: "4px",
+          paddingInline: "8px",
           borderRadius: "9999px",
           backgroundColor: badgeBg,
           color: badgeFg,

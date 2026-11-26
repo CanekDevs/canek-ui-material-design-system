@@ -146,7 +146,7 @@ type SizeTokens = {
 };
 
 const SIZE_TOKENS: Record<CnChipSize, SizeTokens> = {
-  small: { height: 24, minWidth: 48, paddingX: 8, iconSize: 14, avatarSize: 18 },
+  small: { height: 24, minWidth: 48, paddingX: 12, iconSize: 14, avatarSize: 18 },
   medium: { height: 32, minWidth: 56, paddingX: 12, iconSize: 16, avatarSize: 22 },
   large: { height: 40, minWidth: 64, paddingX: 16, iconSize: 18, avatarSize: 28 },
 };
@@ -399,7 +399,7 @@ export const CnChip = forwardRef<HTMLDivElement, CnChipProps>(function CnChip(
       "background-color var(--cn-duration-fast, 140ms) var(--cn-ease-standard, ease), border-color var(--cn-duration-fast, 140ms) var(--cn-ease-standard, ease), box-shadow var(--cn-duration-fast, 140ms) var(--cn-ease-standard, ease), transform var(--cn-duration-fast, 140ms) var(--cn-ease-standard, ease)",
     "& .MuiChip-label": {
       // En px: un número suelto en sx se multiplica por el spacing del tema.
-      paddingInline: `${compact ? tokens.paddingX / 2 : tokens.paddingX}px`,
+      paddingInline: `${compact ? tokens.paddingX / 2 + 4 : tokens.paddingX}px`,
       fontSize:
         size === "small"
           ? "var(--cn-font-size-xs, 11px)"
