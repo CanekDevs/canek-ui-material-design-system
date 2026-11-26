@@ -146,7 +146,8 @@ export const CnHeatmap = (props: CnHeatmapProps) => {
       ? CN_SEQUENTIAL_SCALES[scale as CnSequentialScale]
       : (scale as string[]);
   const colorOf = (value: number | null | undefined) => {
-    if (value == null) return "var(--cn-color-neutral-100, #f4f5f7)";
+    if (value == null)
+      return "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))";
     if (diverging) {
       const span = Math.max(Math.abs(max - center), Math.abs(center - min)) || 1;
       return interpolateScale(colors, 0.5 + (value - center) / (2 * span));
@@ -230,7 +231,7 @@ export const CnHeatmap = (props: CnHeatmapProps) => {
                   y={11}
                   fontSize={10}
                   fontWeight={600}
-                  fill="var(--cn-color-neutral-500, #6e7682)"
+                  fill="var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))"
                 >
                   {m.label}
                 </text>
@@ -244,7 +245,7 @@ export const CnHeatmap = (props: CnHeatmapProps) => {
                   textAnchor="end"
                   dominantBaseline="central"
                   fontSize={calendar ? 9 : 11}
-                  fill="var(--cn-color-neutral-500, #6e7682)"
+                  fill="var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))"
                 >
                   {String(label)}
                 </text>
@@ -258,7 +259,7 @@ export const CnHeatmap = (props: CnHeatmapProps) => {
                   y={plotHeight - 8}
                   textAnchor="middle"
                   fontSize={11}
-                  fill="var(--cn-color-neutral-500, #6e7682)"
+                  fill="var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))"
                 >
                   {String(label)}
                 </text>
@@ -356,7 +357,7 @@ export const CnHeatmap = (props: CnHeatmapProps) => {
                 gap: "8px",
                 mt: "8px",
                 fontSize: "11px",
-                color: "var(--cn-color-neutral-500, #6e7682)",
+                color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
               }}
             >
               <span>

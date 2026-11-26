@@ -123,12 +123,12 @@ export const CnRadarChart = (props: CnRadarChartProps) => {
           sx={{
             ...chartBaseSx,
             "& .MuiRadarGrid-radial, & .MuiRadarGrid-divider": {
-              stroke: "var(--cn-color-neutral-200, #dde0e4)",
+              stroke: "var(--cn-color-border, var(--cn-color-neutral-200, #dde0e4))",
             },
             "& .MuiRadarMetricLabels-root text, & .MuiRadarAxis-label": {
               fontSize: "11px",
               fontWeight: 600,
-              fill: "var(--cn-color-neutral-600, #4e5660)",
+              fill: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
             },
           }}
         />

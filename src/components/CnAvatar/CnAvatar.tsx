@@ -72,35 +72,35 @@ const SIZE_MAP: Record<CnAvatarSize, number> = {
 const COLOR_MAP: Record<CnAvatarColor, { bg: string; fg: string }> = {
   primary: {
     bg: "var(--cn-color-brand-600, #254d87)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
   },
   secondary: {
     bg: "var(--cn-color-neutral-700, #363d45)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
   },
   success: {
     bg: "var(--cn-color-success-600, #228740)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
   },
   warning: {
     bg: "var(--cn-color-warning-600, #b8831a)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
   },
   error: {
     bg: "var(--cn-color-error-600, #b52f2f)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
   },
   info: {
     bg: "var(--cn-color-info-600, #2367a8)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
   },
   accent: {
     bg: "var(--cn-color-accent-500, #3d5afe)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
   },
   neutral: {
     bg: "var(--cn-color-neutral-500, #6e7682)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
   },
 };
 
@@ -339,12 +339,12 @@ export const CnAvatar = forwardRef<HTMLDivElement, CnAvatarProps>(function CnAva
         sx={{
           "& .MuiBadge-badge": {
             backgroundColor: badge.color ? BADGE_COLOR_MAP[badge.color] : BADGE_COLOR_MAP.error,
-            color: "var(--cn-color-neutral-0, #ffffff)",
+            color: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
             fontSize: Math.max(9, Math.round(sizePx * 0.26)),
             fontWeight: "var(--cn-font-weight-bold, 700)",
             height: statusSize + 4,
             minWidth: statusSize + 4,
-            padding: "0 4px",
+            padding: "0 8px",
             boxShadow: "0 0 0 2px var(--cn-color-surface, #ffffff)",
           },
         }}

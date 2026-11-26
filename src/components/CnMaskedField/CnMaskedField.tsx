@@ -150,7 +150,7 @@ export const CnMaskedField = forwardRef<HTMLDivElement, CnMaskedFieldProps>(func
                 fontSize: 10,
                 fontWeight: 800,
                 letterSpacing: 0.5,
-                px: "6px",
+                px: "10px",
                 py: "2px",
                 borderRadius: "4px",
                 color: "#fff",

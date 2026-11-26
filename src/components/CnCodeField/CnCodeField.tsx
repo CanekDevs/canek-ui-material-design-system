@@ -294,7 +294,7 @@ export const CnCodeField = forwardRef<HTMLFieldSetElement, CnCodeFieldProps>(fun
 
   const describedBy = control.helperText?.trim() ? control.helperId : undefined;
   const borderColor = control.error
-    ? "var(--cn-color-error-500, #d63c3c)"
+    ? "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))"
     : "var(--cn-color-border, #dde0e4)";
 
   return (
@@ -320,18 +320,18 @@ export const CnCodeField = forwardRef<HTMLFieldSetElement, CnCodeFieldProps>(fun
           borderColor,
           borderRadius: "var(--cn-radius-md, 8px)",
           backgroundColor: disabled
-            ? "var(--cn-color-neutral-100, #f4f5f7)"
+            ? "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))"
             : "var(--cn-color-surface, #ffffff)",
           overflow: "hidden",
           transition: "border-color 140ms ease",
           "&:focus-within": {
             borderColor: control.error
-              ? "var(--cn-color-error-500, #d63c3c)"
-              : "var(--cn-color-brand-500, #3562a6)",
+              ? "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))"
+              : "var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
             boxShadow: `0 0 0 1px ${
               control.error
-                ? "var(--cn-color-error-500, #d63c3c)"
-                : "var(--cn-color-brand-500, #3562a6)"
+                ? "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))"
+                : "var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))"
             }`,
           },
         }}
@@ -345,7 +345,7 @@ export const CnCodeField = forwardRef<HTMLFieldSetElement, CnCodeFieldProps>(fun
             px: "10px",
             minHeight: 30,
             borderBottom: "1px solid var(--cn-color-border-subtle, #e9ecef)",
-            backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+            backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
             fontSize: 11,
             color: "var(--cn-color-text-muted, #6e7682)",
           }}
@@ -359,8 +359,8 @@ export const CnCodeField = forwardRef<HTMLFieldSetElement, CnCodeFieldProps>(fun
               role="status"
               sx={{
                 color: jsonError
-                  ? "var(--cn-color-error-600, #b52f2f)"
-                  : "var(--cn-color-success-600, #2e7d4f)",
+                  ? "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))"
+                  : "var(--cn-color-control-success-fg, var(--cn-color-success-600, #2e7d4f))",
               }}
             >
               {jsonError ? "JSON no válido" : "JSON válido"}
@@ -406,7 +406,7 @@ export const CnCodeField = forwardRef<HTMLFieldSetElement, CnCodeFieldProps>(fun
                 fontSize,
                 lineHeight: `${lineHeight}px`,
                 color: "var(--cn-color-text-subtle, #9aa1aa)",
-                backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+                backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
                 borderRight: "1px solid var(--cn-color-border-subtle, #e9ecef)",
                 whiteSpace: "pre",
               }}

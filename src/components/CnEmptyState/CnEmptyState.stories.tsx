@@ -138,7 +138,7 @@ export const Variants: Story = {
           description="Sin wrapper, para embebido libre."
         />
       </Box>
-      <Box sx={{ height: 120, backgroundColor: "#f4f5f7", p: 2 }}>
+      <Box sx={{ height: 120, backgroundColor: "var(--cn-color-surface-sunken, #f4f5f7)", p: 2 }}>
         <CnEmptyState
           variant="compact"
           icon="inbox"
@@ -177,7 +177,7 @@ export const CompactForTable: Story = {
           px: 2,
           py: 1.5,
           borderBottom: "1px solid #dde0e4",
-          backgroundColor: "#f4f5f7",
+          backgroundColor: "var(--cn-color-surface-sunken, #f4f5f7)",
           fontSize: 12,
           fontWeight: 600,
         }}

@@ -40,42 +40,42 @@ type ColorTokens = { bg: string; fg: string; rgb: string };
 const COLOR_TOKENS: Record<CnBadgeColor, ColorTokens> = {
   primary: {
     bg: "var(--cn-color-brand-600, #254d87)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-brand-600, 37, 77, 135)",
   },
   secondary: {
     bg: "var(--cn-color-neutral-700, #363d45)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-neutral-700, 54, 61, 69)",
   },
   success: {
     bg: "var(--cn-color-success-600, #228740)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-success-600, 34, 135, 64)",
   },
   warning: {
     bg: "var(--cn-color-warning-600, #b8831a)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-warning-600, 184, 131, 26)",
   },
   error: {
     bg: "var(--cn-color-error-600, #b52f2f)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-error-600, 181, 47, 47)",
   },
   info: {
     bg: "var(--cn-color-info-600, #2367a8)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-info-600, 35, 103, 168)",
   },
   accent: {
     bg: "var(--cn-color-accent-500, #3d5afe)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-accent-500, 61, 90, 254)",
   },
   neutral: {
     bg: "var(--cn-color-neutral-600, #4e5660)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-neutral-600, 78, 86, 96)",
   },
 };
@@ -86,12 +86,14 @@ type SizeTokens = {
   minWidth: number;
   fontSize: number;
   paddingX: number;
+  /** Padding horizontal con un solo carácter: la insignia sigue siendo un círculo. */
+  circleX: number;
 };
 
 const SIZE_TOKENS: Record<CnBadgeSize, SizeTokens> = {
-  sm: { dot: 6, height: 14, minWidth: 14, fontSize: 9, paddingX: 4 },
-  md: { dot: 8, height: 18, minWidth: 18, fontSize: 10, paddingX: 5 },
-  lg: { dot: 10, height: 22, minWidth: 22, fontSize: 11, paddingX: 6 },
+  sm: { dot: 6, height: 14, minWidth: 14, fontSize: 9, paddingX: 8, circleX: 4 },
+  md: { dot: 8, height: 18, minWidth: 18, fontSize: 10, paddingX: 9, circleX: 5 },
+  lg: { dot: 10, height: 22, minWidth: 22, fontSize: 11, paddingX: 10, circleX: 6 },
 };
 
 const pulseKeyframes = (rgb: string): Record<string, unknown> => ({
@@ -166,6 +168,9 @@ export const CnBadge = forwardRef<HTMLDivElement, CnBadgeProps>(function CnBadge
 
   const tokens = COLOR_TOKENS[color];
   const sizes = SIZE_TOKENS[size];
+  // un carácter («3», «!») cabe en el círculo; con dos o más («12», «99+», «NUEVO») hay más aire a los lados
+  const shownText = String(resolveStandaloneContent(variant, content, max) ?? "");
+  const padX = `${variant !== "label" && shownText.length <= 1 ? sizes.circleX : sizes.paddingX}px`;
   const isInvisible = invisible || isEmpty(variant, content, showZero);
 
   if (!children) {
@@ -227,7 +232,7 @@ export const CnBadge = forwardRef<HTMLDivElement, CnBadgeProps>(function CnBadge
             justifyContent: "center",
             height: sizes.height,
             minWidth: isLabel ? undefined : sizes.minWidth,
-            paddingInline: `${sizes.paddingX}px`,
+            paddingInline: padX,
             borderRadius: isLabel ? "var(--cn-radius-sm, 6px)" : "9999px",
             backgroundColor: tokens.bg,
             color: tokens.fg,
@@ -284,12 +289,12 @@ export const CnBadge = forwardRef<HTMLDivElement, CnBadgeProps>(function CnBadge
               fontSize: sizes.fontSize,
               height: sizes.height,
               minWidth: sizes.minWidth,
-              paddingInline: `${sizes.paddingX}px`,
+              paddingInline: padX,
             }),
             ...(isLabel && {
               fontSize: sizes.fontSize,
               height: sizes.height,
-              paddingInline: `${sizes.paddingX}px`,
+              paddingInline: padX,
               borderRadius: "var(--cn-radius-sm, 6px)",
             }),
             ...(pulse && pulseKeyframes(tokens.rgb)),

@@ -113,7 +113,7 @@ const CHIP_LABEL_SX = { "& .MuiChip-label": { paddingInline: "8px" } };
 const toolbarIconSx = {
   width: 32,
   height: 32,
-  color: "var(--cn-color-neutral-600, #4e5660)",
+  color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
   "&:hover": { backgroundColor: "rgba(37, 77, 135, 0.06)" },
 };
 
@@ -1109,13 +1109,14 @@ export const CnEventCalendar = <TMeta,>(props: CnEventCalendarProps<TMeta>) => {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "4px",
-                px: "8px",
+                px: "12px",
                 height: 26,
                 borderRadius: "999px",
                 fontSize: "0.72rem",
                 fontWeight: 700,
-                color: "var(--cn-color-neutral-600, #4e5660)",
-                backgroundColor: "var(--cn-color-neutral-100, #f1f3f5)",
+                color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+                backgroundColor:
+                  "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f1f3f5))",
               }}
             >
               <CnIcon name="public" size={13} />
@@ -1151,7 +1152,10 @@ export const CnEventCalendar = <TMeta,>(props: CnEventCalendarProps<TMeta>) => {
               <CnIcon
                 name="search"
                 size={18}
-                sx={{ color: "var(--cn-color-neutral-500, #6e7682)", mr: "6px" }}
+                sx={{
+                  color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
+                  mr: "6px",
+                }}
               />
             }
             endAdornment={
@@ -1172,12 +1176,12 @@ export const CnEventCalendar = <TMeta,>(props: CnEventCalendarProps<TMeta>) => {
               px: "10px",
               fontSize: "0.82rem",
               borderRadius: "999px",
-              backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+              backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
               border: "1px solid var(--cn-color-border, #dde0e4)",
               transition: "border-color 140ms ease, box-shadow 140ms ease",
               "&.Mui-focused": {
                 backgroundColor: "var(--cn-color-surface, #fff)",
-                borderColor: "var(--cn-color-brand-500, #3562a6)",
+                borderColor: "var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
                 boxShadow: "0 0 0 3px rgba(53, 98, 166, 0.15)",
               },
             }}
@@ -1201,9 +1205,9 @@ export const CnEventCalendar = <TMeta,>(props: CnEventCalendarProps<TMeta>) => {
                 fontSize: "0.78rem",
                 fontWeight: 600,
                 border: "1px solid var(--cn-color-border, #dde0e4)",
-                color: "var(--cn-color-neutral-600, #4e5660)",
+                color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
                 "&.Mui-selected": {
-                  color: "var(--cn-color-accent-600, #304ffe)",
+                  color: "var(--cn-color-tone-accent-text, var(--cn-color-accent-600, #304ffe))",
                   backgroundColor: "rgba(61, 90, 254, 0.08)",
                 },
               },
@@ -1576,13 +1580,14 @@ export const CnEventCalendar = <TMeta,>(props: CnEventCalendarProps<TMeta>) => {
               display: "grid",
               placeItems: "center",
               borderRadius: "12px",
-              border: "2px dashed var(--cn-color-accent-500, #3d5afe)",
+              border:
+                "2px dashed var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
               backgroundColor: "rgba(61, 90, 254, 0.08)",
               backdropFilter: "blur(1px)",
               pointerEvents: "none",
               fontSize: "0.95rem",
               fontWeight: 700,
-              color: "var(--cn-color-accent-600, #304ffe)",
+              color: "var(--cn-color-tone-accent-text, var(--cn-color-accent-600, #304ffe))",
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>

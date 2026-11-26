@@ -26,6 +26,7 @@ const rgba = (name: string, fallback: string, alpha: number) =>
   `rgba(var(--cn-color-rgb-${name}, ${fallback}), ${alpha})`;
 
 const tone = (
+  name: CnTone,
   scale: string,
   rgbName: string,
   rgbFallback: string,
@@ -33,38 +34,54 @@ const tone = (
   text: string,
   solid: string,
 ): CnToneTokens => ({
-  main: `var(--cn-color-${scale}-600, ${main})`,
-  text: `var(--cn-color-${scale}-700, ${text})`,
+  main: `var(--cn-color-tone-${name}-main, var(--cn-color-${scale}-600, ${main}))`,
+  text: `var(--cn-color-tone-${name}-text, var(--cn-color-${scale}-700, ${text}))`,
   soft: rgba(rgbName, rgbFallback, 0.08),
   softHover: rgba(rgbName, rgbFallback, 0.14),
   border: rgba(rgbName, rgbFallback, 0.28),
   solid: `var(--cn-color-${scale}-${scale === "warning" ? 700 : 600}, ${solid})`,
-  onSolid: "var(--cn-color-text-inverse, #ffffff)",
+  onSolid: "var(--cn-color-tone-on-solid, #ffffff)",
 });
 
 export const CN_TONES: Record<CnTone, CnToneTokens> = {
-  primary: tone("brand", "brand-500", "53, 98, 166", "#254d87", "#1d3d6b", "#254d87"),
-  info: tone("info", "info-500", "44, 123, 200", "#2367a8", "#1b5288", "#2367a8"),
-  success: tone("success", "success-500", "46, 158, 79", "#228740", "#1a6a32", "#228740"),
-  warning: tone("warning", "warning-500", "224, 160, 32", "#b8831a", "#8f6614", "#8f6614"),
-  error: tone("error", "error-500", "214, 60, 60", "#b52f2f", "#8f2525", "#b52f2f"),
+  primary: tone("primary", "brand", "brand-500", "53, 98, 166", "#254d87", "#1d3d6b", "#254d87"),
+  info: tone("info", "info", "info-500", "44, 123, 200", "#2367a8", "#1b5288", "#2367a8"),
+  success: tone(
+    "success",
+    "success",
+    "success-500",
+    "46, 158, 79",
+    "#228740",
+    "#1a6a32",
+    "#228740",
+  ),
+  warning: tone(
+    "warning",
+    "warning",
+    "warning-500",
+    "224, 160, 32",
+    "#b8831a",
+    "#8f6614",
+    "#8f6614",
+  ),
+  error: tone("error", "error", "error-500", "214, 60, 60", "#b52f2f", "#8f2525", "#b52f2f"),
   neutral: {
-    main: "var(--cn-color-neutral-600, #4e5660)",
-    text: "var(--cn-color-neutral-800, #2b3138)",
-    soft: "var(--cn-color-neutral-100, #f4f5f7)",
-    softHover: "var(--cn-color-neutral-150, #e9ecef)",
+    main: "var(--cn-color-tone-neutral-main, var(--cn-color-neutral-600, #4e5660))",
+    text: "var(--cn-color-tone-neutral-text, var(--cn-color-neutral-800, #2b3138))",
+    soft: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
+    softHover: "var(--cn-color-tone-neutral-soft-hover, var(--cn-color-neutral-150, #e9ecef))",
     border: "var(--cn-color-border, #dde0e4)",
     solid: "var(--cn-color-neutral-700, #363d45)",
-    onSolid: "var(--cn-color-text-inverse, #ffffff)",
+    onSolid: "var(--cn-color-tone-on-solid, #ffffff)",
   },
   accent: {
-    main: "var(--cn-color-accent-600, #3349d6)",
-    text: "var(--cn-color-accent-600, #3349d6)",
+    main: "var(--cn-color-tone-accent-main, var(--cn-color-accent-600, #3349d6))",
+    text: "var(--cn-color-tone-accent-text, var(--cn-color-accent-600, #3349d6))",
     soft: rgba("accent-500", "61, 90, 254", 0.08),
     softHover: rgba("accent-500", "61, 90, 254", 0.14),
     border: rgba("accent-500", "61, 90, 254", 0.28),
     solid: "var(--cn-color-accent-600, #3349d6)",
-    onSolid: "var(--cn-color-text-inverse, #ffffff)",
+    onSolid: "var(--cn-color-tone-on-solid, #ffffff)",
   },
 };
 

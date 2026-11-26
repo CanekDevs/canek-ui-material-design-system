@@ -54,7 +54,7 @@ debe poder usar el paquete. Un componente que necesite uno de ellos va en su ent
 - Colores, radios, sombras, espaciado y movimiento salen de `tokens.css` (`--cn-*`). En `sx` usa
   `var(--cn-color-text, #222831)`, `var(--cn-radius-md, 8px)`, etc. Respaldos habituales:
   texto `#222831`, texto atenuado `#6e7682`, borde `#dde0e4`, superficie `#ffffff`.
-- Tonos semánticos compartidos (tarjetas, carruseles, secciones): `CN_TONES` en `src/utils/tones.ts`.
+- Tonos semánticos compartidos (tarjetas, carruseles, secciones): `CN_TONES` en `src/utils/tones.ts`. Leen los roles `--cn-color-tone-<tono>-main|text` de `tokens.css`, que cambian en oscuro; para un color de tono usa `CN_TONES` o esos roles, no la escala (`--cn-color-error-600`), que no se adapta al modo oscuro.
 - El modo oscuro redefine las variables; si usas un literal, el modo oscuro se rompe.
 
 ### Catálogo
@@ -131,14 +131,18 @@ qué haría. Después, la lista completa (la misma que la plantilla de PR):
 
 ### Pruebas de gobierno (`src/__governance__`)
 
-| Archivo                   | Regla                                                                                                                                                          |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `forbidden-terms.test.ts` | Ningún archivo versionado menciona sistemas externos ni prefijos ajenos.                                                                                       |
-| `catalog.test.ts`         | Cada carpeta tiene entrada de catálogo con las tres secciones y cada historia usa `catalogDocs`.                                                               |
-| `structure.test.ts`       | Cada carpeta tiene `index.ts`, `*Skeleton.tsx`, `*.test.tsx`, `*.stories.tsx` y su componente acepta `skeleton` (excepciones justificadas en el archivo).      |
-| `exports.test.ts`         | Lo que exporta cada carpeta llega a su entrada pública; `package.json#exports` = entradas de Vite; la entrada principal no arrastra tiptap ni `@mui/x-charts`. |
-| `colors.test.ts`          | Trinquete de hex sin token: ningún archivo puede subir su conteo de `hardcoded-colors.baseline.json`; archivos nuevos, cero.                                   |
-| `catalog-docs.test.ts`    | README, `docs/catalog.json` y `docs/ROADMAP.md` al día; la hoja de ruta no repite componentes existentes y sus dependencias existen.                           |
+| Archivo                   | Regla                                                                                                                                                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `forbidden-terms.test.ts` | Ningún archivo versionado menciona sistemas externos ni prefijos ajenos.                                                                                                                                                    |
+| `catalog.test.ts`         | Cada carpeta tiene entrada de catálogo con las tres secciones y cada historia usa `catalogDocs`.                                                                                                                            |
+| `structure.test.ts`       | Cada carpeta tiene `index.ts`, `*Skeleton.tsx`, `*.test.tsx`, `*.stories.tsx` y su componente acepta `skeleton` (excepciones justificadas en el archivo).                                                                   |
+| `exports.test.ts`         | Lo que exporta cada carpeta llega a su entrada pública; `package.json#exports` = entradas de Vite; la entrada principal no arrastra tiptap ni `@mui/x-charts`.                                                              |
+| `colors.test.ts`          | Trinquete de hex sin token: ningún archivo puede subir su conteo de `hardcoded-colors.baseline.json`; archivos nuevos, cero.                                                                                                |
+| `catalog-docs.test.ts`    | README, `docs/catalog.json` y `docs/ROADMAP.md` al día; la hoja de ruta no repite componentes existentes y sus dependencias existen.                                                                                        |
+| `typography.test.ts`      | Trinquete de tipografía: tamaños fuera de la escala, pesos que no son 300/400/500/700 y familias literales no pueden subir de `typography.baseline.json`.                                                                   |
+| `contrast.test.ts`        | Contraste de tokens en claro y oscuro: texto 4.5:1, texto tenue y borde de campo 3:1; un par fuera de `contrast.baseline.json` debe pasar y ninguno puede bajar.                                                            |
+| `dark-mode.test.ts`       | Trinquete de modo oscuro: los usos directos de escalas (`--cn-color-error-700`), que no cambian en oscuro, no pueden subir de `dark-mode.baseline.json`; para colores con significado usa `CN_TONES` o `--cn-color-tone-*`. |
+| `tokens-defined.test.ts`  | Todo `var(--cn-…)` usado existe en `tokens.css`: un token inexistente nunca cambia con el tema. Excepciones con su motivo en el mismo archivo.                                                                              |
 
 Si una regla de gobierno estorba, no la apagues: agrega una excepción con su motivo en el mismo
 archivo y explícala en el PR.

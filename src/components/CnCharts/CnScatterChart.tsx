@@ -166,7 +166,11 @@ const TrendLines = ({
 
 const QuadrantLabels = ({ labels }: { labels: [string, string, string, string] }) => {
   const { left, top, width, height } = useDrawingArea();
-  const style = { fontSize: 11, fontWeight: 700, fill: "var(--cn-color-neutral-400, #9aa1aa)" };
+  const style = {
+    fontSize: 11,
+    fontWeight: 700,
+    fill: "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
+  };
   return (
     <g style={{ pointerEvents: "none" }}>
       <text x={left + 8} y={top + 16} {...style}>
@@ -377,14 +381,16 @@ export const CnScatterChart = <T,>(props: CnScatterChartProps<T>) => {
                 <ChartsReferenceLine
                   x={qx}
                   lineStyle={{
-                    stroke: "var(--cn-color-neutral-300, #c5cad0)",
+                    stroke:
+                      "var(--cn-color-field-disabled-fg, var(--cn-color-neutral-300, #c5cad0))",
                     strokeDasharray: "4 4",
                   }}
                 />
                 <ChartsReferenceLine
                   y={qy}
                   lineStyle={{
-                    stroke: "var(--cn-color-neutral-300, #c5cad0)",
+                    stroke:
+                      "var(--cn-color-field-disabled-fg, var(--cn-color-neutral-300, #c5cad0))",
                     strokeDasharray: "4 4",
                   }}
                 />

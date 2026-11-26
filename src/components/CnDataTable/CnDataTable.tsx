@@ -240,7 +240,7 @@ const headerText = <T extends CnRow>(column: CnColumn<T>) =>
 // ─── Estilos compartidos ──────────────────────────────────────────────────
 
 const toolbarIconSx = {
-  color: "var(--cn-color-neutral-700, #3a4048)",
+  color: "var(--cn-color-control-secondary-fg, var(--cn-color-neutral-700, #3a4048))",
   "&:hover": { backgroundColor: "rgba(37, 77, 135, 0.08)" },
 };
 
@@ -867,8 +867,8 @@ export const CnDataTable = <T extends CnRow>({
                 sx={{
                   color:
                     action.color === "error"
-                      ? "var(--cn-color-error-600, #b52f2f)"
-                      : "var(--cn-color-brand-600, #254d87)",
+                      ? "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))"
+                      : "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
                 }}
               >
                 <CnIcon name={action.icon ?? "more_horiz"} size="sm" />
@@ -933,7 +933,7 @@ export const CnDataTable = <T extends CnRow>({
             fontFamily: "var(--cn-font-mono, ui-monospace, monospace)",
             fontSize: "0.82rem",
             fontWeight: 800,
-            color: "var(--cn-color-brand-700, #1c3d6d)",
+            color: "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
           }}
         >
           {formatted}
@@ -1018,7 +1018,7 @@ export const CnDataTable = <T extends CnRow>({
               fontWeight: 700,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              color: "var(--cn-color-neutral-700, #3a4048)",
+              color: "var(--cn-color-control-secondary-fg, var(--cn-color-neutral-700, #3a4048))",
             }}
           >
             {title}
@@ -1086,12 +1086,13 @@ export const CnDataTable = <T extends CnRow>({
           <Box
             component="span"
             sx={{
-              px: "10px",
+              px: "14px",
               py: "4px",
               borderRadius: "999px",
               fontSize: "0.75rem",
               fontWeight: 700,
-              color: "var(--cn-color-brand-700, #1c3d6d)",
+              color:
+                "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
               backgroundColor: "rgba(37, 77, 135, 0.1)",
             }}
           >
@@ -1197,7 +1198,11 @@ export const CnDataTable = <T extends CnRow>({
           inputProps={{ "aria-label": "Buscar en la tabla" }}
           startAdornment={
             <SearchIcon
-              sx={{ fontSize: 20, color: "var(--cn-color-neutral-500, #6e7682)", mr: "6px" }}
+              sx={{
+                fontSize: 20,
+                color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
+                mr: "6px",
+              }}
             />
           }
           endAdornment={
@@ -1218,7 +1223,7 @@ export const CnDataTable = <T extends CnRow>({
             px: "10px",
             fontSize: "0.82rem",
             borderRadius: "999px",
-            backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+            backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
             border: "1px solid var(--cn-color-border, #dde0e4)",
             transition:
               "border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease",
@@ -1240,7 +1245,9 @@ export const CnDataTable = <T extends CnRow>({
               onClick={() => setShowFilters((prev) => !prev)}
               sx={{
                 ...toolbarIconSx,
-                ...(showFilters && { color: "var(--cn-color-brand-600, #254d87)" }),
+                ...(showFilters && {
+                  color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+                }),
               }}
             >
               {showFilters ? <FilterListOffIcon /> : <FilterListIcon />}
@@ -1316,7 +1323,7 @@ export const CnDataTable = <T extends CnRow>({
     padding: "10px 12px 8px",
     borderBottom: "1px solid var(--cn-color-border, #dde0e4)",
     backgroundColor: "var(--cn-color-surface, #ffffff)",
-    color: "var(--cn-color-neutral-800, #2d333a)",
+    color: "var(--cn-color-text, var(--cn-color-neutral-800, #2d333a))",
   };
 
   const isEmptyResult = !loading && pageRows.length === 0;
@@ -1433,7 +1440,7 @@ export const CnDataTable = <T extends CnRow>({
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                color: "var(--cn-color-neutral-800, #2d333a)",
+                color: "var(--cn-color-text, var(--cn-color-neutral-800, #2d333a))",
               }}
             >
               {column.header}
@@ -1448,8 +1455,8 @@ export const CnDataTable = <T extends CnRow>({
                   flexShrink: 0,
                   opacity: sorted ? 1 : 0.4,
                   color: sorted
-                    ? "var(--cn-color-brand-600, #254d87)"
-                    : "var(--cn-color-neutral-500, #6e7682)",
+                    ? "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))"
+                    : "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
                 }}
               >
                 {sorted === "asc" ? (
@@ -1489,7 +1496,7 @@ export const CnDataTable = <T extends CnRow>({
                 sx={{
                   display: "inline-flex",
                   cursor: "grab",
-                  color: "var(--cn-color-neutral-500, #6e7682)",
+                  color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
                   opacity: 0.7,
                   p: "2px",
                   "&:hover": { opacity: 1 },
@@ -1508,7 +1515,7 @@ export const CnDataTable = <T extends CnRow>({
                 aria-label={`Ayuda: ${column.description}`}
                 sx={{
                   display: "inline-flex",
-                  color: "var(--cn-color-neutral-400, #9aa1aa)",
+                  color: "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
                   cursor: "help",
                 }}
               >
@@ -1534,7 +1541,10 @@ export const CnDataTable = <T extends CnRow>({
               onClick={(event) =>
                 setMenu({ kind: "column", anchor: event.currentTarget, columnId: column.id })
               }
-              sx={{ p: "2px", color: "var(--cn-color-neutral-500, #6e7682)" }}
+              sx={{
+                p: "2px",
+                color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
+              }}
             >
               <MoreVertIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -1556,7 +1566,8 @@ export const CnDataTable = <T extends CnRow>({
                     width: "100%",
                     height: 30,
                     border: 0,
-                    borderBottom: "1px solid var(--cn-color-neutral-400, #9aa1aa)",
+                    borderBottom:
+                      "1px solid var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
                     background: "transparent",
                     fontFamily: "inherit",
                     fontSize: "0.8rem",
@@ -1599,7 +1610,8 @@ export const CnDataTable = <T extends CnRow>({
                     width: "100%",
                     height: 30,
                     fontSize: "0.8rem",
-                    borderBottom: "1px solid var(--cn-color-neutral-400, #9aa1aa)",
+                    borderBottom:
+                      "1px solid var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
                     transition: "border-color 140ms ease",
                     "&.Mui-focused": {
                       borderBottom: "2px solid var(--cn-color-brand-500, #3562a6)",
@@ -1658,7 +1670,7 @@ export const CnDataTable = <T extends CnRow>({
       : tone
         ? (TONES[tone as keyof typeof TONES] ?? tone)
         : striped && index % 2 === 1
-          ? "var(--cn-color-neutral-50, #fafbfc)"
+          ? "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))"
           : "transparent",
     backgroundColor: "var(--cn-row-bg)",
     transition: "background-color 120ms ease",
@@ -1691,7 +1703,8 @@ export const CnDataTable = <T extends CnRow>({
         maxHeight: fullscreen ? undefined : maxHeight,
         ...(fullscreen && { flex: 1, minHeight: 0, overscrollBehavior: "contain" }),
         scrollbarWidth: "thin",
-        scrollbarColor: "var(--cn-color-neutral-300, #c4c9cf) transparent",
+        scrollbarColor:
+          "var(--cn-color-border-strong, var(--cn-color-neutral-300, #c4c9cf)) transparent",
       }}
     >
       {loading && pageRows.length > 0 && (
@@ -1898,12 +1911,13 @@ export const CnDataTable = <T extends CnRow>({
                       <Box
                         component="span"
                         sx={{
-                          px: "8px",
+                          px: "12px",
                           py: "2px",
                           borderRadius: "999px",
                           fontSize: "0.7rem",
                           fontWeight: 700,
-                          color: "var(--cn-color-brand-700, #1c3d6d)",
+                          color:
+                            "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
                           backgroundColor: "rgba(37, 77, 135, 0.1)",
                         }}
                       >
@@ -1940,7 +1954,8 @@ export const CnDataTable = <T extends CnRow>({
                               component="strong"
                               sx={{
                                 fontFamily: "var(--cn-font-mono, ui-monospace, monospace)",
-                                color: "var(--cn-color-brand-700, #1c3d6d)",
+                                color:
+                                  "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
                               }}
                             >
                               {formatted}
@@ -2101,7 +2116,8 @@ export const CnDataTable = <T extends CnRow>({
                             left: 0,
                             maxWidth: "100vw",
                             p: "14px 20px 18px 56px",
-                            backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+                            backgroundColor:
+                              "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
                             borderLeft: "3px solid var(--cn-color-brand-500, #3562a6)",
                           }}
                         >
@@ -2131,7 +2147,7 @@ export const CnDataTable = <T extends CnRow>({
                     component="td"
                     key={`fl-${i}`}
                     sx={{
-                      backgroundColor: "var(--cn-color-neutral-50, #f7f8fa)",
+                      backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #f7f8fa))",
                       borderTop: "2px solid var(--cn-color-border, #dde0e4)",
                     }}
                   />
@@ -2144,7 +2160,7 @@ export const CnDataTable = <T extends CnRow>({
                   sx={{
                     padding: "10px 12px",
                     textAlign: alignOf(column),
-                    backgroundColor: "var(--cn-color-neutral-50, #f7f8fa)",
+                    backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #f7f8fa))",
                     borderTop: "2px solid var(--cn-color-border, #dde0e4)",
                     ...(pinnedLeftIds.has(column.id) && stickyCell(leftOffset(column.id), 2)),
                   }}
@@ -2156,7 +2172,7 @@ export const CnDataTable = <T extends CnRow>({
                 <Box
                   component="td"
                   sx={{
-                    backgroundColor: "var(--cn-color-neutral-50, #f7f8fa)",
+                    backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #f7f8fa))",
                     borderTop: "2px solid var(--cn-color-border, #dde0e4)",
                   }}
                 />
@@ -2296,7 +2312,10 @@ export const CnDataTable = <T extends CnRow>({
       my: "1px",
       py: "7px",
     },
-    "& .MuiListItemIcon-root": { minWidth: 32, color: "var(--cn-color-neutral-600, #4e5660)" },
+    "& .MuiListItemIcon-root": {
+      minWidth: 32,
+      color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+    },
   };
 
   const scopeItems = (action: (scope: Scope) => void) =>
@@ -2475,7 +2494,9 @@ export const CnDataTable = <T extends CnRow>({
                 <CnIcon
                   name="account_tree"
                   size="sm"
-                  sx={{ color: "var(--cn-color-brand-600, #254d87)" }}
+                  sx={{
+                    color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+                  }}
                 />
                 <Box
                   component="span"
@@ -2489,7 +2510,11 @@ export const CnDataTable = <T extends CnRow>({
                     <Fragment key={id}>
                       {i > 0 && (
                         <ChevronRightIcon
-                          sx={{ fontSize: 14, color: "var(--cn-color-neutral-400, #9aa1aa)" }}
+                          sx={{
+                            fontSize: 14,
+                            color:
+                              "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
+                          }}
                         />
                       )}
                       <Box
@@ -2503,7 +2528,8 @@ export const CnDataTable = <T extends CnRow>({
                           py: "1px",
                           borderRadius: "999px",
                           fontWeight: 700,
-                          color: "var(--cn-color-brand-700, #1c3d6d)",
+                          color:
+                            "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
                           backgroundColor: "rgba(37, 77, 135, 0.1)",
                         }}
                       >
@@ -2551,7 +2577,8 @@ export const CnDataTable = <T extends CnRow>({
                   gap: "8px",
                   px: "16px",
                   py: "10px",
-                  color: "var(--cn-color-error-700, #922626)",
+                  color:
+                    "var(--cn-color-control-error-fg-strong, var(--cn-color-error-700, #922626))",
                   backgroundColor: "rgba(214, 60, 60, 0.07)",
                   fontSize: "0.8rem",
                   borderBottom: "1px solid rgba(214, 60, 60, 0.2)",
@@ -2646,7 +2673,11 @@ export const CnDataTable = <T extends CnRow>({
                   {FORMATS[format].label}
                 </ListItemText>
                 <ChevronRightIcon
-                  sx={{ fontSize: 18, ml: "8px", color: "var(--cn-color-neutral-400, #9aa1aa)" }}
+                  sx={{
+                    fontSize: 18,
+                    ml: "8px",
+                    color: "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
+                  }}
                 />
               </MenuItem>
             ))}
@@ -2678,7 +2709,11 @@ export const CnDataTable = <T extends CnRow>({
                   {format.label}
                 </ListItemText>
                 <ChevronRightIcon
-                  sx={{ fontSize: 18, ml: "8px", color: "var(--cn-color-neutral-400, #9aa1aa)" }}
+                  sx={{
+                    fontSize: 18,
+                    ml: "8px",
+                    color: "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
+                  }}
                 />
               </MenuItem>
             ))}
@@ -2788,8 +2823,8 @@ export const CnDataTable = <T extends CnRow>({
                       sx={{
                         ml: "8px",
                         color: pinned
-                          ? "var(--cn-color-brand-600, #254d87)"
-                          : "var(--cn-color-neutral-400, #9aa1aa)",
+                          ? "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))"
+                          : "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
                       }}
                     >
                       <PushPinOutlinedIcon
@@ -2951,7 +2986,9 @@ export const CnDataTable = <T extends CnRow>({
                     }}
                     sx={{
                       color:
-                        action.color === "error" ? "var(--cn-color-error-600, #b52f2f)" : undefined,
+                        action.color === "error"
+                          ? "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))"
+                          : undefined,
                     }}
                   >
                     {action.icon && (

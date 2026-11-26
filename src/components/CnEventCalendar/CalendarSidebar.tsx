@@ -165,7 +165,10 @@ export const MiniMonth = ({
                         ? "var(--cn-color-brand-700, #1d3e6e)"
                         : "var(--cn-color-hover, rgba(0,0,0,0.05))",
                     },
-                    "&:focus-visible": { outline: "2px solid var(--cn-color-accent-500, #3d5afe)" },
+                    "&:focus-visible": {
+                      outline:
+                        "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
+                    },
                   }}
                 >
                   {day.getDate()}
@@ -239,7 +242,10 @@ export const SourcesList = ({ sources, hidden, states, onToggle, onRetry }: Sour
                 fontSize: "0.8rem",
                 color: "var(--cn-color-text, #222831)",
                 "&:hover": { backgroundColor: "var(--cn-color-hover, rgba(0,0,0,0.04))" },
-                "&:focus-visible": { outline: "2px solid var(--cn-color-accent-500, #3d5afe)" },
+                "&:focus-visible": {
+                  outline:
+                    "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
+                },
               }}
             >
               <Box
@@ -287,7 +293,7 @@ export const SourcesList = ({ sources, hidden, states, onToggle, onRetry }: Sour
                   aria-label={`Reintentar ${s.label}`}
                   data-cn-source-error
                   onClick={() => onRetry(s.id)}
-                  sx={{ color: "var(--cn-color-error-500, #d63c3c)" }}
+                  sx={{ color: "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))" }}
                 >
                   <CnIcon name="error_outline" size={16} />
                 </IconButton>
@@ -356,7 +362,10 @@ export const UpcomingList = ({ occurrences, locale, now, onOpen }: UpcomingListP
                   borderRadius: "8px",
                   borderLeft: `3px solid ${o.color}`,
                   "&:hover": { backgroundColor: "var(--cn-color-hover, rgba(0,0,0,0.04))" },
-                  "&:focus-visible": { outline: "2px solid var(--cn-color-accent-500, #3d5afe)" },
+                  "&:focus-visible": {
+                    outline:
+                      "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
+                  },
                 }}
               >
                 <Box sx={{ minWidth: 0, flex: 1 }}>

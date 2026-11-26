@@ -1012,7 +1012,7 @@ const FieldContent = ({
               sx={{
                 fontSize: "var(--cn-font-size-xs, 11px)",
                 color: error
-                  ? "var(--cn-color-error-600, #b52f2f)"
+                  ? "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))"
                   : "var(--cn-color-text-muted, #6e7682)",
               }}
             >

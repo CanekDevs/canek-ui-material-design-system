@@ -78,7 +78,10 @@ export const TimelineToolbar = ({
                 <CnIcon
                   name="search"
                   size={18}
-                  sx={{ color: "var(--cn-color-neutral-500, #6e7682)", mr: "6px" }}
+                  sx={{
+                    color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
+                    mr: "6px",
+                  }}
                 />
               }
               endAdornment={
@@ -101,12 +104,12 @@ export const TimelineToolbar = ({
                 px: "10px",
                 fontSize: 13,
                 borderRadius: "999px",
-                backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+                backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
                 border: "1px solid var(--cn-color-border, #dde0e4)",
                 transition: "border-color 140ms ease, box-shadow 140ms ease",
                 "&.Mui-focused": {
                   backgroundColor: "var(--cn-color-surface, #fff)",
-                  borderColor: "var(--cn-color-brand-500, #3562a6)",
+                  borderColor: "var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
                   boxShadow: "0 0 0 3px rgba(53, 98, 166, 0.15)",
                 },
                 "& input": { minWidth: 0, textOverflow: "ellipsis" },

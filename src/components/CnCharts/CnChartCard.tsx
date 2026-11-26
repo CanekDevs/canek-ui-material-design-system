@@ -164,7 +164,7 @@ const FRAME_SX: Record<NonNullable<CnChartCardProps["frame"]>, Record<string, un
 const toolbarIconSx = {
   width: 32,
   height: 32,
-  color: "var(--cn-color-neutral-600, #4e5660)",
+  color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
   "&:hover": { backgroundColor: "rgba(37, 77, 135, 0.06)" },
 };
 
@@ -315,7 +315,8 @@ export const CnChartCard = ({
             sx={{
               height: bodyHeight,
               borderRadius: "8px",
-              backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
+              backgroundColor:
+                "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
             }}
           />
         )
@@ -392,8 +393,9 @@ export const CnChartCard = ({
               borderRadius: "10px",
               display: "grid",
               placeItems: "center",
-              color: "var(--cn-color-brand-600, #254d87)",
-              backgroundColor: "var(--cn-color-brand-50, #eef3fb)",
+              color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+              backgroundColor:
+                "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
             }}
           >
             <CnIcon name={icon} size="sm" />
@@ -445,9 +447,9 @@ export const CnChartCard = ({
                   px: "8px",
                   py: "4px",
                   border: "1px solid var(--cn-color-border, #dde0e4)",
-                  color: "var(--cn-color-neutral-500, #6e7682)",
+                  color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
                   "&.Mui-selected": {
-                    color: "var(--cn-color-accent-600, #304ffe)",
+                    color: "var(--cn-color-tone-accent-text, var(--cn-color-accent-600, #304ffe))",
                     backgroundColor: "rgba(61, 90, 254, 0.08)",
                   },
                 },
@@ -582,19 +584,21 @@ export const CnChartCard = ({
             display: "inline-flex",
             alignItems: "center",
             gap: "2px",
-            px: "8px",
+            px: "12px",
             py: "2px",
             borderRadius: "999px",
             fontSize: "0.75rem",
             fontWeight: 700,
             ...(summary.trend >= 0 !== Boolean(summary.invertTrend)
               ? {
-                  color: "var(--cn-color-success-600, #228740)",
-                  backgroundColor: "var(--cn-color-success-50, #eaf7ee)",
+                  color: "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
+                  backgroundColor:
+                    "var(--cn-color-tone-success-soft, var(--cn-color-success-50, #eaf7ee))",
                 }
               : {
-                  color: "var(--cn-color-error-600, #b52f2f)",
-                  backgroundColor: "var(--cn-color-error-50, #fcecec)",
+                  color: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
+                  backgroundColor:
+                    "var(--cn-color-tone-error-soft, var(--cn-color-error-50, #fcecec))",
                 }),
           }}
         >

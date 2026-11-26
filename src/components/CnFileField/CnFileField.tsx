@@ -552,9 +552,9 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
         ? "var(--cn-color-brand-500, #3562a6)"
         : "var(--cn-color-border-strong, #c5cad0)",
     backgroundColor: dragOver
-      ? "var(--cn-color-brand-50, #eef3fb)"
+      ? "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))"
       : blocked
-        ? "var(--cn-color-neutral-100, #f4f5f7)"
+        ? "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))"
         : "var(--cn-color-surface, #ffffff)",
     color: "var(--cn-color-text-muted, #6e7682)",
     transition: "border-color 140ms ease, background-color 140ms ease",
@@ -613,7 +613,13 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
             <>
               {details}
               {success && (
-                <Box component="span" sx={{ color: "var(--cn-color-success-600, #228740)" }}>
+                <Box
+                  component="span"
+                  sx={{
+                    color:
+                      "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
+                  }}
+                >
                   {details ? ` · ${success}` : success}
                 </Box>
               )}
@@ -677,8 +683,12 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
       sx={{
         ...ellipsisSx,
         ...mutedTextSx,
-        ...(status?.state === "error" && { color: "var(--cn-color-error-600, #b52f2f)" }),
-        ...(status?.state === "success" && { color: "var(--cn-color-success-600, #228740)" }),
+        ...(status?.state === "error" && {
+          color: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
+        }),
+        ...(status?.state === "success" && {
+          color: "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
+        }),
       }}
     >
       {status?.state === "error"
@@ -758,8 +768,10 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
           ...(overlay
             ? overlayButtonSx
             : {
-                color: "var(--cn-color-neutral-400, #9aa1aa)",
-                "&:hover": { color: "var(--cn-color-neutral-600, #4e5660)" },
+                color: "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
+                "&:hover": {
+                  color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+                },
               }),
           "&:focus-visible": { outline: "2px solid var(--cn-color-brand-400, #5081c4)" },
         }}
@@ -775,7 +787,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
         display: "inline-flex",
         alignItems: "center",
         gap: "2px",
-        px: "6px",
+        px: "10px",
         height: 20,
         borderRadius: "999px",
         fontSize: 10,
@@ -823,7 +835,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
             ...textSx,
             display: "block",
             textAlign: "left",
-            color: "var(--cn-color-brand-600, #254d87)",
+            color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
             fontFamily: "inherit",
             "&:hover": { textDecoration: "underline" },
           }}
@@ -839,7 +851,10 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
           href={safe}
           target="_blank"
           rel="noopener noreferrer"
-          sx={{ ...textSx, color: "var(--cn-color-brand-600, #254d87)" }}
+          sx={{
+            ...textSx,
+            color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+          }}
         >
           {file.name}
         </Box>
@@ -1178,7 +1193,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
                   px: "6px",
                   py: "2px",
                   fontSize: 10,
-                  color: "var(--cn-color-error-600, #b52f2f)",
+                  color: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
                 }}
               >
                 {status.message ?? "Error al subir"}
@@ -1421,7 +1436,10 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
                 Arrastra {multiple ? "archivos" : "un archivo"} aquí o{" "}
                 <Box
                   component="span"
-                  sx={{ color: "var(--cn-color-brand-600, #254d87)", fontWeight: 600 }}
+                  sx={{
+                    color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+                    fontWeight: 600,
+                  }}
                 >
                   selecciónalo
                 </Box>
@@ -1472,7 +1490,7 @@ export const CnFileField = forwardRef<HTMLDivElement, CnFileFieldProps>(function
             flexDirection: "column",
             gap: "2px",
             fontSize: "var(--cn-font-size-xs, 11px)",
-            color: "var(--cn-color-error-600, #b52f2f)",
+            color: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
           }}
         >
           {rejections.map((rejection) => (

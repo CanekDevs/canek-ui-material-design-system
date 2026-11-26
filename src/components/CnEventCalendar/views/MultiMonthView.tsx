@@ -75,7 +75,7 @@ export const MultiMonthView = ({ range, occurrences, onMonthClick }: MultiMonthV
             sx={{
               p: "10px",
               borderRadius: "12px",
-              border: `1px solid ${isCurrent ? "var(--cn-color-brand-300, #7c9fdc)" : "var(--cn-color-border, #dde0e4)"}`,
+              border: `1px solid ${isCurrent ? "var(--cn-color-field-focus-outline, var(--cn-color-brand-300, #7c9fdc))" : "var(--cn-color-border, #dde0e4)"}`,
               minWidth: 0,
             }}
           >
@@ -93,11 +93,12 @@ export const MultiMonthView = ({ range, occurrences, onMonthClick }: MultiMonthV
                 fontWeight: 700,
                 textTransform: "capitalize",
                 color: isCurrent
-                  ? "var(--cn-color-brand-600, #254d87)"
+                  ? "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))"
                   : "var(--cn-color-text, #222831)",
                 "&:hover": { textDecoration: "underline" },
                 "&:focus-visible": {
-                  outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                  outline:
+                    "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                   borderRadius: "4px",
                 },
               }}
@@ -190,7 +191,8 @@ export const MultiMonthView = ({ range, occurrences, onMonthClick }: MultiMonthV
                           "&:hover": { backgroundColor: "var(--cn-color-hover, rgba(0,0,0,0.04))" },
                           "&:disabled": { opacity: 0.35, cursor: "not-allowed" },
                           "&:focus-visible": {
-                            outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                            outline:
+                              "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                           },
                         }}
                       >
@@ -202,7 +204,7 @@ export const MultiMonthView = ({ range, occurrences, onMonthClick }: MultiMonthV
                             textAlign: "center",
                             fontVariantNumeric: "tabular-nums",
                             color: today
-                              ? "var(--cn-color-brand-600, #254d87)"
+                              ? "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))"
                               : "var(--cn-color-text, #222831)",
                           }}
                         >

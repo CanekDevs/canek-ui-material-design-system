@@ -110,7 +110,7 @@ const surfaceSx = (surface: CnListSurface) => {
     case "filled":
       return {
         borderRadius: "var(--cn-radius-lg, 12px)",
-        backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
+        backgroundColor: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
         overflow: "hidden",
       };
     default:
@@ -1020,7 +1020,8 @@ export function CnList<T = CnListItemData>(props: CnListProps<T>) {
           sx={{
             gridColumn: "1 / -1",
             ...(surface === "filled" && {
-              backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
+              backgroundColor:
+                "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
             }),
           }}
         />
@@ -1392,7 +1393,7 @@ export function CnList<T = CnListItemData>(props: CnListProps<T>) {
         component="span"
         data-cn-list-selection-count=""
         sx={{
-          px: "10px",
+          px: "14px",
           py: "4px",
           borderRadius: "999px",
           fontSize: "0.75rem",

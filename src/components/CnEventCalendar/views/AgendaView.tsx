@@ -228,7 +228,7 @@ export const AgendaView = ({
                   fontWeight: 800,
                   textTransform: "uppercase",
                   letterSpacing: "0.08em",
-                  color: "var(--cn-color-brand-600, #254d87)",
+                  color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
                 }}
               >
                 {`${monthName(day, locale)} ${day.getFullYear()}`}
@@ -256,7 +256,8 @@ export const AgendaView = ({
                   textAlign: "center",
                   pt: "2px",
                   "&:focus-visible": {
-                    outline: "2px solid var(--cn-color-accent-500, #3d5afe)",
+                    outline:
+                      "2px solid var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
                     borderRadius: "8px",
                   },
                 }}
@@ -267,7 +268,7 @@ export const AgendaView = ({
                     fontWeight: 700,
                     textTransform: "uppercase",
                     color: today
-                      ? "var(--cn-color-brand-600, #254d87)"
+                      ? "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))"
                       : "var(--cn-color-text-muted, #6e7682)",
                   }}
                 >

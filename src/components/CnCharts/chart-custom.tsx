@@ -168,12 +168,17 @@ export const CnChartLegend = ({
           borderRadius: "999px",
           fontSize: "12px",
           fontWeight: 600,
-          color: "var(--cn-color-neutral-600, #4e5660)",
+          color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
           opacity: item.hidden ? 0.4 : 1,
           textDecoration: item.hidden ? "line-through" : "none",
           justifyContent: "flex-start",
-          "&:hover": { backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)" },
-          "&.Mui-disabled": { color: "var(--cn-color-neutral-600, #4e5660)" },
+          "&:hover": {
+            backgroundColor:
+              "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
+          },
+          "&.Mui-disabled": {
+            color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+          },
         }}
       >
         <Box

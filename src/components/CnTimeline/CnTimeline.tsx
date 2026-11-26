@@ -112,7 +112,8 @@ const Progress = ({ items, eta }: { items: readonly CnTimelineItem[]; eta?: Reac
             height: 6,
             borderRadius: 3,
             overflow: "hidden",
-            backgroundColor: "var(--cn-color-neutral-100, #eef0f2)",
+            backgroundColor:
+              "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #eef0f2))",
             "@media print": { printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" },
           }}
         >
@@ -428,7 +429,9 @@ export const CnTimeline = ({
   const itemSx = (item: CnTimelineItem) => ({
     outline: "none",
     borderRadius: "var(--cn-radius-md, 8px)",
-    "&:focus-visible": { boxShadow: "0 0 0 2px var(--cn-color-brand-500, #3562a6)" },
+    "&:focus-visible": {
+      boxShadow: "0 0 0 2px var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
+    },
     "@media print": { breakInside: "avoid" as const },
     ...(longList && { contentVisibility: "auto", containIntrinsicSize: "auto 80px" }),
     ...(item.id === highlightId && {
@@ -600,7 +603,9 @@ export const CnTimeline = ({
           pt: "2px",
           scrollSnapType: "x proximity",
           outline: "none",
-          "&:focus-visible": { boxShadow: "0 0 0 2px var(--cn-color-brand-500, #3562a6)" },
+          "&:focus-visible": {
+            boxShadow: "0 0 0 2px var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
+          },
           "@media print": { overflow: "visible" },
         }}
       >

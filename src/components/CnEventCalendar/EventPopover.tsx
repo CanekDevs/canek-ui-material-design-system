@@ -521,7 +521,10 @@ export const DayListPopover = ({
                 backgroundColor: alpha(occ.color, 0.12),
                 borderLeft: `3px solid ${occ.color}`,
                 "&:hover": { backgroundColor: alpha(occ.color, 0.2) },
-                "&:focus-visible": { outline: "2px solid var(--cn-color-brand-500, #3562a6)" },
+                "&:focus-visible": {
+                  outline:
+                    "2px solid var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
+                },
               }}
             >
               {!occ.allDay && (

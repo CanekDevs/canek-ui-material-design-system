@@ -130,25 +130,37 @@ export const CN_CONFIRM_PRESETS: Record<CnConfirmVariant, Preset> = {
 };
 
 const TONE: Record<CnButtonColor, { fg: string; bg: string }> = {
-  primary: { fg: "var(--cn-color-brand-600, #254d87)", bg: "var(--cn-color-brand-50, #eef3fb)" },
+  primary: {
+    fg: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+    bg: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
+  },
   secondary: {
-    fg: "var(--cn-color-neutral-700, #3a4048)",
-    bg: "var(--cn-color-neutral-100, #f4f5f7)",
+    fg: "var(--cn-color-control-secondary-fg, var(--cn-color-neutral-700, #3a4048))",
+    bg: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
   },
   success: {
-    fg: "var(--cn-color-success-600, #228740)",
-    bg: "var(--cn-color-success-50, #eaf7ee)",
+    fg: "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
+    bg: "var(--cn-color-tone-success-soft, var(--cn-color-success-50, #eaf7ee))",
   },
   warning: {
-    fg: "var(--cn-color-warning-600, #b8831a)",
-    bg: "var(--cn-color-warning-50, #fdf6e6)",
+    fg: "var(--cn-color-control-warning-fg, var(--cn-color-warning-600, #b8831a))",
+    bg: "var(--cn-color-tone-warning-soft, var(--cn-color-warning-50, #fdf6e6))",
   },
-  info: { fg: "var(--cn-color-info-600, #22649f)", bg: "var(--cn-color-info-50, #eaf3fb)" },
-  error: { fg: "var(--cn-color-error-600, #b52f2f)", bg: "var(--cn-color-error-50, #fcecec)" },
-  accent: { fg: "var(--cn-color-accent-600, #3349d6)", bg: "var(--cn-color-accent-50, #eef0ff)" },
+  info: {
+    fg: "var(--cn-color-control-info-fg, var(--cn-color-info-600, #22649f))",
+    bg: "var(--cn-color-tone-info-soft, var(--cn-color-info-50, #eaf3fb))",
+  },
+  error: {
+    fg: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
+    bg: "var(--cn-color-tone-error-soft, var(--cn-color-error-50, #fcecec))",
+  },
+  accent: {
+    fg: "var(--cn-color-tone-accent-text, var(--cn-color-accent-600, #3349d6))",
+    bg: "var(--cn-color-tone-accent-soft, var(--cn-color-accent-50, #eef0ff))",
+  },
   neutral: {
-    fg: "var(--cn-color-neutral-600, #4e5660)",
-    bg: "var(--cn-color-neutral-100, #f4f5f7)",
+    fg: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+    bg: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
   },
 };
 
