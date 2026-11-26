@@ -9,6 +9,13 @@ incluir cambios incompatibles; se marcan como **Cambios de comportamiento**.
 
 ### Agregado
 
+- `CnFilterBar`: barra de filtros con búsqueda, filtros rápidos con `aria-pressed`, panel "Filtros" que aplica un borrador, chips activos removibles, "Limpiar todo", total de resultados y vistas guardadas. Con su skeleton y prop `skeleton`.
+- `CnKanbanBoard`: tablero por columnas con arrastrar y soltar nativo, movimiento por teclado con anuncios, `canDrop`, límites WIP, totales por columna y `moveKanbanItem`. Con su skeleton y prop `skeleton`.
+- `CnDealCard`: tarjeta de oportunidad con monto, monto ponderado, barra de probabilidad, responsable, próxima actividad vencida, estado ganada/perdida y modo compacto. Con su skeleton y prop `skeleton`.
+- `CnContactTimeline`: historial multicanal de un contacto: chips de filtro por canal, actividades fijadas arriba, acción Fijar y compositor en línea sobre `CnTimeline`. Con su skeleton y prop `skeleton`.
+- `CnActivityComposer`: registrar nota, llamada, correo, reunión o tarea con campos por tipo, menciones con @ (teclado completo), plantillas, Ctrl + Enter y manejo de errores al guardar. Con su skeleton y prop `skeleton`.
+- `CnRecordHeader`: encabezado de la ficha de un registro con avatar, estado, etiquetas, datos clave, botón Seguir (interruptor) y acciones con menú "Más acciones". Con su skeleton y prop `skeleton`.
+- `CnDescriptionList`: pares etiqueta–valor de solo lectura en columnas responsivas (`dl` semántica), apilados o en línea, con copiar, enlaces y texto de vacío. Con su skeleton y prop `skeleton`.
 - `CnDocCard`: tarjeta de documento con tipo por mime/extensión, miniatura, metadatos, estado,
   etiquetas, versión, acciones (ver, descargar, compartir, menú), selección, progreso de carga y error;
   vista previa de imágenes, video, audio y PDF.

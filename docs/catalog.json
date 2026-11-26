@@ -1,6 +1,6 @@
 {
   "$comment": "Generado por `npm run docs:catalog` desde src/catalog. No editar a mano.",
-  "total": 86,
+  "total": 93,
   "entries": [
     {
       "name": "CnFlagIcon",
@@ -34,6 +34,17 @@
       "whenNot": "Para navegar a otra página usa un enlace (`href`) o `CnTabs`; para elegir una opción entre varias usa `CnSegmentedField` o `CnRadioGroupField`; para encender/apagar un ajuste usa `CnSwitchField`; para una acción destructiva que requiere confirmación combínalo con `CnConfirmDialog`.",
       "neighbors": "Es la base de las acciones de `CnDialog`, `CnDrawer`, `CnAlert` y `CnDataTable`. `CnChip` es para etiquetas o filtros, no para acciones principales.",
       "related": ["CnButtonSkeleton"]
+    },
+    {
+      "name": "CnActivityComposer",
+      "category": "formularios",
+      "domains": ["crm", "erp", "rrhh"],
+      "status": "beta",
+      "summary": "Registrar nota, llamada, correo, reunión o tarea con plantillas y menciones con @.",
+      "purpose": "Capturar rápido una interacción con un cliente, proveedor o empleado sin salir de su ficha. Tiene pestañas por tipo de actividad y cada tipo agrega solo los campos que necesita: asunto en correo, resultado y duración en llamada, fecha y hora en reunión, vencimiento y prioridad en tarea. Al escribir @ sugiere personas (sin acentos ni mayúsculas, con flechas, Enter y Escape) y entrega sus ids; las plantillas insertan textos frecuentes. Guarda con el botón o con Ctrl + Enter, muestra carga mientras la promesa de `onSubmit` se resuelve, limpia al terminar y, si falla, conserva el texto y muestra el error.",
+      "whenNot": "Para formularios largos con validación por campo, secciones o pasos usa `CnForm`; para redactar un correo completo con destinatarios, adjuntos y formato usa `CnRichTextField` dentro de un `CnForm`; para comentar un evento ya registrado usa la respuesta de `CnTimeline`.",
+      "neighbors": "Es el compositor en línea de `CnContactTimeline`. Usa `CnTabs`, `CnTextField`, `CnSelectField`, `CnDateField` y `CnButton`; las sugerencias de mención muestran `CnAvatar`. Suele ir dentro de `CnSectionCard` o en un `CnDrawer` lateral.",
+      "related": ["CnActivityComposerSkeleton"]
     },
     {
       "name": "CnAddressField",
@@ -532,6 +543,17 @@
       "related": ["CnChipSkeleton"]
     },
     {
+      "name": "CnContactTimeline",
+      "category": "datos",
+      "domains": ["crm"],
+      "status": "beta",
+      "summary": "Historial multicanal de un contacto con filtros por canal, actividades fijadas y compositor en línea.",
+      "purpose": "Ver en un solo lugar todo lo que ha pasado con un contacto o empresa: notas, llamadas, correos, reuniones, tareas, mensajes, cambios de oportunidad y eventos del sistema. Cada canal tiene ícono y tono propios y aparece como chip de filtro solo si hay actividades de ese canal. Las actividades fijadas (acuerdos, datos que todo el equipo debe ver) suben a un bloque aparte y no se repiten abajo. Con `onCreate` muestra el compositor para registrar una actividad nueva sin salir de la ficha; con `onPinChange` agrega la acción Fijar o Quitar de fijadas. Hereda del historial la agrupación por día, búsqueda, paginado, estado vacío y error con reintentar.",
+      "whenNot": "Para una bitácora de auditoría o el seguimiento de un pedido sin canales de contacto usa `CnTimeline`; para avisos con leído/no leído usa `CnNotificationCenter`; para reuniones sobre un calendario usa `CnEventCalendar`; para listar contactos usa `CnDataTable`.",
+      "neighbors": "Compone `CnTimeline` (historial) y `CnActivityComposer` (captura). Suele ir bajo `CnRecordHeader` en la pestaña Actividad de la ficha, junto a `CnDescriptionList` con los datos del contacto.",
+      "related": ["CnContactTimelineSkeleton"]
+    },
+    {
       "name": "CnDataTable",
       "category": "datos",
       "domains": [
@@ -553,6 +575,17 @@
       "related": ["CnDataTableSkeleton", "CnCell", "CnCellDetail", "CnImageViewer"]
     },
     {
+      "name": "CnDescriptionList",
+      "category": "datos",
+      "domains": ["general", "erp", "crm", "rrhh"],
+      "status": "beta",
+      "summary": "Lista de pares etiqueta–valor de solo lectura, en columnas responsivas, con copiar y enlaces.",
+      "purpose": "Mostrar el detalle de un registro (contacto, empresa, empleado, pedido) como pares etiqueta–valor sin armar la cuadrícula a mano. Usa una lista de descripción semántica (`dl`/`dt`/`dd`), baja de columnas sola cuando el contenedor se angosta, permite que un dato ocupe dos columnas o toda la fila, muestra un texto de vacío (\"—\" o \"Sin capturar\") para valores faltantes, convierte valores en enlaces (correo, teléfono, sitio) y agrega un botón para copiar con aviso de copiado. Tiene disposición apilada (etiqueta arriba) o en línea (etiqueta a la izquierda, con separadores) y variante en tarjeta con título y acción.",
+      "whenNot": "Para editar los datos usa `CnForm` (o el campo correspondiente, como `CnTextField`); para un solo indicador grande con tendencia usa `CnMetricCard`; para muchos registros con columnas, orden y filtros usa `CnDataTable`; para pares que el usuario agrega y quita usa `CnKeyValueField`.",
+      "neighbors": "Es la pieza de datos de `CnRecordHeader` y suele vivir dentro de `CnSectionCard` o `CnCard`. Los valores pueden ser `CnChip` o `CnAvatar`. Comparte los tokens de texto atenuado con `CnProfileCard`.",
+      "related": ["CnDescriptionListSkeleton"]
+    },
+    {
       "name": "CnEventCalendar",
       "category": "datos",
       "domains": ["reservas", "rrhh", "crm", "erp", "general"],
@@ -562,6 +595,28 @@
       "whenNot": "Para elegir una fecha o un rango en un formulario usa `CnDateField` (o `CnCalendar` incrustado); para definir horarios recurrentes de atención usa `CnScheduleField`; para un historial de lo ocurrido usa `CnTimeline`; para una lista simple de próximos pendientes usa `CnList`; para mostrar actividad por día sin eventos usa `CnCalendarHeatmap`.",
       "neighbors": "`CnCalendar` es su hermano pequeño: selecciona fechas, no gestiona eventos. Comparte exportación e impresión con `CnDataTable`; sus diálogos y avisos siguen a `CnDialog` y `CnToast`; las categorías se muestran como `CnChip`.",
       "related": ["CnEventCalendarSkeleton"]
+    },
+    {
+      "name": "CnFilterBar",
+      "category": "datos",
+      "domains": ["general", "erp", "crm", "ecommerce", "dashboards"],
+      "status": "beta",
+      "summary": "Barra de filtros con búsqueda, filtros rápidos, panel de filtros con chips activos y vistas guardadas.",
+      "purpose": "Filtrar listas de tarjetas, tableros y reportes con el mismo patrón en toda la aplicación. Reúne búsqueda, chips de filtro rápido de un clic (interruptores con conteo), un panel \"Filtros\" anclado con campos de selección, selección múltiple o texto que se aplican juntos con \"Aplicar\", chips de los filtros activos que se quitan con un clic, \"Limpiar todo\", el total de resultados anunciado y un menú de vistas guardadas con \"Guardar vista actual\". Todo es controlado: el componente no filtra datos, solo entrega los valores.",
+      "whenNot": "Para filtrar dentro de una tabla por columna usa los filtros de `CnDataTable`; para un formulario de búsqueda avanzada con validación usa `CnForm`; para solo buscar con sugerencias usa `CnSearchField`; para cambiar entre secciones de una página usa `CnTabs`.",
+      "neighbors": "Va encima de `CnKanbanBoard`, de listas de `CnDealCard` y de `CnList`. Usa `CnSearchField`, `CnSelectField`, `CnTextField`, `CnChip` y `CnButton`; su panel es un popover ligero, a diferencia de `CnDrawer` o `CnDialog`.",
+      "related": ["CnFilterBarSkeleton"]
+    },
+    {
+      "name": "CnKanbanBoard",
+      "category": "datos",
+      "domains": ["crm", "erp", "general"],
+      "status": "beta",
+      "summary": "Tablero por columnas: arrastrar entre etapas con mouse o teclado, límites WIP y totales por columna.",
+      "purpose": "Mover elementos entre etapas de un proceso (embudo de ventas, tickets, órdenes de trabajo, candidatos) viendo de un vistazo cuántos hay y cuánto suman. Cada columna es una región con su lista, contador, límite WIP que se marca al superarse y total de `value` con formato de moneda propio. Se arrastra con el mouse (indicador de dónde caerá) o con teclado: Espacio toma la tarjeta, flechas la mueven entre columnas y posiciones, Espacio la suelta y Escape cancela, con anuncios para lector de pantalla. `canDrop` bloquea destinos (etapas cerradas, permisos) y atenúa las columnas que no aceptan la tarjeta. El contenido de cada tarjeta lo pinta `renderCard`; `moveKanbanItem` aplica el movimiento a un arreglo plano.",
+      "whenNot": "Para reordenar una sola lista usa `CnList`; para registros con muchas columnas de datos usa `CnDataTable`; para pasos lineales de un proceso que el usuario recorre usa `CnTabs` o el modo por pasos de `CnForm`; para eventos con fecha usa `CnEventCalendar`.",
+      "neighbors": "Sus tarjetas suelen ser `CnDealCard` o `CnCard`. Encima lleva `CnFilterBar` para filtrar el tablero. El botón de agregar es `CnButton`; los tonos de columna salen de `CN_TONES`, como en `CnSectionCard`.",
+      "related": ["CnKanbanBoardSkeleton"]
     },
     {
       "name": "CnList",
@@ -975,6 +1030,17 @@
       "related": ["CnPageContainerSkeleton"]
     },
     {
+      "name": "CnRecordHeader",
+      "category": "layout",
+      "domains": ["crm", "erp", "rrhh"],
+      "status": "beta",
+      "summary": "Encabezado de registro: avatar o ícono, nombre, estado, datos clave, seguir y acciones.",
+      "purpose": "Encabezar la ficha de un registro (contacto, empresa, oportunidad, empleado, proveedor) con todo lo que se necesita antes de bajar al detalle: tipo de registro, nombre como encabezado de la página, subtítulo, estado y etiquetas, una fila de datos clave (responsable, valor abierto, última actividad), un botón \"Seguir\" que funciona como interruptor accesible y las acciones del registro. La primera acción es la principal; las que no caben pasan a un menú \"Más acciones\" con teclado y acciones destructivas en rojo. En pantallas angostas las acciones bajan bajo el nombre sin desbordarse.",
+      "whenNot": "Para el título de una página que no es un registro (listados, configuración, tableros) usa `CnPageContainer`; para mostrar a una persona en una tarjeta dentro de una lista o cuadrícula usa `CnProfileCard`; para el detalle completo de los datos usa `CnDescriptionList`.",
+      "neighbors": "Va arriba de `CnTabs` (Resumen, Actividad, Oportunidades) y de `CnContactTimeline` en la ficha del contacto. Usa `CnAvatar`, `CnChip` y `CnButton`; sus datos clave siguen el mismo formato que `CnDescriptionList`. Dentro de `CnPageContainer` reemplaza al título simple.",
+      "related": ["CnRecordHeaderSkeleton"]
+    },
+    {
       "name": "CnSectionCard",
       "category": "layout",
       "domains": ["general", "erp", "crm", "rrhh", "dashboards"],
@@ -984,6 +1050,17 @@
       "whenNot": "Para una tarjeta de contenido que se repite en rejilla o se abre con clic usa `CnCard`; para un KPI usa `CnMetricCard`; para un aviso con severidad usa `CnAlert`; para alternar entre vistas hermanas usa `CnTabs`; para listas de elementos repetibles dentro de un formulario usa `CnRepeaterField`.",
       "neighbors": "Se construye sobre `CnCard` y usa `CnEmptyState`, `CnChip` y `CnAvatar` en sus estados e insignias. Vive dentro de `CnPageContainer` y en su cuerpo suelen ir `CnForm`, `CnDataTable` o `CnList`; `CnProfileCard` la usa como contenedor de sus grupos.",
       "related": ["CnSectionCardSkeleton"]
+    },
+    {
+      "name": "CnDealCard",
+      "category": "contenido",
+      "domains": ["crm"],
+      "status": "beta",
+      "summary": "Tarjeta de oportunidad: monto, probabilidad, responsable, próxima actividad y estado.",
+      "purpose": "Resumir una oportunidad de venta en el espacio de una tarjeta para tableros, listas y paneles laterales: nombre y empresa, monto en la moneda indicada (con monto ponderado opcional), barra de probabilidad accesible con color según el avance, responsable con avatar, próxima actividad (marcada como vencida en rojo), etiquetas y fecha estimada de cierre. Muestra el estado Ganada o Perdida, tiene versión compacta para tableros densos y, con `onClick`, toda la tarjeta se vuelve un botón con estado seleccionado.",
+      "whenNot": "Para una persona o contacto usa `CnProfileCard`; para un indicador con tendencia usa `CnMetricCard`; para listar muchas oportunidades con columnas, orden y filtros usa `CnDataTable`; para el encabezado de la ficha completa de la oportunidad usa `CnRecordHeader`.",
+      "neighbors": "Es la tarjeta natural de `CnKanbanBoard` (embudo de ventas) y se filtra con `CnFilterBar`. Usa `CnAvatar` e `CnIcon`; comparte el formato de moneda con `CnCurrencyField`.",
+      "related": ["CnDealCardSkeleton"]
     },
     {
       "name": "CnDocCard",

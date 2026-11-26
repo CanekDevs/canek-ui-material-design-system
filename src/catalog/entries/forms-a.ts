@@ -264,4 +264,18 @@ export const CATALOG_FORMS_A: CnCatalogEntry[] = [
       "getGoogleMapsEmbedUrl",
     ],
   },
+  {
+    name: "CnActivityComposer",
+    category: "formularios",
+    domains: ["crm", "erp", "rrhh"],
+    status: "beta",
+    summary: "Registrar nota, llamada, correo, reunión o tarea con plantillas y menciones con @.",
+    purpose:
+      "Capturar rápido una interacción con un cliente, proveedor o empleado sin salir de su ficha. Tiene pestañas por tipo de actividad y cada tipo agrega solo los campos que necesita: asunto en correo, resultado y duración en llamada, fecha y hora en reunión, vencimiento y prioridad en tarea. Al escribir @ sugiere personas (sin acentos ni mayúsculas, con flechas, Enter y Escape) y entrega sus ids; las plantillas insertan textos frecuentes. Guarda con el botón o con Ctrl + Enter, muestra carga mientras la promesa de `onSubmit` se resuelve, limpia al terminar y, si falla, conserva el texto y muestra el error.",
+    whenNot:
+      "Para formularios largos con validación por campo, secciones o pasos usa `CnForm`; para redactar un correo completo con destinatarios, adjuntos y formato usa `CnRichTextField` dentro de un `CnForm`; para comentar un evento ya registrado usa la respuesta de `CnTimeline`.",
+    neighbors:
+      "Es el compositor en línea de `CnContactTimeline`. Usa `CnTabs`, `CnTextField`, `CnSelectField`, `CnDateField` y `CnButton`; las sugerencias de mención muestran `CnAvatar`. Suele ir dentro de `CnSectionCard` o en un `CnDrawer` lateral.",
+    related: ["CnActivityComposerSkeleton"],
+  },
 ];

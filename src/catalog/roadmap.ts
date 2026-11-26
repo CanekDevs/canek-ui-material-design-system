@@ -150,16 +150,6 @@ export const CN_ROADMAP: CnRoadmapItem[] = [
     dependsOn: [],
   },
   {
-    name: "CnDescriptionList",
-    category: "datos",
-    domains: ["general", "erp", "crm", "rrhh"],
-    summary:
-      "Lista de pares etiqueta–valor de solo lectura, en columnas responsivas, con copiar y tipos de celda.",
-    gap: "`CnMetricCard` muestra un solo dato y `CnCellDetail` vive dentro de la tabla; el detalle de un registro se arma a mano.",
-    priority: "alta",
-    dependsOn: ["CnDataTable", "CnCard"],
-  },
-  {
     name: "CnCommandPalette",
     category: "navegacion",
     domains: ["general", "erp", "crm", "cms", "ia"],
@@ -167,16 +157,6 @@ export const CN_ROADMAP: CnRoadmapItem[] = [
     gap: "`CnSearchField` es un campo de formulario; no abre un diálogo global con comandos agrupados, recientes y atajos.",
     priority: "media",
     dependsOn: ["CnDialog", "CnList", "CnKbd"],
-  },
-  {
-    name: "CnFilterBar",
-    category: "datos",
-    domains: ["general", "erp", "crm", "ecommerce", "dashboards"],
-    summary:
-      'Barra de filtros con chips activos, filtros rápidos, "más filtros" y vistas guardadas.',
-    gap: "Los filtros de `CnDataTable` son por columna; listas de tarjetas, tableros y reportes no tienen filtros con chips y vistas guardadas.",
-    priority: "alta",
-    dependsOn: ["CnChip", "CnPopover", "CnForm"],
   },
   {
     name: "CnInlineEdit",
@@ -727,54 +707,6 @@ export const CN_ROADMAP: CnRoadmapItem[] = [
   },
 
   // ─── CRM ──────────────────────────────────────────────────────────
-  {
-    name: "CnKanbanBoard",
-    category: "datos",
-    domains: ["crm", "erp", "general"],
-    summary:
-      "Tablero por columnas con arrastrar entre etapas, límites WIP, totales y virtualización.",
-    gap: "`CnList` reordena dentro de una lista; no mueve tarjetas entre columnas ni suma montos por etapa.",
-    priority: "alta",
-    dependsOn: ["CnCard", "CnBadge"],
-  },
-  {
-    name: "CnDealCard",
-    category: "contenido",
-    domains: ["crm"],
-    summary: "Tarjeta de oportunidad: monto, etapa, probabilidad, responsable, próxima actividad.",
-    gap: "`CnProfileCard` es de personas; la oportunidad gira en torno al monto y la etapa.",
-    priority: "alta",
-    dependsOn: ["CnCard", "CnAvatar", "CnPriceTag"],
-  },
-  {
-    name: "CnActivityComposer",
-    category: "formularios",
-    domains: ["crm", "erp", "rrhh"],
-    summary: "Registrar nota, llamada, correo, reunión o tarea con plantillas y menciones.",
-    gap: "`CnForm` es genérico; el registro rápido de actividades necesita pestañas por tipo y menciones.",
-    priority: "alta",
-    dependsOn: ["CnTabs", "CnRichTextField", "CnDateField"],
-  },
-  {
-    name: "CnContactTimeline",
-    category: "datos",
-    domains: ["crm"],
-    summary:
-      "Historial multicanal de un contacto con filtros por tipo, notas fijadas y compositor.",
-    gap: "`CnTimeline` dibuja eventos; la ficha del contacto suma filtros por canal, fijados y captura en línea.",
-    priority: "media",
-    dependsOn: ["CnTimeline", "CnActivityComposer"],
-  },
-  {
-    name: "CnRecordHeader",
-    category: "layout",
-    domains: ["crm", "erp", "rrhh"],
-    summary:
-      "Encabezado de registro: avatar o ícono, nombre, estado, datos clave, seguir y acciones.",
-    gap: "`CnPageContainer` da título y migas; la ficha de un registro necesita datos clave y acciones contextuales.",
-    priority: "alta",
-    dependsOn: ["CnPageContainer", "CnAvatar", "CnDescriptionList", "CnActionBar"],
-  },
   {
     name: "CnEmailComposer",
     category: "formularios",

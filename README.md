@@ -106,7 +106,7 @@ regenerarlo: `npm run docs:catalog`. Una prueba de gobierno falla si queda desac
 
 <!-- Generado por `npm run docs:catalog` desde `src/catalog`. No editar a mano. -->
 
-**86 componentes documentados.** Cada uno tiene en Storybook las secciones _Para qué sirve_, _Cuándo NO usarlo_ y _Relación con vecinos_. El catálogo completo en JSON está en [`docs/catalog.json`](./docs/catalog.json) y los 116 componentes planeados en [`docs/ROADMAP.md`](./docs/ROADMAP.md).
+**93 componentes documentados.** Cada uno tiene en Storybook las secciones _Para qué sirve_, _Cuándo NO usarlo_ y _Relación con vecinos_. El catálogo completo en JSON está en [`docs/catalog.json`](./docs/catalog.json) y los 109 componentes planeados en [`docs/ROADMAP.md`](./docs/ROADMAP.md).
 
 ### Fundamentos (2)
 
@@ -121,10 +121,11 @@ regenerarlo: `npm run docs:catalog`. Una prueba de gobierno falla si queda desac
 | ---------- | ---------------------------------------------------------------------------------- | -------- | ------- |
 | `CnButton` | Botón de acción con variantes, tamaños, íconos, estado de carga y modo solo ícono. | General  | estable |
 
-### Formularios (39)
+### Formularios (40)
 
 | Componente            | Qué es                                                                                                                     | Dominios                                                     | Estado  |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------- |
+| `CnActivityComposer`  | Registrar nota, llamada, correo, reunión o tarea con plantillas y menciones con @.                                         | CRM, ERP, RR. HH.                                            | beta    |
 | `CnAddressField`      | Domicilio postal completo en un solo campo: calle, números, código postal, colonia, municipio, estado y país.              | ERP, CRM, E-commerce, RR. HH., Pagos, Reservas               | beta    |
 | `CnAutocompleteField` | Campo con búsqueda mientras se escribe para elegir una o varias opciones de listas largas o remotas.                       | General, ERP, CRM, E-commerce, Punto de venta, RR. HH.       | estable |
 | `CnCalendar`          | Calendario incrustado para seleccionar una fecha o un rango, con vistas de día, mes y año.                                 | General, Reservas                                            | estable |
@@ -165,17 +166,21 @@ regenerarlo: `npm run docs:catalog`. Una prueba de gobierno falla si queda desac
 | `CnTreeSelectField`   | Selector jerárquico con búsqueda, selección simple o múltiple en cascada y ruta visible.                                   | ERP, RR. HH., E-commerce, CMS, General                       | estable |
 | `CnWeekdaysField`     | Selector de días de la semana con atajos (laborables, fin de semana, todos) y límites.                                     | Reservas, RR. HH., Punto de venta, General                   | beta    |
 
-### Datos (7)
+### Datos (11)
 
-| Componente        | Qué es                                                                                                                | Dominios                                                                      | Estado  |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------- |
-| `CnAvatar`        | Foto, iniciales o ícono de una persona o entidad, con estado e insignia; incluye grupo apilado.                       | General, CRM, RR. HH., Reservas                                               | estable |
-| `CnChip`          | Etiqueta compacta para estados, categorías, filtros y elementos removibles.                                           | General, CRM, E-commerce, ERP                                                 | estable |
-| `CnDataTable`     | Tabla de datos con orden, filtros, búsqueda, selección, acciones, agrupación, exportación y más de 50 tipos de celda. | ERP, CRM, CMS, E-commerce, Punto de venta, Reservas, Pagos, RR. HH., Tableros | estable |
-| `CnEventCalendar` | Calendario de eventos con vistas de mes, semana, día, agenda, trimestre, año, varios meses y recursos.                | Reservas, RR. HH., CRM, ERP, General                                          | estable |
-| `CnList`          | Lista de elementos con avatar, ícono, estado, acciones, selección, búsqueda, grupos, árbol y virtualización.          | General, CRM, CMS, E-commerce, RR. HH., IA                                    | estable |
-| `CnMetricCard`    | Tarjeta de indicador: valor destacado con tendencia, mini gráfica, avance a meta o dato con etiqueta.                 | Tableros, ERP, CRM, E-commerce, Punto de venta, Pagos, RR. HH.                | estable |
-| `CnTimeline`      | Línea de tiempo para historiales de actividad, bitácoras de auditoría y seguimiento de procesos.                      | General, ERP, CRM, E-commerce, RR. HH., Pagos                                 | beta    |
+| Componente          | Qué es                                                                                                                | Dominios                                                                      | Estado  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------- |
+| `CnAvatar`          | Foto, iniciales o ícono de una persona o entidad, con estado e insignia; incluye grupo apilado.                       | General, CRM, RR. HH., Reservas                                               | estable |
+| `CnChip`            | Etiqueta compacta para estados, categorías, filtros y elementos removibles.                                           | General, CRM, E-commerce, ERP                                                 | estable |
+| `CnContactTimeline` | Historial multicanal de un contacto con filtros por canal, actividades fijadas y compositor en línea.                 | CRM                                                                           | beta    |
+| `CnDataTable`       | Tabla de datos con orden, filtros, búsqueda, selección, acciones, agrupación, exportación y más de 50 tipos de celda. | ERP, CRM, CMS, E-commerce, Punto de venta, Reservas, Pagos, RR. HH., Tableros | estable |
+| `CnDescriptionList` | Lista de pares etiqueta–valor de solo lectura, en columnas responsivas, con copiar y enlaces.                         | General, ERP, CRM, RR. HH.                                                    | beta    |
+| `CnEventCalendar`   | Calendario de eventos con vistas de mes, semana, día, agenda, trimestre, año, varios meses y recursos.                | Reservas, RR. HH., CRM, ERP, General                                          | estable |
+| `CnFilterBar`       | Barra de filtros con búsqueda, filtros rápidos, panel de filtros con chips activos y vistas guardadas.                | General, ERP, CRM, E-commerce, Tableros                                       | beta    |
+| `CnKanbanBoard`     | Tablero por columnas: arrastrar entre etapas con mouse o teclado, límites WIP y totales por columna.                  | CRM, ERP, General                                                             | beta    |
+| `CnList`            | Lista de elementos con avatar, ícono, estado, acciones, selección, búsqueda, grupos, árbol y virtualización.          | General, CRM, CMS, E-commerce, RR. HH., IA                                    | estable |
+| `CnMetricCard`      | Tarjeta de indicador: valor destacado con tendencia, mini gráfica, avance a meta o dato con etiqueta.                 | Tableros, ERP, CRM, E-commerce, Punto de venta, Pagos, RR. HH.                | estable |
+| `CnTimeline`        | Línea de tiempo para historiales de actividad, bitácoras de auditoría y seguimiento de procesos.                      | General, ERP, CRM, E-commerce, RR. HH., Pagos                                 | beta    |
 
 ### Gráficas (18)
 
@@ -226,18 +231,20 @@ regenerarlo: `npm run docs:catalog`. Una prueba de gobierno falla si queda desac
 | ---------- | ------------------------------------------------------------------------------------------ | ----------------- | ------- |
 | `CnTabs`   | Pestañas para alternar vistas del mismo contexto, con íconos, contadores, errores y carga. | General, ERP, CRM | estable |
 
-### Layout (3)
+### Layout (4)
 
 | Componente        | Qué es                                                                                                                    | Dominios                                    | Estado  |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------- |
 | `CnCard`          | Tarjeta genérica con encabezado, medio, cuerpo y pie; clicable, con acento y estados de carga y vacío.                    | General, E-commerce, CMS, Landing, Tableros | estable |
 | `CnPageContainer` | Estructura de página con breadcrumbs, título, botón atrás, acciones y contenido con ancho máximo.                         | General, ERP, CRM, CMS, Tableros            | estable |
+| `CnRecordHeader`  | Encabezado de registro: avatar o ícono, nombre, estado, datos clave, seguir y acciones.                                   | CRM, ERP, RR. HH.                           | beta    |
 | `CnSectionCard`   | Sección con encabezado (ícono, título, insignia, acciones), cuerpo y pie; plegable y con estados de carga, vacío y error. | General, ERP, CRM, RR. HH., Tableros        | beta    |
 
-### Contenido (2)
+### Contenido (3)
 
 | Componente      | Qué es                                                                                               | Dominios                        | Estado |
 | --------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------- | ------ |
+| `CnDealCard`    | Tarjeta de oportunidad: monto, probabilidad, responsable, próxima actividad y estado.                | CRM                             | beta   |
 | `CnDocCard`     | Tarjeta de un documento o archivo existente: tipo, miniatura, metadatos, estado, versión y acciones. | CMS, ERP, RR. HH., CRM, General | beta   |
 | `CnProfileCard` | Tarjeta de persona con avatar, puesto, contacto, evento con cuenta regresiva y acciones rápidas.     | RR. HH., CRM, General           | beta   |
 
@@ -955,6 +962,87 @@ const ok = await dialog.open({ title: "Editar cliente", content: <ClienteForm />
 
 <CnDrawer open={Boolean(row)} title={row?.nombre} onClose={() => setRow(null)} resizable>…</CnDrawer>
 <CnNotificationCenter notifications={items} onMarkRead={markRead} onMarkAllRead={markAll} />
+```
+
+## Ficha de contacto (CRM)
+
+`CnRecordHeader` encabeza la ficha; `CnDescriptionList` muestra los datos; `CnContactTimeline`
+reúne el historial por canal con el compositor `CnActivityComposer` en línea.
+
+```tsx
+import {
+  CnContactTimeline,
+  CnDescriptionList,
+  CnRecordHeader,
+} from "@canek-ui/material-design-system";
+
+<CnRecordHeader
+  overline="Contacto"
+  title="Mariana López"
+  subtitle="Directora de Compras · Grupo Altavista"
+  avatar={{ name: "Mariana López" }}
+  status={{ label: "Oportunidad", color: "info" }}
+  facts={[{ label: "Responsable", value: "Carlos Méndez" }]}
+  actions={[
+    { id: "email", label: "Enviar correo", icon: "mail", onClick: sendEmail },
+    { id: "delete", label: "Eliminar", icon: "delete", danger: true, onClick: remove },
+  ]}
+  following={following}
+  onFollowChange={setFollowing}
+/>
+
+<CnDescriptionList
+  title="Datos de contacto"
+  items={[
+    { label: "Correo", value: email, href: `mailto:${email}`, copyValue: email },
+    { label: "Teléfono", value: phone, copyValue: phone },
+    { label: "RFC", value: "" }, // muestra "—"
+  ]}
+/>
+
+<CnContactTimeline
+  activities={activities} // { id, channel: "call" | "email" | …, title, time, pinned? }
+  onCreate={async (draft) => api.createActivity(draft)} // { type, body, mentions, … }
+  composerProps={{ mentionables: team, recordName: "Mariana López" }}
+  onPinChange={(activity, pinned) => api.pin(activity.id, pinned)}
+/>;
+```
+
+## Embudo de ventas (CRM)
+
+`CnKanbanBoard` mueve tarjetas entre etapas (mouse o teclado); `CnDealCard` es la tarjeta de
+oportunidad y `CnFilterBar` filtra el tablero. Todo es controlado.
+
+```tsx
+import {
+  CnDealCard,
+  CnFilterBar,
+  CnKanbanBoard,
+  moveKanbanItem,
+} from "@canek-ui/material-design-system";
+
+<CnFilterBar
+  search={search}
+  onSearchChange={setSearch}
+  quickFilters={[{ id: "mine", label: "Mis oportunidades" }]}
+  activeQuickFilters={quick}
+  onQuickFiltersChange={setQuick}
+  filters={[{ id: "stage", label: "Etapa", type: "multiselect", options: stages }]}
+  values={values}
+  onValuesChange={setValues}
+  resultCount={deals.length}
+/>
+
+<CnKanbanBoard
+  columns={[
+    { id: "proposal", title: "Propuesta", limit: 5 },
+    { id: "won", title: "Ganada", tone: "success" },
+  ]}
+  items={deals} // { id, columnId, value?, label?, …tus datos }
+  renderCard={(deal) => <CnDealCard {...deal} density="compact" />}
+  onMove={(id, columnId, index) => setDeals((d) => moveKanbanItem(d, id, columnId, index))}
+  canDrop={(deal, to) => to !== "won" || deal.columnId === "proposal"}
+/>;
 ```
 
 ## Mapas

@@ -92,4 +92,19 @@ export const CATALOG_LAYOUT_OVERLAYS: CnCatalogEntry[] = [
       "Reutiliza las piezas de `CnDialog` (encabezado, pie y guarda de cambios con `CnConfirmDialog`). Se combina con `CnDataTable` (`onRowClick` abre el detalle) y `CnTimeline` (historial dentro del panel); `CnNotificationCenter` lo usa como panel en móvil.",
     related: ["CnDrawerSkeleton"],
   },
+  {
+    name: "CnRecordHeader",
+    category: "layout",
+    domains: ["crm", "erp", "rrhh"],
+    status: "beta",
+    summary:
+      "Encabezado de registro: avatar o ícono, nombre, estado, datos clave, seguir y acciones.",
+    purpose:
+      'Encabezar la ficha de un registro (contacto, empresa, oportunidad, empleado, proveedor) con todo lo que se necesita antes de bajar al detalle: tipo de registro, nombre como encabezado de la página, subtítulo, estado y etiquetas, una fila de datos clave (responsable, valor abierto, última actividad), un botón "Seguir" que funciona como interruptor accesible y las acciones del registro. La primera acción es la principal; las que no caben pasan a un menú "Más acciones" con teclado y acciones destructivas en rojo. En pantallas angostas las acciones bajan bajo el nombre sin desbordarse.',
+    whenNot:
+      "Para el título de una página que no es un registro (listados, configuración, tableros) usa `CnPageContainer`; para mostrar a una persona en una tarjeta dentro de una lista o cuadrícula usa `CnProfileCard`; para el detalle completo de los datos usa `CnDescriptionList`.",
+    neighbors:
+      "Va arriba de `CnTabs` (Resumen, Actividad, Oportunidades) y de `CnContactTimeline` en la ficha del contacto. Usa `CnAvatar`, `CnChip` y `CnButton`; sus datos clave siguen el mismo formato que `CnDescriptionList`. Dentro de `CnPageContainer` reemplaza al título simple.",
+    related: ["CnRecordHeaderSkeleton"],
+  },
 ];
