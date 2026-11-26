@@ -79,8 +79,8 @@ const SectionHeader = ({
             height: 28,
             flexShrink: 0,
             borderRadius: "var(--cn-radius-sm, 6px)",
-            backgroundColor: "var(--cn-color-brand-50, #eef3fb)",
-            color: "var(--cn-color-brand-600, #254d87)",
+            backgroundColor: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
+            color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
           }}
         >
           <CnIcon name={icon} size="sm" />
@@ -143,7 +143,8 @@ const SectionHeader = ({
             cursor: "pointer",
             borderRadius: "var(--cn-radius-sm, 6px)",
             "&:focus-visible": {
-              outline: "2px solid var(--cn-color-brand-300, #7c9fdc)",
+              outline:
+                "2px solid var(--cn-color-field-focus-outline, var(--cn-color-brand-300, #7c9fdc))",
               outlineOffset: 2,
             },
           }}
@@ -152,7 +153,7 @@ const SectionHeader = ({
             fontSize="small"
             aria-label={collapsed ? labels.expand : labels.collapse}
             sx={{
-              color: "var(--cn-color-neutral-500, #6e7682)",
+              color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
               transform: collapsed ? "rotate(-90deg)" : "none",
               transition: "transform 160ms ease",
             }}
@@ -179,7 +180,7 @@ const cardSx = (
   appearance: NonNullable<CnFormSection["appearance"]> = "card",
   padding: NonNullable<CnFormSection["padding"]> = "md",
 ): SxProps<Theme> => {
-  const errorBorder = "var(--cn-color-error-500, #d63c3c)";
+  const errorBorder = "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))";
   if (level === "item") {
     return {
       display: "flex",
@@ -188,7 +189,7 @@ const cardSx = (
       borderRadius: "var(--cn-radius-md, 8px)",
       border: "1px solid",
       borderColor: hasError ? errorBorder : "var(--cn-color-border, #dde0e4)",
-      backgroundColor: "var(--cn-color-neutral-50, #fafbfc)",
+      backgroundColor: "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))",
       transition: "border-color 140ms ease",
     };
   }
@@ -205,7 +206,7 @@ const cardSx = (
         : "transparent",
     backgroundColor:
       appearance === "filled"
-        ? "var(--cn-color-neutral-50, #fafbfc)"
+        ? "var(--cn-color-bg, var(--cn-color-neutral-50, #fafbfc))"
         : appearance === "plain"
           ? "transparent"
           : "var(--cn-color-surface, #ffffff)",
@@ -321,10 +322,12 @@ export const CnFormSectionView = ({
                         height: 28,
                         flexShrink: 0,
                         borderRadius: "var(--cn-radius-sm, 6px)",
-                        color: "var(--cn-color-neutral-400, #9aa1aa)",
+                        color: "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
                         "&:hover": {
-                          color: "var(--cn-color-neutral-600, #4e5660)",
-                          backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
+                          color:
+                            "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+                          backgroundColor:
+                            "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
                         },
                         "&:focus-visible": {
                           outline: "2px solid var(--cn-color-brand-400, #5081c4)",
@@ -345,7 +348,10 @@ export const CnFormSectionView = ({
                             size="small"
                             aria-label={`${section.removeLabel ?? labels.remove} ${index + 1}`}
                             onClick={() => onRemove(index)}
-                            sx={{ color: "var(--cn-color-error-600, #b52f2f)" }}
+                            sx={{
+                              color:
+                                "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
+                            }}
                           >
                             {section.removeIcon ? (
                               <CnIcon name={section.removeIcon} size="sm" />

@@ -966,7 +966,8 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
                 sx={{
                   height: 4,
                   borderRadius: 4,
-                  backgroundColor: "var(--cn-color-neutral-150, #e9ecef)",
+                  backgroundColor:
+                    "var(--cn-color-tone-neutral-soft-hover, var(--cn-color-neutral-150, #e9ecef))",
                   overflow: "hidden",
                 }}
               >
@@ -988,11 +989,11 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
               sx={{
                 flexShrink: 0,
                 "& .MuiStepIcon-root.Mui-active, & .MuiStepIcon-root.Mui-completed": {
-                  color: "var(--cn-color-brand-600, #254d87)",
+                  color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
                 },
                 "& .MuiStepLabel-label": { fontSize: "var(--cn-font-size-sm, 12px)" },
                 "& .MuiStepIcon-root.Mui-error, & .MuiStepLabel-label.Mui-error": {
-                  color: "var(--cn-color-error-500, #d63c3c)",
+                  color: "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))",
                 },
               }}
             >
@@ -1331,8 +1332,8 @@ export const CnForm = forwardRef<HTMLFormElement, CnFormProps>(function CnForm(p
             height: 36,
             flexShrink: 0,
             borderRadius: "var(--cn-radius-md, 8px)",
-            backgroundColor: "var(--cn-color-brand-50, #eef3fb)",
-            color: "var(--cn-color-brand-600, #254d87)",
+            backgroundColor: "var(--cn-color-tone-primary-soft, var(--cn-color-brand-50, #eef3fb))",
+            color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
           }}
         >
           <CnIcon name={icon} size="md" />

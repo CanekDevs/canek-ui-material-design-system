@@ -33,16 +33,52 @@ function readCssVar(name: CssVarName): string | null {
   if (typeof globalThis === "undefined") return null;
   if (typeof document === "undefined") return null;
 
-  const value = globalThis
-    .getComputedStyle(document.documentElement)
-    .getPropertyValue(name)
-    .trim();
+  const value = globalThis.getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
   return value || null;
 }
 
 function readCssColor(name: CssVarName, fallback: string): string {
   return readCssVar(name) ?? fallback;
+}
+
+/**
+ * Lee roles que cambian por modo (fondo, superficie, texto, borde). En oscuro los lee de un
+ * elemento sonda con `data-cn-theme="dark"`: así no depende de que `<html>` ya tenga el atributo
+ * (el proveedor lo pone en un efecto, después de crear el tema).
+ */
+function readModeColors<K extends string>(
+  mode: CanekThemeMode,
+  roles: Record<K, [CssVarName, string]>,
+): Record<K, string> {
+  const keys = Object.keys(roles) as K[];
+  const fallback = () => Object.fromEntries(keys.map((k) => [k, roles[k][1]])) as Record<K, string>;
+  if (typeof document === "undefined" || !document.body) return fallback();
+  if (mode === "light") {
+    // Al volver de oscuro, `<html>` aún trae el atributo: se quita un momento para leer el claro.
+    const root = document.documentElement;
+    const previous = root.getAttribute("data-cn-theme");
+    if (previous) root.removeAttribute("data-cn-theme");
+    try {
+      return Object.fromEntries(
+        keys.map((k) => [k, readCssColor(roles[k][0], roles[k][1])]),
+      ) as Record<K, string>;
+    } finally {
+      if (previous) root.setAttribute("data-cn-theme", previous);
+    }
+  }
+  const probe = document.createElement("div");
+  probe.setAttribute("data-cn-theme", mode);
+  probe.style.display = "none";
+  document.body.appendChild(probe);
+  try {
+    const style = globalThis.getComputedStyle(probe);
+    return Object.fromEntries(
+      keys.map((k) => [k, style.getPropertyValue(roles[k][0]).trim() || roles[k][1]]),
+    ) as Record<K, string>;
+  } finally {
+    probe.remove();
+  }
 }
 
 export function createCanekTheme(mode: CanekThemeMode = "light", fontFamily?: string): Theme {
@@ -74,30 +110,15 @@ export function createCanekTheme(mode: CanekThemeMode = "light", fontFamily?: st
   const accentDark = readCssColor("--cn-color-accent-600", "#304ffe");
   const accentLight = readCssColor("--cn-color-accent-300", "#8c9eff");
 
-  const backgroundDefault =
-    mode === "light"
-      ? readCssColor("--cn-color-bg", "#fafbfc")
-      : readCssColor("--cn-color-bg", "#0f1116");
-
-  const backgroundPaper =
-    mode === "light"
-      ? readCssColor("--cn-color-surface", "#ffffff")
-      : readCssColor("--cn-color-surface", "#181b22");
-
-  const textPrimary =
-    mode === "light"
-      ? readCssColor("--cn-color-text", "#222831")
-      : readCssColor("--cn-color-text", "#eef0f3");
-
-  const textSecondary =
-    mode === "light"
-      ? readCssColor("--cn-color-text-muted", "#6e7682")
-      : readCssColor("--cn-color-text-muted", "#9aa1aa");
-
-  const divider =
-    mode === "light"
-      ? readCssColor("--cn-color-border", "#dde0e4")
-      : readCssColor("--cn-color-border", "#2a2f38");
+  const light = mode === "light";
+  const { backgroundDefault, backgroundPaper, textPrimary, textSecondary, divider } =
+    readModeColors(mode, {
+      backgroundDefault: ["--cn-color-bg", light ? "#fafbfc" : "#0f1116"],
+      backgroundPaper: ["--cn-color-surface", light ? "#ffffff" : "#181b22"],
+      textPrimary: ["--cn-color-text", light ? "#222831" : "#eef0f3"],
+      textSecondary: ["--cn-color-text-muted", light ? "#6e7682" : "#9aa1aa"],
+      divider: ["--cn-color-border", light ? "#dde0e4" : "#2a2f38"],
+    });
 
   const resolvedFontFamily = fontFamily ?? readCssColor("--cn-font-sans", "system-ui, sans-serif");
 

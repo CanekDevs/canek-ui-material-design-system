@@ -35,14 +35,14 @@ export const getOutlinedFieldSx = (size: CnFieldSize = "md"): Record<string, unk
         borderColor: "var(--cn-color-border-strong, #c5cad0)",
       },
       "&.Mui-focused fieldset": {
-        borderColor: "var(--cn-color-brand-500, #3562a6)",
+        borderColor: "var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
         borderWidth: 1.5,
       },
       "&.Mui-error fieldset": {
-        borderColor: "var(--cn-color-error-500, #d63c3c)",
+        borderColor: "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))",
       },
       "&.Mui-disabled": {
-        backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)",
+        backgroundColor: "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
       },
     },
     "& .MuiInputLabel-root": {
@@ -60,22 +60,22 @@ export const getOutlinedFieldSx = (size: CnFieldSize = "md"): Record<string, unk
 
 /** Colores de marca para Checkbox / Radio. */
 export const choiceControlSx = {
-  color: "var(--cn-color-neutral-400, #9aa1aa)",
+  color: "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
   "&.Mui-checked, &.MuiCheckbox-indeterminate": {
-    color: "var(--cn-color-brand-600, #254d87)",
+    color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
   },
   "&.Mui-disabled": {
-    color: "var(--cn-color-neutral-300, #c5cad0)",
+    color: "var(--cn-color-field-disabled-fg, var(--cn-color-neutral-300, #c5cad0))",
   },
   "&.Mui-focusVisible": {
-    outline: "2px solid var(--cn-color-brand-300, #7c9fdc)",
+    outline: "2px solid var(--cn-color-field-focus-outline, var(--cn-color-brand-300, #7c9fdc))",
     outlineOffset: 2,
   },
 };
 
 export const switchControlSx = {
   "& .MuiSwitch-switchBase.Mui-checked": {
-    color: "var(--cn-color-brand-600, #254d87)",
+    color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
   },
   "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
     backgroundColor: "var(--cn-color-brand-600, #254d87)",
@@ -103,9 +103,13 @@ export const groupLegendSx = {
   fontWeight: 500,
   color: "var(--cn-color-text-muted, #6e7682)",
   marginBottom: "4px",
-  "&.Mui-focused": { color: "var(--cn-color-brand-600, #254d87)" },
-  "&.Mui-error": { color: "var(--cn-color-error-600, #b52f2f)" },
-  "& .MuiFormLabel-asterisk": { color: "var(--cn-color-error-500, #d63c3c)" },
+  "&.Mui-focused": {
+    color: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+  },
+  "&.Mui-error": { color: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))" },
+  "& .MuiFormLabel-asterisk": {
+    color: "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))",
+  },
 };
 
 export const helperTextSx = {
