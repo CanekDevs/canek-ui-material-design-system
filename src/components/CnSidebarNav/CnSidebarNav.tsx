@@ -127,7 +127,7 @@ const Pill = ({ value }: { value: CnSidebarNavItem["badge"] }) => (
       flex: "none",
       minWidth: 20,
       height: 20,
-      px: "6px",
+      px: "10px",
       borderRadius: "999px",
       display: "inline-flex",
       alignItems: "center",

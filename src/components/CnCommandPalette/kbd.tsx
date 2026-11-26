@@ -17,7 +17,7 @@ export const KbdKeys = ({ hotkey, keys }: { hotkey?: string; keys?: string[] }) 
           sx={{
             minWidth: 20,
             height: 20,
-            px: "5px",
+            px: "9px",
             boxSizing: "border-box",
             display: "inline-flex",
             alignItems: "center",
