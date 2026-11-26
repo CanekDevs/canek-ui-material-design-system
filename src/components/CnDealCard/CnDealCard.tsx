@@ -174,7 +174,7 @@ export const CnDealCard = forwardRef<HTMLDivElement, CnDealCardProps>(function C
               component="span"
               sx={{
                 ml: "auto",
-                px: "8px",
+                px: "12px",
                 borderRadius: "999px",
                 fontSize: "12px",
                 fontWeight: 500,
@@ -261,7 +261,7 @@ export const CnDealCard = forwardRef<HTMLDivElement, CnDealCardProps>(function C
               key={tag}
               component="span"
               sx={{
-                px: "8px",
+                px: "12px",
                 borderRadius: "var(--cn-radius-sm, 4px)",
                 fontSize: "12px",
                 lineHeight: "20px",

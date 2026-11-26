@@ -342,7 +342,7 @@ export function CnKanbanBoard<T extends CnKanbanItem>({
                   }
                   sx={{
                     flexShrink: 0,
-                    px: "8px",
+                    px: "12px",
                     borderRadius: "999px",
                     fontSize: "12px",
                     fontWeight: 500,
