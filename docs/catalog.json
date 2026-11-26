@@ -1,6 +1,6 @@
 {
   "$comment": "Generado por `npm run docs:catalog` desde src/catalog. No editar a mano.",
-  "total": 86,
+  "total": 90,
   "entries": [
     {
       "name": "CnFlagIcon",
@@ -942,6 +942,28 @@
       "related": ["CnDrawerSkeleton"]
     },
     {
+      "name": "CnCommandPalette",
+      "category": "navegacion",
+      "domains": ["general", "erp", "crm", "cms", "ia"],
+      "status": "beta",
+      "summary": "Paleta de comandos (Ctrl + K): un diálogo con búsqueda para ir a páginas, registros y acciones solo con el teclado.",
+      "purpose": "Que los usuarios frecuentes lleguen a cualquier página, registro o acción sin soltar el teclado: atajo global configurable (`mod+k` = Ctrl o ⌘), búsqueda sin acentos ni mayúsculas en nombre, descripción, grupo y palabras clave, resultados agrupados con los recientes primero, atajos de cada comando a la vista, comandos deshabilitados, búsqueda controlada para traer registros del servidor con `loading`, y el patrón accesible de combobox con lista (`aria-activedescendant`, flechas, Intro y Escape). `filterCommands` y `groupCommands` se exportan para reutilizar el orden de resultados.",
+      "whenNot": "Para filtrar una tabla o lista en la misma pantalla usa `CnSearchField`; para elegir un valor dentro de un formulario usa `CnAutocompleteField` o `CnSelectField`; para la navegación siempre visible usa `CnSidebarNav`.",
+      "neighbors": "Se abre desde el botón de búsqueda de `CnTopBar`; `CnAppShell` la conecta sola. Comparte con `CnNotificationCenter` el comparador de atajos (`src/utils/hotkeys.ts`) y con los campos de selección la normalización de búsqueda.",
+      "related": ["CnCommandPaletteSkeleton", "filterCommands", "groupCommands"]
+    },
+    {
+      "name": "CnSidebarNav",
+      "category": "navegacion",
+      "domains": ["general", "erp", "crm", "cms", "dashboards", "rrhh"],
+      "status": "beta",
+      "summary": "Navegación lateral de aplicación con grupos plegables, subpáginas, modo mini con tooltips, insignias, página actual y favoritos.",
+      "purpose": "Llevar al usuario a cualquier sección de una aplicación con muchas páginas (CRM, ERP, panel de administración): grupos con encabezado plegable, un nivel de subpáginas que se abre solo cuando la página actual está dentro, insignias con pendientes, `aria-current=\"page\"` en la página actual, modo mini de 64 px con el nombre en tooltip y un menú para las subpáginas, favoritos fijados en su propio grupo, enlaces de router con `linkComponent` y teclado completo (flechas, Inicio, Fin, derecha e izquierda para abrir y cerrar padres).",
+      "whenNot": "Para pocas secciones dentro de una misma página usa `CnTabs`; para un panel de detalle o filtros a un lado usa `CnDrawer`; para la estructura completa con barra superior y cajón móvil usa `CnAppShell`, que ya la incluye.",
+      "neighbors": "Usa `CnIcon` para los íconos. `CnAppShell` la controla (modo mini en escritorio y dentro de un cajón en móvil); `CnTopBar` pone el botón que la abre o la contrae; `CnCommandPalette` ofrece las mismas páginas desde el teclado.",
+      "related": ["CnSidebarNavSkeleton"]
+    },
+    {
       "name": "CnTabs",
       "category": "navegacion",
       "domains": ["general", "erp", "crm"],
@@ -951,6 +973,28 @@
       "whenNot": "Para elegir un valor que forma parte de un formulario o filtro usa `CnSegmentedField`; para pasos secuenciales con validación usa `CnForm` con `variant=\"wizard\"`; para mostrar y ocultar bloques de contenido dentro de una página usa `CnSectionCard` con `collapsible`; para navegación principal de la aplicación usa el menú del layout, no pestañas.",
       "neighbors": "`CnForm` (`variant=\"tabbed\"`) lo usa para repartir formularios largos en pestañas (marcando las que tienen errores) y `CnNotificationCenter` para sus filtros. Suele vivir en `headerExtra` de `CnPageContainer`. Visualmente se parece a `CnSegmentedField`, pero las pestañas cambian la vista y el segmentado cambia un valor.",
       "related": ["CnTabsSkeleton"]
+    },
+    {
+      "name": "CnTopBar",
+      "category": "navegacion",
+      "domains": ["general", "erp", "crm", "cms", "dashboards"],
+      "status": "beta",
+      "summary": "Barra superior de aplicación: botón de menú, marca, título, búsqueda con atajo, acciones y menú de usuario; se compacta según el ancho del contenedor.",
+      "purpose": "Dar a cada pantalla de una aplicación el mismo encabezado: botón que abre o contrae la navegación (con `aria-expanded`), marca, título de la sección, un botón de búsqueda que abre la paleta de comandos y muestra su atajo (o una búsqueda propia), acciones como notificaciones o ayuda, y el menú del usuario con sus datos y acciones (las de salida, separadas y en rojo). Por debajo de `compactBelow` el título se oculta y la búsqueda pasa a ícono; la búsqueda propia se abre encima de la barra.",
+      "whenNot": "Para el encabezado de una página con migas, título y acciones usa `CnPageContainer`; para filtrar una lista usa `CnSearchField`; para filtrar o buscar dentro de una lista o tabla usa `CnSearchField`.",
+      "neighbors": "Compone `CnAvatar` (usuario) e `CnIcon`; acepta un `CnSearchField` en `search` y un `CnNotificationCenter` o botones con `CnBadge` en `actions`. `CnAppShell` la conecta con `CnSidebarNav` y `CnCommandPalette`.",
+      "related": ["CnTopBarSkeleton"]
+    },
+    {
+      "name": "CnAppShell",
+      "category": "layout",
+      "domains": ["general", "erp", "crm", "cms", "dashboards", "rrhh", "pos"],
+      "status": "beta",
+      "summary": "Estructura de aplicación: navegación lateral, barra superior, contenido con scroll propio, cajón en móvil y paleta de comandos.",
+      "purpose": "Armar el marco de una aplicación en una sola pieza: `CnSidebarNav` fija a la izquierda (el botón de menú de `CnTopBar` la pasa a modo mini), contenido con scroll propio en un `main`, enlace «Saltar al contenido», y por debajo de `mobileBelow` (medido en el contenedor, no en la ventana) la navegación pasa a un cajón que se cierra al navegar y la barra se compacta. Con `commandPalette`, Ctrl + K y el botón de búsqueda abren `CnCommandPalette`. Modo mini y cajón pueden ser controlados.",
+      "whenNot": "Para el marco de una sola página (título, migas, acciones) usa `CnPageContainer` dentro del shell; para un sitio público con menú grande usa un encabezado de sitio, no `CnAppShell`; para un panel lateral de contenido usa `CnDrawer`.",
+      "neighbors": "Compone `CnSidebarNav`, `CnTopBar` y `CnCommandPalette`, y en móvil usa el cajón de MUI que también usa `CnDrawer`. Dentro del contenido va `CnPageContainer`.",
+      "related": ["CnAppShellSkeleton"]
     },
     {
       "name": "CnCard",

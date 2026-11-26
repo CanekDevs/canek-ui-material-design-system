@@ -1,0 +1,81 @@
+import type { CnCommand } from "./command-utils";
+
+/** Comandos de ejemplo de un CRM (historias y pruebas de `CnCommandPalette` y `CnAppShell`). */
+export const CRM_COMMANDS: CnCommand[] = [
+  { id: "ir-inicio", label: "Inicio", group: "Páginas", icon: "home", href: "#inicio" },
+  {
+    id: "ir-contactos",
+    label: "Contactos",
+    group: "Páginas",
+    icon: "contacts",
+    href: "#contactos",
+    keywords: ["clientes", "personas"],
+  },
+  {
+    id: "ir-empresas",
+    label: "Empresas",
+    group: "Páginas",
+    icon: "business",
+    href: "#empresas",
+    keywords: ["cuentas"],
+  },
+  {
+    id: "ir-embudo",
+    label: "Embudo de ventas",
+    group: "Páginas",
+    icon: "attach_money",
+    href: "#embudo",
+    keywords: ["pipeline", "oportunidades"],
+  },
+  { id: "ir-reportes", label: "Reportes", group: "Páginas", icon: "bar_chart", href: "#reportes" },
+  {
+    id: "nuevo-contacto",
+    label: "Crear contacto",
+    group: "Acciones",
+    icon: "person_add",
+    hotkey: "mod+shift+c",
+  },
+  {
+    id: "nueva-oportunidad",
+    label: "Crear oportunidad",
+    group: "Acciones",
+    icon: "add_circle",
+    hotkey: "mod+shift+o",
+  },
+  { id: "nueva-tarea", label: "Crear tarea", group: "Acciones", icon: "check_circle" },
+  {
+    id: "importar",
+    label: "Importar contactos desde CSV",
+    group: "Acciones",
+    icon: "file_upload",
+    disabled: true,
+  },
+  {
+    id: "tema",
+    label: "Cambiar a modo oscuro",
+    group: "Acciones",
+    icon: "dark_mode",
+    keywords: ["tema", "noche"],
+  },
+  {
+    id: "c-lucia",
+    label: "Lucía Méndez",
+    group: "Contactos",
+    icon: "person",
+    description: "Directora de compras · Grupo Bajío",
+  },
+  {
+    id: "c-andres",
+    label: "Andrés Núñez",
+    group: "Contactos",
+    icon: "person",
+    description: "andres.nunez@ferremex.mx",
+  },
+  {
+    id: "e-ferremex",
+    label: "Ferremex del Norte",
+    group: "Empresas",
+    icon: "business",
+    description: "Monterrey · 12 oportunidades abiertas",
+  },
+];
