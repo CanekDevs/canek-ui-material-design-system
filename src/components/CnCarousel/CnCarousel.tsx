@@ -834,7 +834,10 @@ export function CnCarousel<T = unknown>({
                 backgroundColor: "var(--cn-color-surface, #ffffff)",
                 color: "var(--cn-color-text, #222831)",
                 boxShadow: "var(--cn-shadow-md, 0 4px 12px rgba(15, 23, 42, 0.12))",
-                "&:hover": { backgroundColor: "var(--cn-color-neutral-100, #f4f5f7)" },
+                "&:hover": {
+                  backgroundColor:
+                    "var(--cn-color-tone-neutral-soft, var(--cn-color-neutral-100, #f4f5f7))",
+                },
                 "&.Mui-disabled": { opacity: 0, pointerEvents: "none" },
               }
             : {}),
@@ -896,13 +899,15 @@ export function CnCarousel<T = unknown>({
                 height: 8,
                 borderRadius: "999px",
                 backgroundColor: withTimer
-                  ? "var(--cn-color-brand-200, #b5c8e6)"
+                  ? "var(--cn-color-indicator-track, var(--cn-color-brand-200, #b5c8e6))"
                   : active
-                    ? "var(--cn-color-brand-500, #3562a6)"
-                    : "var(--cn-color-neutral-300, #c5cad0)",
+                    ? "var(--cn-color-indicator-active, var(--cn-color-brand-500, #3562a6))"
+                    : "var(--cn-color-indicator, var(--cn-color-neutral-300, #c5cad0))",
                 transition: reduced ? "none" : "width 200ms ease, background-color 200ms ease",
                 "&:hover": {
-                  backgroundColor: active ? undefined : "var(--cn-color-neutral-400, #9aa1aa)",
+                  backgroundColor: active
+                    ? undefined
+                    : "var(--cn-color-indicator-hover, var(--cn-color-neutral-400, #9aa1aa))",
                 },
                 "&.Mui-focusVisible": {
                   boxShadow: "var(--cn-shadow-focus, 0 0 0 3px rgba(80, 129, 196, 0.35))",
@@ -917,7 +922,8 @@ export function CnCarousel<T = unknown>({
                   sx={{
                     position: "absolute",
                     inset: 0,
-                    backgroundColor: "var(--cn-color-brand-500, #3562a6)",
+                    backgroundColor:
+                      "var(--cn-color-indicator-active, var(--cn-color-brand-500, #3562a6))",
                     ...timerFillSx,
                   }}
                 />
@@ -942,7 +948,8 @@ export function CnCarousel<T = unknown>({
           maxWidth: 240,
           height: 4,
           borderRadius: 2,
-          backgroundColor: "var(--cn-color-neutral-150, #e9ecef)",
+          backgroundColor:
+            "var(--cn-color-tone-neutral-soft-hover, var(--cn-color-neutral-150, #e9ecef))",
           overflow: "hidden",
         }}
       >
@@ -950,7 +957,7 @@ export function CnCarousel<T = unknown>({
           sx={{
             height: "100%",
             width: `${((current + visibleCount) / count) * 100}%`,
-            backgroundColor: "var(--cn-color-brand-500, #3562a6)",
+            backgroundColor: "var(--cn-color-indicator-active, var(--cn-color-brand-500, #3562a6))",
             borderRadius: 2,
             transition: reduced ? "none" : "width 260ms ease",
           }}
@@ -1005,7 +1012,7 @@ export function CnCarousel<T = unknown>({
                 overflow: "hidden",
                 opacity: active ? 1 : 0.6,
                 outline: active
-                  ? "2px solid var(--cn-color-brand-500, #3562a6)"
+                  ? "2px solid var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))"
                   : "1px solid var(--cn-color-border, #dde0e4)",
                 outlineOffset: active ? "1px" : "-1px",
                 transition: reduced ? "none" : "opacity 160ms ease",
@@ -1058,7 +1065,7 @@ export function CnCarousel<T = unknown>({
     "& > *": { flex: 1, minWidth: 0 },
     // Foco visible: la diapositiva se resalta cuando algo dentro tiene foco de teclado.
     "&:has(:focus-visible)": {
-      outline: "2px solid var(--cn-color-brand-500, #3562a6)",
+      outline: "2px solid var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
       outlineOffset: "-2px",
     },
   };
@@ -1149,7 +1156,8 @@ export function CnCarousel<T = unknown>({
                 boxShadow: "var(--cn-shadow-focus, 0 0 0 3px rgba(80, 129, 196, 0.35))",
               },
               "&:focus-visible > [data-active]": {
-                outline: "2px solid var(--cn-color-brand-500, #3562a6)",
+                outline:
+                  "2px solid var(--cn-color-field-accent, var(--cn-color-brand-500, #3562a6))",
                 outlineOffset: "-2px",
               },
               "& img": { WebkitUserDrag: "none" },
@@ -1204,14 +1212,16 @@ export function CnCarousel<T = unknown>({
             height: 2,
             borderRadius: 1,
             overflow: "hidden",
-            backgroundColor: "var(--cn-color-neutral-150, #e9ecef)",
+            backgroundColor:
+              "var(--cn-color-tone-neutral-soft-hover, var(--cn-color-neutral-150, #e9ecef))",
           }}
         >
           <Box
             key={current}
             sx={{
               height: "100%",
-              backgroundColor: "var(--cn-color-brand-500, #3562a6)",
+              backgroundColor:
+                "var(--cn-color-indicator-active, var(--cn-color-brand-500, #3562a6))",
               ...timerFillSx,
             }}
           />

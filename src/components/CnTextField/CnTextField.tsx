@@ -130,11 +130,14 @@ export type CnTextFieldProps = {
 };
 
 const STRENGTH_META = [
-  { label: "Muy débil", color: "var(--cn-color-error-500, #d63c3c)" },
-  { label: "Débil", color: "var(--cn-color-error-500, #d63c3c)" },
+  { label: "Muy débil", color: "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))" },
+  { label: "Débil", color: "var(--cn-color-field-error, var(--cn-color-error-500, #d63c3c))" },
   { label: "Regular", color: "var(--cn-color-warning-500, #e0a020)" },
   { label: "Buena", color: "var(--cn-color-success-500, #2e9e4f)" },
-  { label: "Fuerte", color: "var(--cn-color-success-600, #228740)" },
+  {
+    label: "Fuerte",
+    color: "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
+  },
 ] as const;
 
 const toDraft = (value: string | number | undefined | null): string =>
@@ -330,7 +333,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
           onMouseDown={(e) => e.preventDefault()}
           disabled={disabled}
           edge="end"
-          sx={{ color: "var(--cn-color-neutral-500, #6e7682)" }}
+          sx={{ color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))" }}
         >
           {passwordVisible
             ? (passwordVisibleIcon ?? <VisibilityOutlinedIcon fontSize="small" />)
@@ -347,7 +350,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
           onClick={handleClear}
           onMouseDown={(e) => e.preventDefault()}
           edge="end"
-          sx={{ color: "var(--cn-color-neutral-500, #6e7682)" }}
+          sx={{ color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))" }}
         >
           <ClearIcon fontSize="small" />
         </IconButton>,
@@ -481,7 +484,7 @@ export const CnTextField = forwardRef<HTMLDivElement, CnTextFieldProps>(function
                   backgroundColor:
                     strength.score >= step
                       ? STRENGTH_META[strength.score].color
-                      : "var(--cn-color-neutral-150, #e9ecef)",
+                      : "var(--cn-color-tone-neutral-soft-hover, var(--cn-color-neutral-150, #e9ecef))",
                   transition: "background-color 160ms ease",
                 }}
               />

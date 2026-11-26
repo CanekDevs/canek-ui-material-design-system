@@ -223,7 +223,7 @@ const BadgePill = ({ badge }: { badge: CnListBadge }) => {
         fontSize: "0.66rem",
         fontWeight: 700,
         lineHeight: 1,
-        color: "var(--cn-color-neutral-0, #ffffff)",
+        color: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
         backgroundColor: color,
         fontVariantNumeric: "tabular-nums",
       }}
@@ -234,11 +234,11 @@ const BadgePill = ({ badge }: { badge: CnListBadge }) => {
 };
 
 const ACTION_COLORS: Record<NonNullable<CnListItemAction["color"]>, string> = {
-  default: "var(--cn-color-neutral-600, #4e5660)",
-  primary: "var(--cn-color-brand-600, #254d87)",
-  success: "var(--cn-color-success-600, #228740)",
-  warning: "var(--cn-color-warning-600, #b8831a)",
-  error: "var(--cn-color-error-600, #b52f2f)",
+  default: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+  primary: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
+  success: "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
+  warning: "var(--cn-color-control-warning-fg, var(--cn-color-warning-600, #b8831a))",
+  error: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
 };
 
 const stop = (event: SyntheticEvent) => event.stopPropagation();
@@ -306,7 +306,7 @@ const ItemActions = ({
             aria-haspopup="menu"
             aria-expanded={Boolean(anchor) || undefined}
             onClick={(event) => setAnchor(event.currentTarget)}
-            sx={{ color: "var(--cn-color-neutral-500, #6e7682)" }}
+            sx={{ color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))" }}
           >
             <CnIcon name="more_vert" size="sm" />
           </IconButton>
@@ -421,7 +421,7 @@ const SwipeBackground = ({
         justifyContent: side === "right" ? "flex-start" : "flex-end",
         gap: "8px",
         px: "20px",
-        color: "var(--cn-color-neutral-0, #ffffff)",
+        color: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
         backgroundColor: token.solid,
         opacity: armed ? 1 : 0.8,
         fontSize: "0.78rem",
@@ -619,7 +619,9 @@ export const CnListItem = forwardRef<HTMLDivElement, CnListItemProps>(function C
         ...(isCard && { borderColor: "var(--cn-color-brand-400, #5081c4)" }),
       }),
       ...(active && {
-        "& [data-cn-list-title]": { color: "var(--cn-color-brand-700, #1c3d6d)" },
+        "& [data-cn-list-title]": {
+          color: "var(--cn-color-control-primary-fg-strong, var(--cn-color-brand-700, #1c3d6d))",
+        },
         ...(!isInset &&
           !isCard && { boxShadow: "inset 3px 0 0 var(--cn-color-brand-600, #254d87)" }),
       }),
@@ -763,10 +765,12 @@ export const CnListItem = forwardRef<HTMLDivElement, CnListItemProps>(function C
             width: 20,
             mr: "-4px",
             alignSelf: "center",
-            color: "var(--cn-color-neutral-400, #9aa1aa)",
+            color: "var(--cn-color-text-subtle, var(--cn-color-neutral-400, #9aa1aa))",
             borderRadius: "4px",
             flexShrink: 0,
-            "&:hover": { color: "var(--cn-color-neutral-600, #4e5660)" },
+            "&:hover": {
+              color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
+            },
             "&:focus-visible": {
               outline: "none",
               boxShadow: "0 0 0 2px var(--cn-color-brand-500, #3562a6)",
@@ -792,7 +796,10 @@ export const CnListItem = forwardRef<HTMLDivElement, CnListItemProps>(function C
                 onToggleExpand?.();
               }}
               onKeyDown={stopKeys}
-              sx={{ p: "2px", color: "var(--cn-color-neutral-500, #6e7682)" }}
+              sx={{
+                p: "2px",
+                color: "var(--cn-color-text-muted, var(--cn-color-neutral-500, #6e7682))",
+              }}
             >
               <CnIcon
                 name="chevron_right"
@@ -885,7 +892,7 @@ export const CnListItem = forwardRef<HTMLDivElement, CnListItemProps>(function C
                 lineHeight: 1.4,
                 whiteSpace: "nowrap",
                 color: unread
-                  ? "var(--cn-color-brand-600, #254d87)"
+                  ? "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))"
                   : "var(--cn-color-text-muted, #6e7682)",
                 fontWeight: unread ? 700 : 500,
                 fontVariantNumeric: "tabular-nums",
@@ -1039,7 +1046,7 @@ export const CnListSubheader = forwardRef<HTMLDivElement, CnListSubheaderProps>(
                 : "var(--cn-color-surface, #ffffff)",
             borderBottom:
               variant === "card" ? "none" : "1px solid var(--cn-color-border-subtle, #eceef1)",
-            color: "var(--cn-color-neutral-600, #4e5660)",
+            color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
             fontFamily: "var(--cn-font-sans, system-ui, sans-serif)",
             outline: "none",
             userSelect: "none",
@@ -1107,7 +1114,7 @@ export const CnListSubheader = forwardRef<HTMLDivElement, CnListSubheaderProps>(
               borderRadius: "999px",
               fontSize: "0.68rem",
               fontWeight: 700,
-              color: "var(--cn-color-neutral-600, #4e5660)",
+              color: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
               backgroundColor: "rgba(var(--cn-color-rgb-neutral-500, 110, 118, 130), 0.12)",
               fontVariantNumeric: "tabular-nums",
             }}

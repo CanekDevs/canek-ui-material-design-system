@@ -40,42 +40,42 @@ type ColorTokens = { bg: string; fg: string; rgb: string };
 const COLOR_TOKENS: Record<CnBadgeColor, ColorTokens> = {
   primary: {
     bg: "var(--cn-color-brand-600, #254d87)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-brand-600, 37, 77, 135)",
   },
   secondary: {
     bg: "var(--cn-color-neutral-700, #363d45)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-neutral-700, 54, 61, 69)",
   },
   success: {
     bg: "var(--cn-color-success-600, #228740)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-success-600, 34, 135, 64)",
   },
   warning: {
     bg: "var(--cn-color-warning-600, #b8831a)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-warning-600, 184, 131, 26)",
   },
   error: {
     bg: "var(--cn-color-error-600, #b52f2f)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-error-600, 181, 47, 47)",
   },
   info: {
     bg: "var(--cn-color-info-600, #2367a8)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-info-600, 35, 103, 168)",
   },
   accent: {
     bg: "var(--cn-color-accent-500, #3d5afe)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-accent-500, 61, 90, 254)",
   },
   neutral: {
     bg: "var(--cn-color-neutral-600, #4e5660)",
-    fg: "var(--cn-color-neutral-0, #ffffff)",
+    fg: "var(--cn-color-tone-on-solid, var(--cn-color-neutral-0, #ffffff))",
     rgb: "var(--cn-color-rgb-neutral-600, 78, 86, 96)",
   },
 };

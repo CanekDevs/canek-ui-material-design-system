@@ -102,42 +102,42 @@ export const formatFullDate = (value: Date | string | number) => {
 
 export const COLOR_TOKENS: Record<CnListColor, { fg: string; bg: string; solid: string }> = {
   primary: {
-    fg: "var(--cn-color-brand-600, #254d87)",
+    fg: "var(--cn-color-control-primary-fg, var(--cn-color-brand-600, #254d87))",
     bg: "rgba(var(--cn-color-rgb-brand-500, 53, 98, 166), 0.10)",
     solid: "var(--cn-color-brand-600, #254d87)",
   },
   secondary: {
-    fg: "var(--cn-color-neutral-700, #363d45)",
+    fg: "var(--cn-color-control-secondary-fg, var(--cn-color-neutral-700, #363d45))",
     bg: "rgba(var(--cn-color-rgb-neutral-600, 78, 86, 96), 0.10)",
     solid: "var(--cn-color-neutral-700, #363d45)",
   },
   success: {
-    fg: "var(--cn-color-success-600, #228740)",
+    fg: "var(--cn-color-control-success-fg, var(--cn-color-success-600, #228740))",
     bg: "rgba(var(--cn-color-rgb-success-500, 46, 158, 79), 0.10)",
     solid: "var(--cn-color-success-600, #228740)",
   },
   warning: {
-    fg: "var(--cn-color-warning-600, #b8831a)",
+    fg: "var(--cn-color-control-warning-fg, var(--cn-color-warning-600, #b8831a))",
     bg: "rgba(var(--cn-color-rgb-warning-500, 224, 160, 32), 0.12)",
     solid: "var(--cn-color-warning-600, #b8831a)",
   },
   error: {
-    fg: "var(--cn-color-error-600, #b52f2f)",
+    fg: "var(--cn-color-control-error-fg, var(--cn-color-error-600, #b52f2f))",
     bg: "rgba(var(--cn-color-rgb-error-500, 214, 60, 60), 0.10)",
     solid: "var(--cn-color-error-600, #b52f2f)",
   },
   info: {
-    fg: "var(--cn-color-info-600, #2367a8)",
+    fg: "var(--cn-color-control-info-fg, var(--cn-color-info-600, #2367a8))",
     bg: "rgba(var(--cn-color-rgb-info-500, 44, 123, 200), 0.10)",
     solid: "var(--cn-color-info-600, #2367a8)",
   },
   accent: {
-    fg: "var(--cn-color-accent-500, #3d5afe)",
+    fg: "var(--cn-color-control-accent-fg, var(--cn-color-accent-500, #3d5afe))",
     bg: "rgba(var(--cn-color-rgb-accent-500, 61, 90, 254), 0.10)",
     solid: "var(--cn-color-accent-500, #3d5afe)",
   },
   neutral: {
-    fg: "var(--cn-color-neutral-600, #4e5660)",
+    fg: "var(--cn-color-control-neutral-fg, var(--cn-color-neutral-600, #4e5660))",
     bg: "rgba(var(--cn-color-rgb-neutral-500, 110, 118, 130), 0.10)",
     solid: "var(--cn-color-neutral-500, #6e7682)",
   },
